@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { index } from "drizzle-orm/sqlite-core";
 import { createTable } from "../schema";
 
@@ -18,11 +18,6 @@ export const user = createTable("user", (d) => ({
     .default(sql`(unixepoch())`)
     .notNull(),
   updatedAt: d.integer({ mode: "timestamp" }).$onUpdate(() => new Date()),
-}));
-
-export const userRelations = relations(user, ({ many }) => ({
-  account: many(account),
-  session: many(session),
 }));
 
 export const account = createTable(
@@ -55,10 +50,6 @@ export const account = createTable(
   (t) => [index("account_user_id_idx").on(t.userId)],
 );
 
-export const accountRelations = relations(account, ({ one }) => ({
-  user: one(user, { fields: [account.userId], references: [user.id] }),
-}));
-
 export const session = createTable(
   "session",
   (d) => ({
@@ -83,10 +74,6 @@ export const session = createTable(
   }),
   (t) => [index("session_user_id_idx").on(t.userId)],
 );
-
-export const sessionRelations = relations(session, ({ one }) => ({
-  user: one(user, { fields: [session.userId], references: [user.id] }),
-}));
 
 export const verification = createTable(
   "verification",

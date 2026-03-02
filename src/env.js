@@ -7,12 +7,16 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    BETTER_AUTH_URL: z.string().url(),
     BETTER_AUTH_SECRET:
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
     TURSO_DATABASE_URL: z.string().url(),
     TURSO_AUTH_TOKEN: z.string().min(1),
+    SPOTIFY_CLIENT_ID: z.string().min(1),
+    SPOTIFY_CLIENT_SECRET: z.string().min(1),
+    SPOTIFY_REDIRECT_URI: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -32,10 +36,14 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     NODE_ENV: process.env.NODE_ENV,
     TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL,
     TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
+    SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
+    SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
+    SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

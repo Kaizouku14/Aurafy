@@ -6,55 +6,30 @@
 
 ## 📖 Overview
 
-Aurafy is a full-stack web app that combines **AI-powered mood detection**, **Spotify playlist generation**, and **study productivity tools** into one cohesive experience. Tell the AI how you're feeling, get a playlist that matches your mood, and kick off a focused study session — all in one place.
+Aurafy is a full-stack web application that combines **AI-powered mood detection**,  
+**Spotify playlist generation**, and **study productivity tools** into one cohesive experience.
+
+Users describe how they’re feeling in natural language, the AI infers their mood, generates a matching playlist, and helps them stay productive using focus and study tools — all in one app.
 
 ---
 
 ## ✨ Features
 
-### 🎵 Mood-to-Playlist
-- Chat-based mood detection powered by Grok (xAI)
-- AI infers emotional state and returns structured JSON output
-- Deterministic mood → music attribute mapping
-- Automatic Spotify playlist generation
-- Mood and playlist history
-
-### 📚 Study Tools
-- **Pomodoro Timer** — 25 min work / 5 min break sessions with automatic playlist launching
-- **Active Recall Flashcards** — See the front of a card, type your answer, and let the AI evaluate your response against the correct answer; scores feed directly into the SM-2 scheduler
-- **Spaced Repetition** — SM-2 algorithm with exam-date-aware scheduling; intervals are automatically capped so no card slips past your deadline
-- **AI Study Planner** — generates a study plan based on your subject, deadline, and available hours
-
-### 🤖 AI Integrations
-- Mood detection from natural conversation
-- Real-time playlist energy adjustment based on mood shifts
-- Flashcard generator from uploaded files (PDF, DOCX, TXT) or pasted text
-- File text extraction via pdf-parse (PDF) and mammoth (DOCX)
-- Open-ended flashcard answer evaluation
-- Optimal Pomodoro session length suggestions based on current mood
-- Weekly mood and study recap summaries
+### 🎵 Mood-to-Playlist & Playback
+- Ultra-low latency chat powered by **Groq** via the **Vercel AI SDK**
+- Deterministic mood → Spotify audio attribute mapping (energy, valence, tempo)
+- Adaptive playback:
+  - **Premium Users** — Floating Mini-Player with autoplay and AI commands
+  - **Free / Guest Users** — Song cards with 30-second previews and Spotify embeds
+- Mood and playlist history per session
 
 ---
 
-## 🏗️ Architecture
-
-```
-User
- ↓
-Chat UI (Next.js)
- ↓
-Vercel AI SDK
- ↓
-Grok LLM (xAI)
- ↓
-Mood JSON { mood, energy, valence, confidence }
- ↓
-Mood → Music Attribute Mapping
- ↓
-Spotify Web API
- ↓
-Playlist Link 🎶
-```
+### 📚 Study Tools
+- **Pomodoro Timer** — 25 / 5 focus cycles with automatic playlist launching
+- **Active Recall Flashcards** — Open-ended answers evaluated by AI
+- **Spaced Repetition (SM-2)** — Exam-date-aware scheduling
+- **AI Study Planner** — Generates adaptive study plans based on deadlines and availability
 
 ---
 
@@ -62,27 +37,30 @@ Playlist Link 🎶
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 14 (App Router) |
+| Framework | Next.js (App Router) |
 | Language | TypeScript |
 | Styling | Tailwind CSS + Shadcn/UI |
 | Animations | Framer Motion |
 | API Layer | tRPC |
 | AI SDK | Vercel AI SDK |
-| LLM | Grok via xAI |
+| LLM Provider | Groq |
+| Models | meta-llama/llama-4-scout-17b-16e-instruct, qwen/qwen3-32b |
 | ORM | Drizzle ORM |
+| Database | Turso (SQLite) |
 | Auth | Better Auth |
-| Database | PostgreSQL (via Supabase) |
 | Music API | Spotify Web API |
-| File Parsing | pdf-parse, mammoth |
+| File Parsing | pdf-parse |
 | Deployment | Vercel |
 
 ---
 
 ## 🤖 Mood Detection
 
-The AI is prompted to infer the user's mood from natural conversation and return **JSON only**.
+Aurafy detects mood through **natural conversation** rather than predefined inputs.
 
-### Example AI Output
+The AI analyzes user messages and returns **structured JSON only**, ensuring deterministic behavior and safe parsing.
+
+### Example Output
 
 ```json
 {
@@ -91,7 +69,6 @@ The AI is prompted to infer the user's mood from natural conversation and return
   "valence": 0.6,
   "confidence": 0.85
 }
-```
 
 ### Mood → Music Mapping
 
@@ -145,11 +122,11 @@ Aurafy uses **AI-evaluated open-ended answers** rather than simple card flipping
 Users can populate a deck in two ways:
 
 ```
-Option A — Upload a file (PDF, DOCX, TXT)
+Option A — Upload a file (PDF)
   ↓
-Text extracted on the server (pdf-parse / mammoth)
+Text extracted on the server (pdf-parse)
   ↓
-Sent to Grok → returns structured flashcard JSON
+Sent to Groq → returns structured flashcard JSON
 
 Option B — Paste text directly
   ↓
@@ -158,7 +135,7 @@ Text sent to Grok → returns structured flashcard JSON
 
 Both methods produce the same output — a list of `{ front, back }` cards saved to the `flashcards` table under the deck.
 
-### Grok Prompt (Flashcard Generation)
+### Groq Prompt (Flashcard Generation)
 
 ```ts
 const prompt = `
@@ -173,37 +150,6 @@ ${extractedText}
 `
 ```
 
-### tRPC Router (Flashcard Generation)
-
-```ts
-generateFlashcards: protectedProcedure
-  .input(z.object({
-    deckId: z.string(),
-    text: z.string(),   // extracted from file or pasted directly
-    count: z.number().min(5).max(50).default(10),
-  }))
-  .mutation(async ({ ctx, input }) => {
-    const completion = await grok.chat.completions.create({
-      model: "grok-2",
-      messages: [{ role: "user", content: buildPrompt(input.text, input.count) }],
-    });
-
-    const cards: { front: string; back: string }[] = JSON.parse(
-      completion.choices[0].message.content ?? "[]"
-    );
-
-    await ctx.db.insert(flashcards).values(
-      cards.map((card) => ({
-        deckId: input.deckId,
-        front: card.front,
-        back: card.back,
-      }))
-    );
-
-    return { count: cards.length };
-  });
-```
-
 ### Review Flow
 
 ```
@@ -211,7 +157,7 @@ User sees card front (question)
  ↓
 User types their answer freely
  ↓
-Grok evaluates answer vs. correct back of card
+Groq evaluates answer vs. correct back of card
  ↓
 Returns quality score (0–5)
  ↓
@@ -231,44 +177,6 @@ SM-2 uses score to schedule next review date
 
 The AI accepts rephrased or partially correct answers gracefully — it evaluates **understanding**, not exact wording.
 
----
-
-## 📁 Project Structure
-
-```
-aurafy/
-├── app/
-│   ├── (auth)/
-│   │   ├── login/
-│   │   └── register/
-│   ├── (dashboard)/
-│   │   ├── chat/          # Mood detection chat
-│   │   ├── playlist/      # Playlist history
-│   │   └── study/
-│   │       ├── pomodoro/  # Pomodoro timer
-│   │       ├── flashcards/# Active recall flashcards
-│   │       └── schedule/  # Spaced repetition schedule
-│   └── api/
-│       └── trpc/
-├── components/
-│   ├── chat/
-│   ├── playlist/
-│   └── study/
-├── server/
-│   ├── api/
-│   │   └── routers/
-│   ├── auth/
-│   └── db/
-│       └── schema/        # Drizzle schema
-├── lib/
-│   ├── mood-mapping.ts    # Mood → music attributes
-│   ├── spotify.ts         # Spotify API client
-│   ├── sm2.ts             # Spaced repetition algorithm (exam-date aware)
-│   └── file-parser.ts     # PDF, DOCX, TXT text extraction
-└── drizzle.config.ts
-```
-
----
 
 ## 🗄️ Database Schema
 
@@ -288,9 +196,9 @@ aurafy/
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL database (Supabase free tier recommended)
+- Turso SQLite database
 - Spotify Developer account
-- xAI API key (for Grok)
+- Groq API key
 
 ### Installation
 
@@ -310,14 +218,14 @@ cp .env.example .env.local
 
 ```env
 # Database
-DATABASE_URL=your_supabase_postgres_connection_string
+DATABASE_URL=your_turso_sqlite_connection_string
 
 # Better Auth
 BETTER_AUTH_SECRET=your_secret_key
 BETTER_AUTH_URL=http://localhost:3000
 
-# xAI (Grok)
-XAI_API_KEY=your_xai_api_key
+# Groq 
+GROQ_API_KEY=your_groq_api_key
 
 # Spotify
 SPOTIFY_CLIENT_ID=your_spotify_client_id

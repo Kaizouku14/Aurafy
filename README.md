@@ -19,6 +19,7 @@ Users describe how they're feeling in natural language, the AI infers their mood
 - Ultra-low latency chat powered by **Groq** via the **Vercel AI SDK**
 - Deterministic mood → Spotify audio attribute mapping (energy, valence, tempo)
 - Song list generated based on detected mood + user listening history preferences
+- **Song search via chat** — users can say "play me X by Y" and Aurafy searches Spotify and plays it immediately
 - Adaptive in-app playback via a **custom Mini-Player modal** (no redirects to Spotify):
   - **Premium Users** — Full song autoplay queue, seek, skip, and volume controls
   - **Free Users** — Same Mini-Player UI with 30-second preview autoplay queue + "Open in Spotify" button per track
@@ -63,7 +64,7 @@ Models are defined as constants for maintainability:
 ```ts
 // lib/models.ts
 export const MODELS = {
-  mood: "meta-llama/llama-4-scout-17b-16e-instruct",      // mood detection + flashcard generation
+  mood: "meta-llama/llama-4-scout-17b-16e-instruct",       // mood detection + chat intent
   flashcards: "meta-llama/llama-4-scout-17b-16e-instruct", // flashcard generation from text/PDF
   evaluation: "qwen/qwen3-32b",                            // flashcard answer evaluation (reasoning)
 } as const;
@@ -80,6 +81,7 @@ export const MODELS = {
 | Feature | SDK Function |
 |---|---|
 | Mood detection | `generateObject` (Zod-validated) |
+| Chat intent detection | `generateObject` (Zod-validated) |
 | Chat streaming | `streamText` |
 | Flashcard generation | `generateObject` (Zod-validated) |
 | Answer evaluation | `generateText` |
@@ -123,6 +125,29 @@ Spotify OAuth is required to use Aurafy. It serves dual purposes:
 - **Identity** — user authentication via Better Auth
 - **Music** — access token for Spotify API and Web Playback SDK
 
+### Chat Intent Detection
+
+Every user message is first classified before triggering any API calls:
+
+```ts
+const { object } = await generateObject({
+  model: groq(MODELS.mood),
+  schema: z.object({
+    intent: z.enum(["play_song", "play_mood", "other"]),
+    songTitle: z.string().optional(),
+    artist: z.string().optional(),
+  }),
+  prompt: `Extract intent and song info from: "${userMessage}"`,
+});
+```
+
+| User Says | Intent | Action |
+|---|---|---|
+| "I feel calm today" | `play_mood` | Detect mood → generate song list |
+| "Play me X by Y" | `play_song` | Search Spotify → play immediately |
+| "I'm stressed, play some jazz" | `play_mood` | Detect mood → generate song list |
+| General conversation | `other` | Reply conversationally — no Spotify call |
+
 ### Song List Generation
 Songs are fetched based on detected mood + user preferences (derived from playlist history):
 
@@ -164,6 +189,77 @@ const player = new window.Spotify.Player({
 ```
 
 The Mini-Player UI is **fully custom** (Tailwind + Shadcn) for both user types — no Spotify embeds.
+
+---
+
+## 🛡️ Rate Limiting Strategy
+
+To prevent excessive API calls to Groq and Spotify, Aurafy uses a layered approach:
+
+### 1. Intent Detection Before Spotify Calls
+Only call Spotify if the AI confirms a music-related intent — cuts unnecessary API calls significantly:
+
+```ts
+if (object.intent === "other") {
+  return replyConversationally(); // No Spotify call
+}
+// Only reaches here for play_song or play_mood
+```
+
+### 2. Confidence Threshold for Mood Detection
+Skip playlist generation if the AI isn't confident enough:
+
+```ts
+if (object.confidence < 0.6) {
+  return replyConversationally(); // Don't generate playlist
+}
+generatePlaylist(object.mood);
+```
+
+### 3. Cache Spotify Search Results in Turso
+Same query never hits the Spotify API twice:
+
+```ts
+// Check DB cache first
+const cached = await db.query.spotifyCache.findFirst({
+  where: eq(spotifyCache.query, searchQuery),
+});
+
+if (cached) return cached.trackData;
+
+// Cache miss — call Spotify and store result
+const result = await spotify.searchTracks(searchQuery);
+await db.insert(spotifyCache).values({ query: searchQuery, trackData: result });
+```
+
+### 4. Per-User Rate Limiting in tRPC Middleware
+Prevent a single user from spamming requests:
+
+```ts
+function checkRateLimit(userId: string, maxRequests = 10, windowMs = 60000) {
+  const now = Date.now();
+  const timestamps = rateLimiter.get(userId) ?? [];
+  const recent = timestamps.filter(t => now - t < windowMs);
+
+  if (recent.length >= maxRequests) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Slow down — too many requests",
+    });
+  }
+
+  rateLimiter.set(userId, [...recent, now]);
+}
+```
+
+### Summary
+
+| Strategy | Priority |
+|---|---|
+| Intent detection before Spotify calls | ✅ Must have |
+| Confidence threshold for mood detection | ✅ Must have |
+| Cache Spotify search results in Turso | ✅ Must have |
+| Per-user rate limiting in tRPC middleware | ✅ Must have |
 
 ---
 
@@ -271,6 +367,7 @@ The AI accepts rephrased or partially correct answers gracefully — it evaluate
 - **user_preferences** — stores favorite genres and playlist history for mood-based seed selection
 - **mood_sessions** — stores chat history and detected mood JSON per session
 - **playlists** — stores generated song lists tied to a mood session
+- **spotify_cache** — caches Spotify search results to reduce redundant API calls
 - **flashcard_decks** — groups of flashcards per subject, includes `examDate` for SM-2 interval capping
 - **flashcards** — individual cards with front, back, and SM-2 scheduling fields
 - **pomodoro_sessions** — logs completed Pomodoro sessions with linked playlist
@@ -344,10 +441,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - [ ] Spotify OAuth — authentication + music access
 - [ ] Core mood chat + song list generation
+- [ ] Chat intent detection (mood vs song request vs general)
 - [ ] Custom Mini-Player modal (Free: 30s previews, Premium: full playback)
+- [ ] Rate limiting — intent gating, confidence threshold, Spotify cache, per-user limits
 - [ ] Pomodoro timer with playlist integration
 - [ ] Active Recall flashcard system with AI answer evaluation
-- [ ] Flashcard generation from uploaded files (PDF) or pasted text
+- [ ] Flashcard generation from uploaded files (PDF, DOCX, TXT) or pasted text
 - [ ] Spaced Repetition scheduling (SM-2) with exam-date-aware intervals
 - [ ] AI study planner
 - [ ] Weekly mood and study recap

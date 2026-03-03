@@ -6,10 +6,10 @@
 
 ## 📖 Overview
 
-Aurafy is a full-stack web application that combines **AI-powered mood detection**,  
+Aurafy is a full-stack web application that combines **AI-powered mood detection**,
 **Spotify playlist generation**, and **study productivity tools** into one cohesive experience.
 
-Users describe how they’re feeling in natural language, the AI infers their mood, generates a matching playlist, and helps them stay productive using focus and study tools — all in one app.
+Users describe how they're feeling in natural language, the AI infers their mood, generates a matching song list, and helps them stay productive using focus and study tools — all in one app.
 
 ---
 
@@ -18,9 +18,11 @@ Users describe how they’re feeling in natural language, the AI infers their mo
 ### 🎵 Mood-to-Playlist & Playback
 - Ultra-low latency chat powered by **Groq** via the **Vercel AI SDK**
 - Deterministic mood → Spotify audio attribute mapping (energy, valence, tempo)
-- Adaptive playback:
-  - **Premium Users** — Floating Mini-Player with autoplay and AI commands
-  - **Free / Guest Users** — Song cards with 30-second previews and Spotify embeds
+- Song list generated based on detected mood + user listening history preferences
+- Adaptive in-app playback via a **custom Mini-Player modal** (no redirects to Spotify):
+  - **Premium Users** — Full song autoplay queue, seek, skip, and volume controls
+  - **Free Users** — Same Mini-Player UI with 30-second preview autoplay queue + "Open in Spotify" button per track
+- **Spotify OAuth is required** to use Aurafy — used for both authentication and music playback
 - Mood and playlist history per session
 
 ---
@@ -42,15 +44,45 @@ Users describe how they’re feeling in natural language, the AI infers their mo
 | Styling | Tailwind CSS + Shadcn/UI |
 | Animations | Framer Motion |
 | API Layer | tRPC |
-| AI SDK | Vercel AI SDK |
+| AI SDK | Vercel AI SDK (`ai`, `@ai-sdk/groq`) |
 | LLM Provider | Groq |
-| Models | meta-llama/llama-4-scout-17b-16e-instruct, qwen/qwen3-32b |
+| Models | See model strategy below |
 | ORM | Drizzle ORM |
 | Database | Turso (SQLite) |
-| Auth | Better Auth |
-| Music API | Spotify Web API |
+| Auth | Better Auth (Spotify OAuth) |
+| Music API | Spotify Web API + Web Playback SDK |
 | File Parsing | pdf-parse |
 | Deployment | Vercel |
+
+---
+
+## 🤖 AI Model Strategy
+
+Models are defined as constants for maintainability:
+
+```ts
+// lib/models.ts
+export const MODELS = {
+  mood: "meta-llama/llama-4-scout-17b-16e-instruct",      // mood detection + flashcard generation
+  flashcards: "meta-llama/llama-4-scout-17b-16e-instruct", // flashcard generation from text/PDF
+  evaluation: "qwen/qwen3-32b",                            // flashcard answer evaluation (reasoning)
+} as const;
+```
+
+| Use Case | Model | Reason |
+|---|---|---|
+| Mood detection | `meta-llama/llama-4-scout-17b-16e-instruct` | Fast, structured JSON output, function calling support |
+| Flashcard generation | `meta-llama/llama-4-scout-17b-16e-instruct` | Fast, reliable structured JSON output |
+| Answer evaluation | `qwen/qwen3-32b` | Reasoning model — evaluates conceptual understanding accurately |
+
+### Vercel AI SDK Usage Per Feature
+
+| Feature | SDK Function |
+|---|---|
+| Mood detection | `generateObject` (Zod-validated) |
+| Chat streaming | `streamText` |
+| Flashcard generation | `generateObject` (Zod-validated) |
+| Answer evaluation | `generateText` |
 
 ---
 
@@ -58,7 +90,7 @@ Users describe how they’re feeling in natural language, the AI infers their mo
 
 Aurafy detects mood through **natural conversation** rather than predefined inputs.
 
-The AI analyzes user messages and returns **structured JSON only**, ensuring deterministic behavior and safe parsing.
+The AI analyzes user messages and uses `generateObject` with a Zod schema for safe, typed output.
 
 ### Example Output
 
@@ -69,6 +101,7 @@ The AI analyzes user messages and returns **structured JSON only**, ensuring det
   "valence": 0.6,
   "confidence": 0.85
 }
+```
 
 ### Mood → Music Mapping
 
@@ -80,6 +113,57 @@ The AI analyzes user messages and returns **structured JSON only**, ensuring det
 | Energetic | 0.9 | 0.7 | Hip-hop, EDM |
 | Stressed | 0.6 | 0.3 | Classical, Jazz |
 | Focused | 0.4 | 0.5 | Instrumental, Lo-fi |
+
+---
+
+## 🎵 Playback Architecture
+
+### Authentication
+Spotify OAuth is required to use Aurafy. It serves dual purposes:
+- **Identity** — user authentication via Better Auth
+- **Music** — access token for Spotify API and Web Playback SDK
+
+### Song List Generation
+Songs are fetched based on detected mood + user preferences (derived from playlist history):
+
+```
+Mood detected
+    ↓
+Select seeds from mood-matching playlist history (max 5 total seeds)
+    ↓
+Fetch tracks via Spotify search or recommendations endpoint
+    ↓
+Display song list in UI
+    ↓
+User hits play → Mini-Player modal opens
+```
+
+### Tiered Playback
+
+| Feature | Free User | Premium User |
+|---|---|---|
+| See song list | ✅ Yes | ✅ Yes |
+| Mini-Player modal | ✅ Yes | ✅ Yes |
+| Autoplay queue | ✅ 30s previews | ✅ Full songs |
+| Seek / scrub | ❌ No | ✅ Yes |
+| Skip tracks | ✅ Yes | ✅ Yes |
+| Volume control | ✅ Yes | ✅ Yes |
+| "Open in Spotify" button | ✅ Yes | ✅ Yes |
+
+### Implementation
+
+```ts
+// Free users — plain <audio> tag with preview_url
+const audio = new Audio(track.preview_url);
+
+// Premium users — Spotify Web Playback SDK
+const player = new window.Spotify.Player({
+  name: "Aurafy Player",
+  getOAuthToken: (cb) => cb(accessToken),
+});
+```
+
+The Mini-Player UI is **fully custom** (Tailwind + Shadcn) for both user types — no Spotify embeds.
 
 ---
 
@@ -130,7 +214,7 @@ Sent to Groq → returns structured flashcard JSON
 
 Option B — Paste text directly
   ↓
-Text sent to Grok → returns structured flashcard JSON
+Text sent to Groq → returns structured flashcard JSON
 ```
 
 Both methods produce the same output — a list of `{ front, back }` cards saved to the `flashcards` table under the deck.
@@ -177,14 +261,16 @@ SM-2 uses score to schedule next review date
 
 The AI accepts rephrased or partially correct answers gracefully — it evaluates **understanding**, not exact wording.
 
+---
 
 ## 🗄️ Database Schema
 
 ### Core Tables
 
-- **users** — user accounts managed by Better Auth
+- **users** — user accounts managed by Better Auth (Spotify OAuth)
+- **user_preferences** — stores favorite genres and playlist history for mood-based seed selection
 - **mood_sessions** — stores chat history and detected mood JSON per session
-- **playlists** — stores generated Spotify playlist links tied to a mood session
+- **playlists** — stores generated song lists tied to a mood session
 - **flashcard_decks** — groups of flashcards per subject, includes `examDate` for SM-2 interval capping
 - **flashcards** — individual cards with front, back, and SM-2 scheduling fields
 - **pomodoro_sessions** — logs completed Pomodoro sessions with linked playlist
@@ -197,7 +283,7 @@ The AI accepts rephrased or partially correct answers gracefully — it evaluate
 
 - Node.js 18+
 - Turso SQLite database
-- Spotify Developer account
+- Spotify Developer account (OAuth app with `streaming`, `user-read-playback-state`, `user-modify-playback-state` scopes)
 - Groq API key
 
 ### Installation
@@ -224,7 +310,7 @@ DATABASE_URL=your_turso_sqlite_connection_string
 BETTER_AUTH_SECRET=your_secret_key
 BETTER_AUTH_URL=http://localhost:3000
 
-# Groq 
+# Groq
 GROQ_API_KEY=your_groq_api_key
 
 # Spotify
@@ -256,10 +342,12 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🔮 Roadmap
 
-- [ ] Core mood chat + Spotify playlist generation
+- [ ] Spotify OAuth — authentication + music access
+- [ ] Core mood chat + song list generation
+- [ ] Custom Mini-Player modal (Free: 30s previews, Premium: full playback)
 - [ ] Pomodoro timer with playlist integration
 - [ ] Active Recall flashcard system with AI answer evaluation
-- [ ] Flashcard generation from uploaded files (PDF, DOCX, TXT) or pasted text
+- [ ] Flashcard generation from uploaded files (PDF) or pasted text
 - [ ] Spaced Repetition scheduling (SM-2) with exam-date-aware intervals
 - [ ] AI study planner
 - [ ] Weekly mood and study recap

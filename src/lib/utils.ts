@@ -15,8 +15,9 @@ export function getErrorMessage(error: unknown): string {
   return "An unexpected error occurred";
 }
 
-export const formatTime = (seconds: number): string => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
+export const formatTime = (ms: number): string => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 };

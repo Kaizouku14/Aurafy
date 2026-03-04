@@ -16,7 +16,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = React.memo(({ message }) => {
         className={cn(
           "rounded-base max-w-[80%] border-2 px-3 py-2 text-sm",
           isUser
-            ? "bg-main text-main-foreground shadow-shadow border-black"
+            ? "bg-main text-main-foreground shadow-shadow border-border"
             : "bg-background border-border text-foreground",
         )}
       >

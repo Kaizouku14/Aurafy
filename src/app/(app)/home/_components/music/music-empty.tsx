@@ -3,8 +3,8 @@ import { Music } from "lucide-react";
 const MusicEmpty = () => {
   return (
     <div className="flex h-60 flex-col items-center justify-center gap-3 py-8">
-      <div className="bg-main shadow-shadow rounded-base flex size-12 items-center justify-center border-2 border-black">
-        <Music className="size-6 text-black" />
+      <div className="bg-main shadow-shadow rounded-base border-border flex size-12 items-center justify-center border-2">
+        <Music className="text-border size-6" />
       </div>
       <div className="text-center">
         <h2 className="font-heading text-main text-lg">No tracks yet</h2>

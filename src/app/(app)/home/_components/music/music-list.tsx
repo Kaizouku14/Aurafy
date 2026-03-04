@@ -10,33 +10,44 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Music, Play } from "lucide-react";
-import { cn, formatTime } from "@/lib/utils";
+import { Music } from "lucide-react";
 import MusicPlayer from "./music-player";
 import MusicEmpty from "./music-empty";
 import type { SpotifyTrack } from "@/types/spotify";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
+import MusicCard from "./music-card";
+import { usePlayerStore } from "@/store/play-store";
 
 interface MusicListProps {
   tracks: SpotifyTrack[];
 }
 
 const MusicList: React.FC<MusicListProps> = ({ tracks }) => {
-  const [selectedIndex, setSelectedIndex] = React.useState<number>(0);
+  const {
+    currentIndex,
+    isPlaying,
+    isMuted,
+    currentTime,
+    setTracks,
+    setCurrentIndex,
+    play,
+    pause,
+    mute,
+    next,
+    prev,
+  } = usePlayerStore();
 
   React.useEffect(() => {
-    setSelectedIndex(0);
+    if (tracks.length > 0) setTracks(tracks);
   }, [tracks]);
 
-  const selectedTrack = tracks[selectedIndex] ?? null;
+  const selectedTrack = tracks[currentIndex] ?? null;
 
   return (
-    <Card className="flex w-full max-w-md flex-col pt-1">
+    <Card className="w-full max-w-md pt-1">
       <CardHeader className="border-border border-b-2 py-4">
         <div className="flex items-center gap-3">
-          <div className="bg-main shadow-shadow rounded-base flex size-9 items-center justify-center border-2 border-black">
-            <Music className="size-5 text-black" />
+          <div className="bg-main shadow-shadow rounded-base border-border flex size-9 items-center justify-center border-2">
+            <Music className="text-border size-5" />
           </div>
           <div>
             <CardTitle className="text-foreground text-base">
@@ -50,59 +61,19 @@ const MusicList: React.FC<MusicListProps> = ({ tracks }) => {
       </CardHeader>
 
       <CardContent className="px-1">
-        <ScrollArea className="h-61">
+        <ScrollArea className="h-65">
           {tracks.length === 0 ? (
             <MusicEmpty />
           ) : (
-            <div className="flex flex-col gap-1 px-2">
+            <div className="flex flex-col gap-1 px-2.5">
               {tracks.map((track, index) => (
-                <Button
+                <MusicCard
                   key={track.id}
-                  type="button"
-                  onClick={() => setSelectedIndex(index)}
-                  className={cn(
-                    "rounded-base flex items-center gap-3 border-2 px-2 py-2 text-left transition-colors",
-                    selectedIndex === index
-                      ? "bg-main text-main-foreground shadow-shadow border-black"
-                      : "border-border bg-background text-foreground hover:bg-secondary-background",
-                  )}
-                >
-                  <div className="rounded-base flex size-10 shrink-0 items-center justify-center overflow-hidden border border-black">
-                    {track.cover ? (
-                      <Image
-                        src={track.cover}
-                        alt={track.album}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <Music className="text-muted-foreground size-4" />
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold">{track.title}</p>
-                    <p
-                      className={cn(
-                        "truncate text-xs",
-                        selectedIndex === index
-                          ? "text-main-foreground/70"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {track.artist}
-                    </p>
-                  </div>
-
-                  <div className="shrink-0">
-                    {selectedIndex === index ? (
-                      <Play className="size-3.5" />
-                    ) : (
-                      <span className="text-muted-foreground text-xs">
-                        {formatTime(track.duration)}
-                      </span>
-                    )}
-                  </div>
-                </Button>
+                  index={index}
+                  track={track}
+                  selectedIndex={currentIndex}
+                  setSelectedIndex={setCurrentIndex}
+                />
               ))}
             </div>
           )}
@@ -114,13 +85,17 @@ const MusicList: React.FC<MusicListProps> = ({ tracks }) => {
           title={selectedTrack?.title}
           artist={selectedTrack?.artist}
           cover={selectedTrack?.cover}
+          currentTime={currentTime}
           duration={
             selectedTrack ? Math.floor(selectedTrack.duration / 1000) : 0
           }
-          onNext={() =>
-            setSelectedIndex((i) => Math.min(i + 1, tracks.length - 1))
-          }
-          onPrev={() => setSelectedIndex((i) => Math.max(i - 1, 0))}
+          isPlaying={isPlaying}
+          isMuted={isMuted}
+          onPlay={play}
+          onPause={pause}
+          onMute={mute}
+          onNext={next}
+          onPrev={prev}
         />
       </CardFooter>
     </Card>

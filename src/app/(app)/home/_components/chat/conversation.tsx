@@ -54,11 +54,11 @@ const Conversation = ({ onTracksReceived }: ConversationProps) => {
   );
 
   return (
-    <Card className="flex w-full max-w-md flex-col pt-1">
+    <Card className="w-full max-w-md pt-1">
       <CardHeader className="border-border border-b-2 py-4">
         <div className="flex items-center gap-3">
-          <div className="bg-main shadow-shadow rounded-base flex size-9 items-center justify-center border-2 border-black">
-            <AudioLines className="size-5 text-black" />
+          <div className="bg-main shadow-shadow rounded-base border-border flex size-9 items-center justify-center border-2">
+            <AudioLines className="text-border size-5" />
           </div>
           <div>
             <CardTitle className="text-foreground text-base">
@@ -72,33 +72,31 @@ const Conversation = ({ onTracksReceived }: ConversationProps) => {
       </CardHeader>
 
       <CardContent className="px-1">
-        <ScrollArea ref={scrollRef} className="h-80">
-          <div className="flex flex-1 flex-col gap-3 px-3">
-            {messages.length === 0 ? (
-              <ChatEmpty onSuggestion={handleSend} />
-            ) : (
-              <>
-                {messages.map((message) => (
-                  <ChatBubble key={message.id} message={message} />
-                ))}
+        <ScrollArea ref={scrollRef} className="h-84">
+          {messages.length === 0 ? (
+            <ChatEmpty onSuggestion={handleSend} />
+          ) : (
+            <div className="flex flex-1 flex-col gap-3 px-3">
+              {messages.map((message) => (
+                <ChatBubble key={message.id} message={message} />
+              ))}
 
-                {status === "submitted" && (
-                  <div className="flex justify-start">
-                    <div className="rounded-base border-border bg-background text-muted-foreground flex items-center gap-2 border-2 px-3 py-2 text-sm">
-                      <Loader2 className="size-3 animate-spin" />
-                      Thinking...
-                    </div>
+              {status === "submitted" && (
+                <div className="flex justify-start">
+                  <div className="rounded-base border-border bg-background text-muted-foreground flex items-center gap-2 border-2 px-3 py-2 text-sm">
+                    <Loader2 className="size-3 animate-spin" />
+                    Thinking...
                   </div>
-                )}
+                </div>
+              )}
 
-                {error && (
-                  <div className="rounded-base border-border bg-background text-muted-foreground border-2 px-3 py-2 text-center text-sm">
-                    Something went wrong. Try again.
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+              {error && (
+                <div className="rounded-base border-border bg-background text-muted-foreground border-2 px-3 py-2 text-center text-sm">
+                  Something went wrong. Try again.
+                </div>
+              )}
+            </div>
+          )}
         </ScrollArea>
       </CardContent>
 

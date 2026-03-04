@@ -43,7 +43,7 @@ export const MOOD_MAP = {
     valence: 0.7,
     minTempo: 140,
     maxTempo: 160,
-    genres: ["hip-hop", "edm"],
+    genres: ["electronic", "hip-hop"],
   },
   stressed: {
     energy: 0.6,
@@ -57,7 +57,7 @@ export const MOOD_MAP = {
     valence: 0.5,
     minTempo: 80,
     maxTempo: 100,
-    genres: ["instrumental", "lo-fi"],
+    genres: ["study", "classical"],
   },
 } as const;
 

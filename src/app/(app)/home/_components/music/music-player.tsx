@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Play,
   Pause,
@@ -54,9 +56,15 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
   return (
     <div className="flex w-full flex-col gap-3">
       <div className="flex items-center gap-3">
-        <div className="bg-main/20 rounded-base flex size-10 shrink-0 items-center justify-center overflow-hidden border-2 border-black">
+        <div className="bg-main/20 rounded-base border-border flex size-10 shrink-0 items-center justify-center overflow-hidden border-2">
           {cover ? (
-            <Image src={cover} alt={title} className="size-full object-cover" />
+            <Image
+              src={cover}
+              alt={title}
+              width={40}
+              height={40}
+              className="size-full object-cover"
+            />
           ) : (
             <Play className="text-main size-4" />
           )}
@@ -69,9 +77,11 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
         <Button
           type="button"
+          variant="neutral"
+          size="icon"
           onClick={onMute}
           disabled={!hasSong}
-          className="text-muted-foreground hover:text-foreground disabled:opacity-40"
+          className="size-8 disabled:opacity-40"
         >
           {isMuted ? (
             <VolumeX className="size-4" />

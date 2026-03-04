@@ -1,5 +1,5 @@
 import { MOOD_MAP, type Mood } from "@/constants/chat";
-import { spotify } from "@/lib/spotify";
+import { createSpotifyClient } from "@/lib/spotify";
 import { getErrorMessage } from "@/lib/utils";
 import { db } from "@/server/db";
 import { account } from "@/server/db/schema";
@@ -26,20 +26,18 @@ const getSpotifyToken = async (userId: string) => {
 export const handleSpotifyMood = async (userId: string, mood: Mood) => {
   try {
     const accessToken = await getSpotifyToken(userId);
-    spotify.setAccessToken(accessToken);
+    const client = createSpotifyClient(accessToken);
 
     const params = MOOD_MAP[mood];
 
-    const { body } = await spotify.getRecommendations({
-      seed_genres: [...params.genres],
-      target_energy: params.energy,
-      target_valence: params.valence,
-      min_tempo: params.minTempo,
-      max_tempo: params.maxTempo,
-      limit: 10,
-    });
+    const results = await client.search(
+      `genre:${params.genres[0]} ${mood}`,
+      ["track"],
+      undefined,
+      10,
+    );
 
-    return (body.tracks ?? []).map((track) => ({
+    return results.tracks.items.map((track) => ({
       id: track.id,
       title: track.name,
       artist: track.artists.map((a) => a.name).join(", "),
@@ -50,13 +48,6 @@ export const handleSpotifyMood = async (userId: string, mood: Mood) => {
       previewUrl: track.preview_url,
     }));
   } catch (error) {
-    console.error("Spotify error:", {
-      message: (error as any)?.message,
-      statusCode: (error as any)?.statusCode,
-      body: JSON.stringify((error as any)?.body),
-      stack: (error as any)?.stack,
-    });
-
     if (error instanceof TRPCError) throw error;
 
     throw new TRPCError({
@@ -73,14 +64,16 @@ export const handleSpotifySong = async (
 ) => {
   try {
     const accessToken = await getSpotifyToken(userId);
-    spotify.setAccessToken(accessToken);
+    const client = createSpotifyClient(accessToken);
 
-    const { body } = await spotify.searchTracks(
+    const results = await client.search(
       `track:${songTitle} artist:${artist}`,
-      { limit: 5 },
+      ["track"],
+      undefined,
+      5,
     );
 
-    return (body.tracks?.items ?? []).map((track) => ({
+    return results.tracks.items.map((track) => ({
       id: track.id,
       title: track.name,
       artist: track.artists.map((a) => a.name).join(", "),

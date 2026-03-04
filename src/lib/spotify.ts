@@ -1,8 +1,10 @@
-import SpotifyWebApi from "spotify-web-api-node";
 import { env } from "@/env";
+import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 
-export const spotify = new SpotifyWebApi({
-  clientId: env.SPOTIFY_CLIENT_ID,
-  clientSecret: env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: env.SPOTIFY_REDIRECT_URI,
-});
+export const createSpotifyClient = (accessToken: string) =>
+  SpotifyApi.withAccessToken(env.SPOTIFY_CLIENT_ID!, {
+    access_token: accessToken,
+    token_type: "Bearer",
+    expires_in: 3600,
+    refresh_token: "",
+  });

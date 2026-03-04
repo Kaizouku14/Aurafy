@@ -1,144 +1,83 @@
 "use client";
-import React from "react";
 
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { api } from "@/trpc/react";
-import type { ChatMessage, ChatResponse } from "@/types/schema";
-import { sileo } from "sileo";
+import { Loader2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ChatBubble from "./chat-bubble";
+import ChatInput from "./chat-input";
+import ChatEmpty from "./chat-empty";
 
 const Conversation = () => {
-  const [message, setMessage] = React.useState<string>("");
-  const [history, setHistory] = React.useState<ChatMessage[]>([]);
-  const abortControllerRef = React.useRef<AbortController | null>(null);
+  const { messages, sendMessage, status, stop, error } = useChat({
+    transport: new DefaultChatTransport({
+      api: "/api/chat",
+    }),
+    experimental_throttle: 50,
+  });
 
-  const { mutateAsync: sendMessage, isPending } =
-    api.chat.sendMessage.useMutation();
-
-  const handleSpotifyAction = (response: ChatResponse) => {
-    if (response.type === "play_mood") {
-      // TODO: call Spotify API with mood data
-      console.log("Play mood:", response.mood);
-    }
-
-    if (response.type === "play_song") {
-      // TODO: call Spotify API to search/play song
-      console.log("Play song:", response.songTitle, "by", response.artist);
-    }
-  };
-
-  const handleAbort = () => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-  };
-
-  const handleSendMessage = async () => {
-    if (!message.trim()) return;
-
-    const currentMessage = message;
-    setMessage("");
-
-    sileo.error({
-      title: "test",
-      description: "test",
-    });
-
-    abortControllerRef.current?.abort();
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      const response = await Promise.race([
-        sendMessage({
-          message: currentMessage,
-          previousMessages: history,
-        }),
-        new Promise<never>((_, reject) => {
-          controller.signal.addEventListener("abort", () => {
-            reject(new DOMException("Aborted", "AbortError"));
-          });
-        }),
-      ]);
-
-      setHistory((prev) => [
-        ...prev,
-        { role: "user", content: currentMessage },
-        { role: "assistant", content: response.text },
-      ]);
-
-      handleSpotifyAction(response);
-    } catch (error) {
-      if (error instanceof Error) {
-        sileo.error({
-          title: error.name,
-          description: error.message,
-        });
-      } else {
-        sileo.error({
-          title: "An error occurred",
-          description: String(error),
-        });
-      }
-    } finally {
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null;
-      }
-    }
-  };
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    return () => {
-      abortControllerRef.current?.abort();
-    };
-  }, []);
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, status]);
+
+  const handleSend = React.useCallback(
+    (text: string) => {
+      sendMessage({ text });
+    },
+    [sendMessage],
+  );
 
   return (
-    <Card className="w-1/2">
-      <CardHeader>Chat with Groq</CardHeader>
-      <CardContent className="border-border h-80 overflow-y-auto border-y">
-        {history.map((msg, i) => (
-          <div
-            key={i}
-            className={`mb-2 ${msg.role === "user" ? "text-right" : "text-left"}`}
-          >
-            <span
-              className={`inline-block rounded-lg px-3 py-1.5 text-sm ${
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted"
-              }`}
-            >
-              {msg.content}
-            </span>
+    <Card className="flex w-full max-w-md flex-col">
+      <CardHeader className="border-border border-b">
+        <CardTitle>Aurafy</CardTitle>
+      </CardHeader>
+
+      <CardContent className="px-1">
+        <ScrollArea ref={scrollRef} className="h-70">
+          <div className="flex flex-1 flex-col gap-3 px-3">
+            {messages.length === 0 ? (
+              <ChatEmpty onSuggestion={handleSend} />
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <ChatBubble key={message.id} message={message} />
+                ))}
+
+                {status === "submitted" && (
+                  <div className="flex justify-start">
+                    <div className="bg-secondary-background text-foreground/60 rounded-base border-border flex items-center gap-2 border-2 px-3 py-2 text-sm">
+                      <Loader2 className="size-3 animate-spin" />
+                      Thinking...
+                    </div>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="bg-secondary-background text-foreground/60 rounded-base border-border border-2 px-3 py-2 text-center text-sm">
+                    Something went wrong. Try sending your message again.
+                  </div>
+                )}
+              </>
+            )}
           </div>
-        ))}
+        </ScrollArea>
       </CardContent>
-      <CardFooter className="gap-2">
-        <Input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !isPending) handleSendMessage();
-          }}
-          placeholder="Type a message..."
-          disabled={isPending}
-        />
-        {isPending ? (
-          <Button variant="neutral" onClick={handleAbort}>
-            Stop
-          </Button>
-        ) : (
-          <Button onClick={handleSendMessage} disabled={!message.trim()}>
-            Send
-          </Button>
-        )}
+
+      <CardFooter className="border-border border-t pt-4">
+        <ChatInput status={status} onSend={handleSend} onStop={stop} />
       </CardFooter>
     </Card>
   );

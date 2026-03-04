@@ -27,27 +27,30 @@ import { INTENT_LABELS } from "@/constants/chat";
 export const maxDuration = 30;
 
 export const POST = async (req: Request) => {
-  const session = await getSession();
+  const [session, { messages }] = await Promise.all([
+    getSession(),
+    req.json() as Promise<{ messages: UIMessage[] }>,
+  ]);
 
   if (!session?.user) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   const { id: userId } = session.user;
-  const { messages }: { messages: UIMessage[] } = await req.json();
 
   const lastMessage = messages[messages.length - 1];
   const userText =
     lastMessage?.parts?.find((p) => p.type === "text")?.text ?? "";
 
-  const history = await loadChatHistory({ userId });
-
-  const { output: intent } = await generateText({
-    model: groq(MODELS.default),
-    output: Output.object({ schema: generateIntentSchema }),
-    prompt: GET_INTENT_PROMPT(userText),
-    temperature: 0.1,
-  });
+  const [history, { output: intent }] = await Promise.all([
+    loadChatHistory({ userId }),
+    generateText({
+      model: groq(MODELS.default),
+      output: Output.object({ schema: generateIntentSchema }),
+      prompt: GET_INTENT_PROMPT(userText),
+      temperature: 0.1,
+    }),
+  ]);
 
   if (intent.intent === INTENT_LABELS.PLAY_MOOD) {
     const { output: mood } = await generateText({
@@ -62,11 +65,11 @@ export const POST = async (req: Request) => {
         ? "Tell me more about how you're feeling"
         : `I can feel you're in a ${mood.mood} mood. Let me find you some songs.`;
 
-    await saveChatExchange({
+    void saveChatExchange({
       userId,
       userMessage: userText,
       assistantMessage: assistantText,
-      metadata: { intent: "play_mood", mood: mood.mood },
+      metadata: { intent: INTENT_LABELS.PLAY_MOOD, mood: mood.mood },
     });
 
     const textId = generateId();
@@ -95,7 +98,7 @@ export const POST = async (req: Request) => {
         ? `Playing "${intent.songTitle}" by ${intent.artist}`
         : "Which song would you like to play?";
 
-    await saveChatExchange({
+    void saveChatExchange({
       userId,
       userMessage: userText,
       assistantMessage: assistantText,
@@ -148,7 +151,7 @@ export const POST = async (req: Request) => {
     maxOutputTokens: 200,
     messages: [...messageHistory, ...(await convertToModelMessages(messages))],
     onFinish: async ({ text }) => {
-      await saveChatExchange({
+      void saveChatExchange({
         userId,
         userMessage: userText,
         assistantMessage: text,

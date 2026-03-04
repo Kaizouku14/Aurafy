@@ -10,13 +10,25 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import type { ChatMessage } from "@/types/schema";
+import type { ChatMessage, ChatResponse } from "@/types/schema";
 
 const Conversation = () => {
   const [message, setMessage] = React.useState<string>("");
   const [history, setHistory] = React.useState<ChatMessage[]>([]);
   const { mutateAsync: sendMessage, isPending } =
     api.chat.sendMessage.useMutation();
+
+  const handleSpotifyAction = (response: ChatResponse) => {
+    if (response.type === "play_mood") {
+      // TODO: call Spotify API with mood data
+      console.log("Play mood:", response.mood);
+    }
+
+    if (response.type === "play_song") {
+      // TODO: call Spotify API to search/play song
+      console.log("Play song:", response.songTitle, "by", response.artist);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
@@ -25,21 +37,18 @@ const Conversation = () => {
     setMessage("");
 
     try {
-      const { reply } = await sendMessage({
+      const response = await sendMessage({
         message: currentMessage,
         previousMessages: history,
       });
 
-      const assistantText =
-        typeof reply === "string"
-          ? reply
-          : (reply?.reply ?? JSON.stringify(reply));
-
       setHistory((prev) => [
         ...prev,
         { role: "user", content: currentMessage },
-        { role: "assistant", content: assistantText },
+        { role: "assistant", content: response.text },
       ]);
+
+      handleSpotifyAction(response);
     } catch (error) {
       if (error instanceof Error) {
         console.error(error.message);

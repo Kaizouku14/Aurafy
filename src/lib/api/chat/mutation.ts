@@ -10,11 +10,14 @@ import {
   generateIntentSchema,
   generateMoodSchema,
   type ChatForm,
+  type ChatResponse,
 } from "@/types/schema";
 import { TRPCError } from "@trpc/server";
 import { generateText, Output } from "ai";
 
-export const processMessage = async (input: ChatForm) => {
+export const processMessage = async (
+  input: ChatForm,
+): Promise<ChatResponse> => {
   try {
     const { message, previousMessages } = input;
 
@@ -24,18 +27,6 @@ export const processMessage = async (input: ChatForm) => {
       prompt: GET_INTENT_PROMPT(message),
       temperature: 0.1,
     });
-
-    if (output.intent === INTENT_LABELS.OTHER) {
-      const { text } = await generateText({
-        model: groq(MODELS.default),
-        system: CONVERSATIONAL_SYSTEM_PROMPT,
-        temperature: 0.6,
-        maxOutputTokens: 100,
-        messages: [...previousMessages, { role: "user", content: message }],
-      });
-
-      return text;
-    }
 
     if (output.intent === INTENT_LABELS.PLAY_MOOD) {
       const { output: mood } = await generateText({
@@ -47,28 +38,46 @@ export const processMessage = async (input: ChatForm) => {
 
       if (mood.confidence < 0.6) {
         return {
-          type: INTENT_LABELS.OTHER,
-          reply: "Tell me more about how you're feeling",
+          type: "other",
+          text: "Tell me more about how you're feeling",
         };
       }
 
       return {
-        type: INTENT_LABELS.PLAY_MOOD,
+        type: "play_mood",
+        text: `I can feel you're in a ${mood.mood} mood. Let me find some music for you`,
         mood,
       };
     }
 
     if (output.intent === INTENT_LABELS.PLAY_SONG) {
       if (!output.songTitle || !output.artist) {
-        return { type: "other", reply: "Which song would you like to play?" };
+        return {
+          type: "other",
+          text: "Which song would you like to play?",
+        };
       }
 
       return {
-        type: INTENT_LABELS.PLAY_SONG,
+        type: "play_song",
+        text: `Playing "${output.songTitle}" by ${output.artist}`,
         songTitle: output.songTitle,
         artist: output.artist,
       };
     }
+
+    const { text } = await generateText({
+      model: groq(MODELS.default),
+      system: CONVERSATIONAL_SYSTEM_PROMPT,
+      temperature: 0.6,
+      maxOutputTokens: 100,
+      messages: [...previousMessages, { role: "user", content: message }],
+    });
+
+    return {
+      type: "other",
+      text,
+    };
   } catch (error) {
     console.log(error);
     throw new TRPCError({

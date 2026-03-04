@@ -31,3 +31,9 @@ export const generateMoodSchema = z.object({
 });
 
 export type GenerateMood = z.infer<typeof generateMoodSchema>;
+
+// Discriminated union for chat responses
+export type ChatResponse =
+  | { type: "other"; text: string }
+  | { type: "play_mood"; text: string; mood: GenerateMood }
+  | { type: "play_song"; text: string; songTitle: string; artist: string };

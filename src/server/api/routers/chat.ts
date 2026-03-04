@@ -6,8 +6,6 @@ export const chatRouter = createTRPCRouter({
   sendMessage: protectedProcedure
     .input(chatFormSchema)
     .mutation(async ({ input }) => {
-      const reply = await processMessage(input);
-      console.log(reply);
-      return { reply };
+      return await processMessage(input);
     }),
 });

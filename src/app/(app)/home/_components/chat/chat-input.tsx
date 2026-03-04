@@ -1,7 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Square } from "lucide-react";
 
 interface ChatInputProps {
   status: "ready" | "submitted" | "streaming" | "error";
@@ -14,7 +13,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ status, onSend, onStop }) => {
 
   const isLoading = status === "submitted" || status === "streaming";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
     onSend(input);
@@ -31,12 +30,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ status, onSend, onStop }) => {
         className="bg-background text-foreground placeholder:text-muted-foreground"
       />
       {isLoading ? (
-        <Button type="button" variant="neutral" size="icon" onClick={onStop}>
-          <Square className="size-4" />
+        <Button type="button" variant="neutral" onClick={onStop}>
+          Stop
         </Button>
       ) : (
-        <Button type="submit" size="icon" disabled={!input.trim()}>
-          <Send className="size-4" />
+        <Button type="submit" disabled={!input.trim()}>
+          Send
         </Button>
       )}
     </form>

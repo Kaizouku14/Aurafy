@@ -50,6 +50,7 @@
     "react-hook-form": "^7.71.2",
     "server-only": "^0.0.1",
     "sileo": "^0.1.5",
+    "spotify-web-api-node": "^5.0.2",
     "superjson": "^2.2.1",
     "tailwind-merge": "^3.5.0",
     "zod": "^3.24.2"
@@ -60,6 +61,7 @@
     "@types/node": "^20.14.10",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/spotify-web-api-node": "^5.0.11",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.3",

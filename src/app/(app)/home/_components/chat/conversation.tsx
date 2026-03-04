@@ -16,13 +16,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatBubble from "./chat-bubble";
 import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
+import type { SpotifyTrack } from "@/types/spotify";
 
-const Conversation = () => {
+interface ConversationProps {
+  onTracksReceived?: (tracks: SpotifyTrack[]) => void;
+}
+
+const Conversation = ({ onTracksReceived }: ConversationProps) => {
+  const onTracksReceivedRef = React.useRef(onTracksReceived);
+  onTracksReceivedRef.current = onTracksReceived;
+
   const { messages, sendMessage, status, stop, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
     experimental_throttle: 50,
+    onData: (dataPart) => {
+      if (dataPart.type === "data-tracks") {
+        onTracksReceivedRef.current?.(dataPart.data as SpotifyTrack[]);
+      }
+    },
   });
 
   const scrollRef = React.useRef<HTMLDivElement>(null);

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { index } from "drizzle-orm/sqlite-core";
-import { createTable } from "../schema";
+import { createTable } from "../create-table";
 
 // Better Auth core tables
 export const user = createTable("user", (d) => ({

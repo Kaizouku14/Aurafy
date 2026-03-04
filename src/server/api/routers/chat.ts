@@ -8,6 +8,6 @@ export const chatRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const reply = await processMessage(input);
       console.log(reply);
-      return reply;
+      return { reply };
     }),
 });

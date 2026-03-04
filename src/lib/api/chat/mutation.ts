@@ -2,7 +2,7 @@ import { INTENT_LABELS } from "@/constants/chat";
 import { groq } from "@/lib/groq";
 import { MODELS } from "@/lib/models";
 import {
-  CONVERSATIONAL_PROMPT,
+  CONVERSATIONAL_SYSTEM_PROMPT,
   GET_INTENT_PROMPT,
   GET_MOOD_PROMPT,
 } from "@/lib/prompt";
@@ -16,7 +16,7 @@ import { generateText, Output } from "ai";
 
 export const processMessage = async (input: ChatForm) => {
   try {
-    const { message } = input;
+    const { message, previousMessages } = input;
 
     const { output } = await generateText({
       model: groq(MODELS.default),
@@ -28,9 +28,10 @@ export const processMessage = async (input: ChatForm) => {
     if (output.intent === INTENT_LABELS.OTHER) {
       const { text } = await generateText({
         model: groq(MODELS.default),
-        prompt: CONVERSATIONAL_PROMPT(message),
+        system: CONVERSATIONAL_SYSTEM_PROMPT,
         temperature: 0.6,
         maxOutputTokens: 100,
+        messages: [...previousMessages, { role: "user", content: message }],
       });
 
       return text;

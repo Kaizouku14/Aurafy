@@ -1,8 +1,16 @@
 import { INTENT, MOOD } from "@/constants/chat";
 import z from "zod";
 
+export const chatMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.string(),
+});
+
+export type ChatMessage = z.infer<typeof chatMessageSchema>;
+
 export const chatFormSchema = z.object({
   message: z.string(),
+  previousMessages: z.array(chatMessageSchema).default([]),
 });
 
 export type ChatForm = z.infer<typeof chatFormSchema>;

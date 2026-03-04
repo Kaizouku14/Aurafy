@@ -44,6 +44,11 @@ const Conversation = () => {
     const currentMessage = message;
     setMessage("");
 
+    sileo.error({
+      title: "test",
+      description: "test",
+    });
+
     abortControllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -70,15 +75,6 @@ const Conversation = () => {
 
       handleSpotifyAction(response);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") {
-        sileo.error({
-          title: "AbortError",
-          description: error.message,
-        });
-
-        return;
-      }
-
       if (error instanceof Error) {
         sileo.error({
           title: error.name,

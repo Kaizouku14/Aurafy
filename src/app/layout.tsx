@@ -24,7 +24,12 @@ export default function RootLayout({
     <html lang="en" className={`${poppins.variable}`}>
       <body className="md:mx-30">
         <TRPCReactProvider>{children}</TRPCReactProvider>
-        <Toaster position="top-right" />
+        <Toaster
+          position="top-right"
+          options={{
+            fill: "var(--main-foreground)",
+          }}
+        />
       </body>
     </html>
   );

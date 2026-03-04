@@ -1,5 +1,6 @@
 import { user, account, session, verification } from "./user";
 import { flashcardDecks, flashcards, flashcardReviews } from "./flashcard";
+import { chat } from "./chat";
 
 export {
   user,
@@ -9,6 +10,7 @@ export {
   flashcardDecks,
   flashcards,
   flashcardReviews,
+  chat,
 };
 
 export {
@@ -18,4 +20,5 @@ export {
   flashcardDecksRelations,
   flashcardsRelations,
   flashcardReviewsRelations,
+  chatRelations,
 } from "./relations";

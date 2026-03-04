@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { flashcardDecks, flashcardReviews, flashcards } from "./flashcard";
 import { user, account, session } from "./user";
+import { chat } from "./chat";
 
 // User Table
 export const userRelations = relations(user, ({ many }) => ({
@@ -8,6 +9,7 @@ export const userRelations = relations(user, ({ many }) => ({
   session: many(session),
   flashcardDecks: many(flashcardDecks),
   flashcardReviews: many(flashcardReviews),
+  chats: many(chat),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
@@ -53,3 +55,10 @@ export const flashcardReviewsRelations = relations(
     }),
   }),
 );
+
+export const chatRelations = relations(chat, ({ one }) => ({
+  user: one(user, {
+    fields: [chat.userId],
+    references: [user.id],
+  }),
+}));

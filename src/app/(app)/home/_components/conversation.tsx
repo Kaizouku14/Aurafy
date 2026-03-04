@@ -11,10 +11,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
 import type { ChatMessage, ChatResponse } from "@/types/schema";
+import { sileo } from "sileo";
 
 const Conversation = () => {
   const [message, setMessage] = React.useState<string>("");
   const [history, setHistory] = React.useState<ChatMessage[]>([]);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
   const { mutateAsync: sendMessage, isPending } =
     api.chat.sendMessage.useMutation();
 
@@ -30,17 +33,34 @@ const Conversation = () => {
     }
   };
 
+  const handleAbort = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+  };
+
   const handleSendMessage = async () => {
     if (!message.trim()) return;
 
     const currentMessage = message;
     setMessage("");
 
+    abortControllerRef.current?.abort();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      const response = await sendMessage({
-        message: currentMessage,
-        previousMessages: history,
-      });
+      const response = await Promise.race([
+        sendMessage({
+          message: currentMessage,
+          previousMessages: history,
+        }),
+        new Promise<never>((_, reject) => {
+          controller.signal.addEventListener("abort", () => {
+            reject(new DOMException("Aborted", "AbortError"));
+          });
+        }),
+      ]);
 
       setHistory((prev) => [
         ...prev,
@@ -50,13 +70,38 @@ const Conversation = () => {
 
       handleSpotifyAction(response);
     } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        sileo.error({
+          title: "AbortError",
+          description: error.message,
+        });
+
+        return;
+      }
+
       if (error instanceof Error) {
-        console.error(error.message);
+        sileo.error({
+          title: error.name,
+          description: error.message,
+        });
       } else {
-        console.error(String(error));
+        sileo.error({
+          title: "An error occurred",
+          description: String(error),
+        });
+      }
+    } finally {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
       }
     }
   };
+
+  React.useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
 
   return (
     <Card className="w-1/2">
@@ -89,12 +134,15 @@ const Conversation = () => {
           placeholder="Type a message..."
           disabled={isPending}
         />
-        <Button
-          onClick={handleSendMessage}
-          disabled={isPending || !message.trim()}
-        >
-          Send
-        </Button>
+        {isPending ? (
+          <Button variant="neutral" onClick={handleAbort}>
+            Stop
+          </Button>
+        ) : (
+          <Button onClick={handleSendMessage} disabled={!message.trim()}>
+            Send
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

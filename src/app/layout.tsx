@@ -2,7 +2,7 @@ import "@/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Poppins } from "next/font/google";
-
+import { Toaster } from "sileo";
 import { TRPCReactProvider } from "@/trpc/react";
 
 export const metadata: Metadata = {
@@ -24,6 +24,7 @@ export default function RootLayout({
     <html lang="en" className={`${poppins.variable}`}>
       <body className="md:mx-30">
         <TRPCReactProvider>{children}</TRPCReactProvider>
+        <Toaster position="top-right" />
       </body>
     </html>
   );

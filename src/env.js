@@ -20,6 +20,7 @@ export const env = createEnv({
     SPOTIFY_CLIENT_ID: z.string().min(1),
     SPOTIFY_CLIENT_SECRET: z.string().min(1),
     SPOTIFY_REDIRECT_URI: z.string().url(),
+    GROQ_API_KEY: z.string().min(1),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -49,7 +50,7 @@ export const env = createEnv({
     SPOTIFY_CLIENT_ID: process.env.SPOTIFY_CLIENT_ID,
     SPOTIFY_CLIENT_SECRET: process.env.SPOTIFY_CLIENT_SECRET,
     SPOTIFY_REDIRECT_URI: process.env.SPOTIFY_REDIRECT_URI,
-
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
     //client
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },

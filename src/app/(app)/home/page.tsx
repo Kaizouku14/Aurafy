@@ -1,7 +1,9 @@
+import Conversation from "./_components/conversation";
+
 const Page = () => {
   return (
-    <div>
-      <div>Home Page</div>
+    <div className="flex h-screen items-center justify-center p-4">
+      <Conversation />
     </div>
   );
 };

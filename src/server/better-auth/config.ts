@@ -14,6 +14,10 @@ export const auth = betterAuth({
       verification: schema.verification,
     },
   }),
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL!,
+    process.env.NEXT_PUBLIC_API_URL as string,
+  ],
   emailAndPassword: {
     enabled: true,
   },

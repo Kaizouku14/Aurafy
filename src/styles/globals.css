@@ -1,8 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-poppins:
@@ -36,25 +36,7 @@
 }
 
 :root {
-  --background: oklch(93.37% 0.0339 12.05);
-  --secondary-background: oklch(100% 0 0);
-  --foreground: oklch(0% 0 0);
-  --main-foreground: oklch(0% 0 0);
-  --main: oklch(70.79% 0.1862 16.25);
-  --border: oklch(0% 0 0);
-  --ring: oklch(0% 0 0);
-  --overlay: oklch(0% 0 0 / 0.8);
-  --shadow: -2px 4px 0px 0px var(--border);
-  --chart-1: #ff6678;
-  --chart-2: #7a83ff;
-  --chart-3: #facc00;
-  --chart-4: #00d696;
-  --chart-5: #5294ff;
-  --chart-active-dot: #000;
-}
-
-.dark {
-  --background: oklch(25.15% 0.0495 7.54);
+  --background: oklch(23.93% 0 0);
   --secondary-background: oklch(23.93% 0 0);
   --foreground: oklch(92.49% 0 0);
   --main-foreground: oklch(0% 0 0);

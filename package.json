@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@ai-sdk/groq": "^3.0.26",
+    "@ai-sdk/react": "^3.0.113",
     "@auth/drizzle-adapter": "^1.7.2",
     "@hookform/resolvers": "^5.2.2",
     "@libsql/client": "^0.14.0",

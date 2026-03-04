@@ -42,14 +42,10 @@ const LoginForm = () => {
     try {
       const { data, error } = await authClient.signIn.social({
         provider: "spotify",
+        callbackURL: PAGE_ROUTES.HOME,
+        errorCallbackURL: PAGE_ROUTES.LOGIN,
       });
       console.error(error?.message);
-
-      // if (error) {
-      //   console.error(error.message);
-      //   return;
-      // }
-
       console.log(data);
     } catch (error) {
       console.error(error);

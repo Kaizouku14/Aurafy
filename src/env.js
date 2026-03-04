@@ -12,8 +12,11 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    TURSO_DATABASE_URL: z.string().url(),
-    TURSO_AUTH_TOKEN: z.string().min(1),
+    TURSO_DATABASE_URL: z.string().min(1), //use url() in production
+    TURSO_AUTH_TOKEN:
+      process.env.NODE_ENV === "production"
+        ? z.string().min(1)
+        : z.string().optional(),
     SPOTIFY_CLIENT_ID: z.string().min(1),
     SPOTIFY_CLIENT_SECRET: z.string().min(1),
     SPOTIFY_REDIRECT_URI: z.string().url(),

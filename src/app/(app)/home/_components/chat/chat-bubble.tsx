@@ -14,10 +14,10 @@ const ChatBubble: React.FC<ChatBubbleProps> = React.memo(({ message }) => {
     <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "rounded-base border-border max-w-[80%] border-2 px-3 py-2 text-sm",
+          "rounded-base max-w-[80%] border-2 px-3 py-2 text-sm",
           isUser
-            ? "bg-main text-main-foreground"
-            : "bg-secondary-background text-foreground",
+            ? "bg-main text-main-foreground shadow-shadow border-black"
+            : "bg-background border-border text-foreground",
         )}
       >
         {message.parts.map((part, i) =>

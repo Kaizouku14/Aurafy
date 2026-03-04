@@ -9,12 +9,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { AudioLines, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatBubble from "./chat-bubble";
-import ChatInput from "./chat-input";
 import ChatEmpty from "./chat-empty";
+import ChatInput from "./chat-input";
 
 const Conversation = () => {
   const { messages, sendMessage, status, stop, error } = useChat({
@@ -40,13 +41,25 @@ const Conversation = () => {
   );
 
   return (
-    <Card className="flex w-full max-w-md flex-col">
-      <CardHeader className="border-border border-b">
-        <CardTitle>Aurafy</CardTitle>
+    <Card className="flex w-full max-w-md flex-col pt-1">
+      <CardHeader className="border-border border-b-2 py-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-main shadow-shadow rounded-base flex size-9 items-center justify-center border-2 border-black">
+            <AudioLines className="size-5 text-black" />
+          </div>
+          <div>
+            <CardTitle className="text-foreground text-base">
+              Aurafy Chat
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
+              Powered by Groq
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent className="px-1">
-        <ScrollArea ref={scrollRef} className="h-70">
+        <ScrollArea ref={scrollRef} className="h-80">
           <div className="flex flex-1 flex-col gap-3 px-3">
             {messages.length === 0 ? (
               <ChatEmpty onSuggestion={handleSend} />
@@ -58,7 +71,7 @@ const Conversation = () => {
 
                 {status === "submitted" && (
                   <div className="flex justify-start">
-                    <div className="bg-secondary-background text-foreground/60 rounded-base border-border flex items-center gap-2 border-2 px-3 py-2 text-sm">
+                    <div className="rounded-base border-border bg-background text-muted-foreground flex items-center gap-2 border-2 px-3 py-2 text-sm">
                       <Loader2 className="size-3 animate-spin" />
                       Thinking...
                     </div>
@@ -66,8 +79,8 @@ const Conversation = () => {
                 )}
 
                 {error && (
-                  <div className="bg-secondary-background text-foreground/60 rounded-base border-border border-2 px-3 py-2 text-center text-sm">
-                    Something went wrong. Try sending your message again.
+                  <div className="rounded-base border-border bg-background text-muted-foreground border-2 px-3 py-2 text-center text-sm">
+                    Something went wrong. Try again.
                   </div>
                 )}
               </>
@@ -76,7 +89,7 @@ const Conversation = () => {
         </ScrollArea>
       </CardContent>
 
-      <CardFooter className="border-border border-t pt-4">
+      <CardFooter className="border-border border-t-2 pt-4">
         <ChatInput status={status} onSend={handleSend} onStop={stop} />
       </CardFooter>
     </Card>

@@ -37,24 +37,12 @@ const Conversation = () => {
         setTracks(dataPart.data as SpotifyTrack[]);
       }
     },
-    onError: (err) => {
-      console.error(err);
-      sileo.error({
-        title: "Chat Error",
-        description:
-          err instanceof Error
-            ? err.message
-            : (String(err) ?? "An unknown error occurred"),
-      });
-    },
   });
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, status]);
 
   const handleSend = React.useCallback(

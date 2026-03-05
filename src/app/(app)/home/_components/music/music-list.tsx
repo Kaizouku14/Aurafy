@@ -8,12 +8,19 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Music } from "lucide-react";
+import { Info, Music } from "lucide-react";
 import MusicPlayer from "./music-player";
 import MusicEmpty from "./music-empty";
 import MusicCard from "./music-card";
 import { usePlayerStore } from "@/store/play-store";
+import { Button } from "@/components/ui/button";
 
 const MusicList = () => {
   const {
@@ -55,7 +62,7 @@ const MusicList = () => {
       </CardHeader>
 
       <CardContent className="px-1">
-        <ScrollArea className="h-65">
+        <ScrollArea className="h-71">
           {tracks.length === 0 ? (
             <MusicEmpty />
           ) : (

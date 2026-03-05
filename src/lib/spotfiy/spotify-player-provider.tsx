@@ -21,6 +21,7 @@ export const SpotifyPlayerProvider = ({
     } = usePlayerStore.getState();
 
     let isAdvancing = false;
+    let playbackErrorTimer: ReturnType<typeof setTimeout> | null = null;
 
     setAccessToken(initialAccessToken);
     setIsPremium(true);
@@ -80,6 +81,18 @@ export const SpotifyPlayerProvider = ({
         setIsPremium(false);
       });
 
+      player.addListener("playback_error", () => {
+        playbackErrorTimer = setTimeout(() => {
+          const { isPlaying } = usePlayerStore.getState();
+          if (!isPlaying) {
+            sileo.error({
+              title: "Playback error",
+              description: "Failed to play this track.",
+            });
+          }
+        }, 2000);
+      });
+
       player.addListener("ready", ({ device_id }) => {
         setDeviceId(device_id);
       });
@@ -93,6 +106,11 @@ export const SpotifyPlayerProvider = ({
 
       player.addListener("player_state_changed", (state) => {
         if (!state) return;
+
+        if (state && !state.paused && playbackErrorTimer) {
+          clearTimeout(playbackErrorTimer);
+          playbackErrorTimer = null;
+        }
 
         usePlayerStore.setState({
           isPlaying: !state.paused,

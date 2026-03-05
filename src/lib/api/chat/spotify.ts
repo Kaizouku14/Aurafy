@@ -32,7 +32,7 @@ export const handleSpotifyMood = async (userId: string, mood: Mood) =>
     const client = await getSpotifyClient(userId);
     const { genres } = MOOD_MAP[mood];
     const results = await client.search(
-      `genre:${params.genres.join(" ")}`,
+      `genre:${genres.join(" ")}`,
       ["track"],
       undefined,
       10,

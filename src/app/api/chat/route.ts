@@ -79,6 +79,10 @@ export const POST = async (req: Request) => {
   const userText =
     lastMessage?.parts?.find((p) => p.type === "text")?.text ?? "";
 
+  if (!userText.trim()) {
+    return new Response("Bad Request", { status: 400 });
+  }
+
   const [history, { output: intent }] = await Promise.all([
     loadChatHistory({ userId }),
     generateText({
@@ -191,20 +195,14 @@ export const POST = async (req: Request) => {
     return createTextWithTracksResponse(assistantText, tracks);
   }
 
-  const messageHistory = history.map((msg) => ({
-    role: msg.role,
-    content: msg.content,
-    metadata: msg.metadata,
-  }));
-
-  const recentTopics = buildRecentTopics(messageHistory);
+  const recentTopics = buildRecentTopics(history);
 
   const result = streamText({
     model: groq(MODELS.default),
     system: CONVERSATIONAL_SYSTEM_PROMPT(recentTopics),
     temperature: 0.6,
     maxOutputTokens: 500,
-    messages: [...messageHistory, ...(await convertToModelMessages(messages))],
+    messages: [...history, ...(await convertToModelMessages(messages))],
     onFinish: async ({ text }) => {
       void saveChatExchange({
         userId,

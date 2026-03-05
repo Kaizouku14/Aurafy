@@ -3,13 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/lib/utils";
 import { usePlayerStore } from "@/store/play-store";
-import type { SpotifyTrack } from "@/types/spotify";
+import type { Track } from "@/types/schema/chat";
 import { Music, Pause, Play } from "lucide-react";
 import Image from "next/image";
 
 interface MusicCardProps {
   index: number;
-  track: SpotifyTrack;
+  track: Track;
   selectedIndex: number;
   setSelectedIndex: (index: number) => void;
 }
@@ -24,14 +24,12 @@ const MusicCard: React.FC<MusicCardProps> = ({
   const isSelected = selectedIndex === index;
 
   const handleClick = () => {
-    setSelectedIndex(index);
-
     if (isSelected) {
       isPlaying ? pause() : play();
       return;
     }
+    setSelectedIndex(index);
   };
-
   return (
     <div
       onClick={handleClick}

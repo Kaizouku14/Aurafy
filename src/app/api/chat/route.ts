@@ -18,21 +18,24 @@ import {
   streamText,
   type UIMessage,
 } from "ai";
-import { groq } from "@/lib/groq";
-import { MODELS } from "@/lib/models";
+import { groq } from "@/lib/ai/groq";
+import { MODELS } from "@/lib/ai/models";
 import {
   CONVERSATIONAL_SYSTEM_PROMPT,
   GET_INTENT_PROMPT,
   GET_MOOD_PROMPT,
-} from "@/lib/prompt";
-import { getSession } from "@/server/better-auth/server";
+} from "@/lib/ai/prompt";
+import { getSession } from "@/server/better-auth";
 import { INTENT_LABELS, type Mood } from "@/constants/chat";
-import type { SpotifyTrack } from "@/types/spotify";
-import { generateIntentSchema, generateMoodSchema } from "@/types/schema/chat";
+import {
+  generateIntentSchema,
+  generateMoodSchema,
+  type Track,
+} from "@/types/schema/chat";
 
 const createTextWithTracksResponse = (
   assistantText: string,
-  tracks?: SpotifyTrack[],
+  tracks?: Track[],
 ) => {
   const textId = generateId();
   const stream = createUIMessageStream({
@@ -200,7 +203,7 @@ export const POST = async (req: Request) => {
     model: groq(MODELS.default),
     system: CONVERSATIONAL_SYSTEM_PROMPT(recentTopics),
     temperature: 0.6,
-    maxOutputTokens: 200,
+    maxOutputTokens: 500,
     messages: [...messageHistory, ...(await convertToModelMessages(messages))],
     onFinish: async ({ text }) => {
       void saveChatExchange({

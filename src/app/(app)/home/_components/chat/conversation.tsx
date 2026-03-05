@@ -16,9 +16,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatBubble from "./chat-bubble";
 import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
-import type { SpotifyTrack } from "@/types/spotify";
 import { usePlayerStore } from "@/store/play-store";
-import { trackSchema } from "@/types/schema/chat";
+import { trackSchema, type Track } from "@/types/schema/chat";
 import { sileo } from "sileo";
 
 const Conversation = () => {
@@ -34,7 +33,7 @@ const Conversation = () => {
     experimental_throttle: 50,
     onData: (dataPart) => {
       if (dataPart.type === "data-tracks") {
-        setTracks(dataPart.data as SpotifyTrack[]);
+        setTracks(dataPart.data as Track[]);
       }
     },
   });
@@ -51,6 +50,12 @@ const Conversation = () => {
     },
     [sendMessage],
   );
+
+  error &&
+    sileo.error({
+      title: error.name,
+      description: error.message,
+    });
 
   return (
     <Card className="w-full max-w-md pt-1">

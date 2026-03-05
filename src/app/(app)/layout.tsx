@@ -1,7 +1,6 @@
 import Header from "@/components/layout/header";
-import { SpotifyPlayerProvider } from "./home/_components/spotify-player-provider";
-import { auth } from "@/server/better-auth";
-import { headers } from "next/headers";
+import { SpotifyPlayerProvider } from "@/lib/spotfiy/spotify-player-provider";
+import { getSpotifyToken } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { redirect } from "next/navigation";
 import { PAGE_ROUTES } from "@/constants/page-routes";
@@ -11,15 +10,8 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
 
   if (!session) redirect(PAGE_ROUTES.LOGIN);
 
-  const result = await auth.api.getAccessToken({
-    body: {
-      providerId: "spotify",
-      userId: session.user.id,
-    },
-    headers: await headers(),
-  });
+  const accessToken = await getSpotifyToken(session.user.id);
 
-  const accessToken = result?.accessToken ?? null;
   return (
     <main className="flex flex-col gap-4 p-4">
       {/*<Header />*/}

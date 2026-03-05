@@ -1,25 +1,8 @@
 import { MOOD_MAP, type Mood } from "@/constants/chat";
-import { createSpotifyClient } from "@/lib/spotify";
+import { createSpotifyClient } from "@/lib/spotfiy/spotify";
 import { getErrorMessage } from "@/lib/utils";
-import { auth } from "@/server/better-auth";
+import { getSpotifyToken } from "@/server/better-auth";
 import { TRPCError } from "@trpc/server";
-import { headers } from "next/headers";
-
-export const getSpotifyToken = async (userId: string): Promise<string> => {
-  const result = await auth.api.getAccessToken({
-    body: {
-      providerId: "spotify",
-      userId,
-    },
-    headers: await headers(),
-  });
-
-  if (!result?.accessToken) {
-    throw new Error("Spotify access token not found");
-  }
-
-  return result.accessToken;
-};
 
 export const handleSpotifyMood = async (userId: string, mood: Mood) => {
   try {
@@ -34,8 +17,6 @@ export const handleSpotifyMood = async (userId: string, mood: Mood) => {
       undefined,
       10,
     );
-
-    console.log(results);
 
     return results.tracks.items.map((track) => ({
       id: track.id,

@@ -1,11 +1,11 @@
 import { create } from "zustand";
-import type { SpotifyTrack } from "@/types/spotify";
+import type { Track } from "@/types/schema/chat";
 import { fetchFreshToken } from "@/lib/spotify-auth";
 import { sileo } from "sileo";
 import { getErrorMessage } from "@/lib/utils";
 
 interface PlayerState {
-  tracks: SpotifyTrack[];
+  tracks: Track[];
   currentIndex: number;
   isPlaying: boolean;
   _progressInterval: ReturnType<typeof setInterval> | null;
@@ -21,7 +21,7 @@ interface PlayerState {
   // Free
   audio: HTMLAudioElement | null;
 
-  setTracks: (tracks: SpotifyTrack[]) => void;
+  setTracks: (tracks: Track[]) => void;
   setPlayer: (player: Spotify.Player | null) => void;
   setDeviceId: (deviceId: string | null) => void;
   setAccessToken: (token: string) => void;

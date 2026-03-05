@@ -54,4 +54,4 @@ export const trackSchema = z.array(
   }),
 );
 
-export type Track = z.infer<typeof trackSchema>;
+export type Track = z.infer<typeof trackSchema>[0];

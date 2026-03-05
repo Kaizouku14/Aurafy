@@ -20,6 +20,8 @@ export const SpotifyPlayerProvider = ({
       setDeviceId,
     } = usePlayerStore.getState();
 
+    let isAdvancing = false;
+
     setAccessToken(initialAccessToken);
     setIsPremium(true);
 
@@ -78,14 +80,6 @@ export const SpotifyPlayerProvider = ({
         setIsPremium(false);
       });
 
-      player.addListener("playback_error", () => {
-        sileo.error({
-          title: "Playback error",
-          description: "Failed to play this track. Skipping...",
-        });
-        next();
-      });
-
       player.addListener("ready", ({ device_id }) => {
         setDeviceId(device_id);
       });
@@ -97,7 +91,6 @@ export const SpotifyPlayerProvider = ({
         setDeviceId(null);
       });
 
-      let isAdvancing = false;
       player.addListener("player_state_changed", (state) => {
         if (!state) return;
 

@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import type { Track } from "@/types/schema/chat";
-import { fetchFreshToken } from "@/lib/spotify-auth";
 import { sileo } from "sileo";
 import { getErrorMessage } from "@/lib/utils";
+import { fetchFreshToken } from "@/lib/spotfiy/spotify-auth";
 
 interface PlayerState {
   tracks: Track[];
@@ -105,12 +105,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setCurrentIndex: async (index) => {
     const {
+      player,
       tracks,
       audio,
       isPremium,
       deviceId,
       accessToken,
-      player,
       _progressInterval,
     } = get();
 
@@ -168,11 +168,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
           const interval = setInterval(async () => {
             const state = await player?.getCurrentState();
-            if (!state) return;
-            set({
-              currentTime: state.position,
-              isPlaying: !state.paused,
-            });
+            if (!state || state.paused) return;
+            set({ currentTime: state.position });
           }, 500);
 
           set({ _progressInterval: interval });
@@ -187,7 +184,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       } catch (error) {
         sileo.error({
           title: "Failed to start Spotify playback",
-          description: String(error),
+          description: getErrorMessage(error),
         });
       }
     } else {
@@ -244,9 +241,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   play: () => {
     const { audio, player, isPremium } = get();
     if (isPremium && player) {
-      player.resume().then(() => set({ isPlaying: true }));
+      player
+        .resume()
+        .then(() => set({ isPlaying: true }))
+        .catch(() => sileo.error({ title: "Failed to resume playback" }));
     } else if (audio) {
-      audio.play().then(() => set({ isPlaying: true }));
+      audio
+        .play()
+        .then(() => set({ isPlaying: true }))
+        .catch(() => sileo.error({ title: "Failed to resume playback" }));
     }
   },
 
@@ -259,7 +262,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
 
     if (isPremium && player) {
-      player.pause().then(() => set({ isPlaying: false }));
+      player
+        .pause()
+        .then(() => set({ isPlaying: false }))
+        .catch(() => sileo.error({ title: "Failed to pause playback" }));
     } else if (audio) {
       audio.pause();
       set({ isPlaying: false });

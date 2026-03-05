@@ -1,10 +1,16 @@
-export const INTENT = ["play_song", "play_mood", "other"] as const;
+export const INTENT = [
+  "play_song",
+  "play_mood",
+  "play_artist",
+  "others",
+] as const;
 export type Intent = (typeof INTENT)[number];
 
 export const INTENT_LABELS: Record<string, Intent> = {
   PLAY_SONG: "play_song",
   PLAY_MOOD: "play_mood",
-  OTHER: "other",
+  PLAY_ARTIST: "play_artist",
+  OTHERS: "others",
 } as const;
 
 export const MOOD = [

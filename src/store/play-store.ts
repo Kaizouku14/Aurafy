@@ -122,11 +122,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       };
 
       try {
-        // Use the current token first for speed
         let token = accessToken ?? "";
         let response = await makePlayRequest(token);
 
-        // If 401, fetch a fresh token and retry once
         if (response.status === 401) {
           console.log("Spotify play API returned 401, refreshing token...");
           token = await fetchFreshToken();
@@ -159,12 +157,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       const newAudio = new Audio(track.previewUrl);
 
       newAudio.addEventListener("timeupdate", () => {
-        // currentTime from HTMLAudioElement is in seconds, convert to ms
-        set({ currentTime: newAudio.currentTime * 1000 });
+        set({ currentTime: newAudio.currentTime * 1000 }); //  convert to ms
       });
 
       newAudio.addEventListener("loadedmetadata", () => {
-        // duration from HTMLAudioElement is in seconds, convert to ms
         set({ duration: newAudio.duration * 1000 });
       });
 
@@ -229,8 +225,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (currentIndex < tracks.length - 1) {
       get().setCurrentIndex(currentIndex + 1);
     } else {
-      // Reached end of track list — stop playback
-      set({ isPlaying: false });
+      set({ isPlaying: false }); // stop playback at end of list
     }
   },
 

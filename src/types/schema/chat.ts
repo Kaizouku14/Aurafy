@@ -40,3 +40,18 @@ export const generateMoodSchema = z.object({
 });
 
 export type GenerateMood = z.infer<typeof generateMoodSchema>;
+
+export const trackSchema = z.array(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+    artist: z.string(),
+    album: z.string(),
+    cover: z.string().nullable(),
+    duration: z.number(),
+    uri: z.string(),
+    previewUrl: z.string().nullable(),
+  }),
+);
+
+export type Track = z.infer<typeof trackSchema>;

@@ -3,6 +3,7 @@
 import { fetchFreshToken } from "@/lib/spotify-auth";
 import { usePlayerStore } from "@/store/play-store";
 import React from "react";
+import { sileo } from "sileo";
 
 export const SpotifyPlayerProvider = ({
   accessToken: initialAccessToken,
@@ -10,7 +11,6 @@ export const SpotifyPlayerProvider = ({
   accessToken: string;
 }) => {
   React.useEffect(() => {
-    // Store the initial access token and mark as premium immediately
     usePlayerStore.getState().setAccessToken(initialAccessToken);
     usePlayerStore.getState().setIsPremium(true);
 
@@ -23,17 +23,12 @@ export const SpotifyPlayerProvider = ({
       const player = new window.Spotify.Player({
         name: "Aurafy Player",
         getOAuthToken: (cb) => {
-          // The SDK calls this whenever it needs a token (including on expiry).
-          // Fetch a fresh token from our API route which auto-refreshes if expired.
           fetchFreshToken()
             .then((freshToken) => {
-              // Keep the store in sync so REST API calls also use the fresh token
               usePlayerStore.getState().setAccessToken(freshToken);
               cb(freshToken);
             })
-            .catch((err) => {
-              console.error("Failed to get fresh Spotify token for SDK:", err);
-              // Fall back to whatever token we have in the store
+            .catch(() => {
               const fallback = usePlayerStore.getState().accessToken;
               if (fallback) {
                 cb(fallback);
@@ -43,14 +38,14 @@ export const SpotifyPlayerProvider = ({
         volume: 0.5,
       });
 
-      // Required error listeners per SDK docs
-      player.addListener("initialization_error", ({ message }) => {
-        console.error("Spotify SDK initialization error:", message);
+      player.addListener("initialization_error", () => {
+        sileo.error({
+          title: "Spotify initialization failed",
+          description: "Please try again later.",
+        });
       });
 
-      player.addListener("authentication_error", ({ message }) => {
-        console.error("Spotify SDK authentication error:", message);
-        // Token is invalid — attempt to refresh and reconnect
+      player.addListener("authentication_error", () => {
         fetchFreshToken()
           .then((freshToken) => {
             usePlayerStore.getState().setAccessToken(freshToken);
@@ -58,28 +53,39 @@ export const SpotifyPlayerProvider = ({
               "Refreshed token after auth error, SDK will retry automatically.",
             );
           })
-          .catch((err) => {
-            console.error("Could not refresh token after auth error:", err);
+          .catch(() => {
+            sileo.error({
+              title: "Spotify authentication failed",
+              description: "Please log in again.",
+            });
+
             usePlayerStore.getState().setIsPremium(false);
           });
       });
 
-      player.addListener("account_error", ({ message }) => {
-        console.error("Spotify SDK account error (Premium required):", message);
+      player.addListener("account_error", () => {
+        sileo.error({
+          title: "Premium required",
+          description: "Please upgrade to Premium to continue listening.",
+        });
         usePlayerStore.getState().setIsPremium(false);
       });
 
-      player.addListener("playback_error", ({ message }) => {
-        console.error("Spotify SDK playback error:", message);
+      player.addListener("playback_error", () => {
+        sileo.error({
+          title: "Playback error",
+          description: "Failed to play this track. Skipping...",
+        });
       });
 
       player.addListener("ready", ({ device_id }) => {
-        console.log("Spotify SDK ready with Device ID:", device_id);
         usePlayerStore.getState().setDeviceId(device_id);
       });
 
-      player.addListener("not_ready", ({ device_id }) => {
-        console.log("Spotify SDK device offline:", device_id);
+      player.addListener("not_ready", () => {
+        sileo.warning({
+          title: "Spotify player disconnected. Reconnecting...",
+        });
         usePlayerStore.getState().setDeviceId(null);
       });
 
@@ -91,9 +97,10 @@ export const SpotifyPlayerProvider = ({
       });
 
       player.addListener("autoplay_failed", () => {
-        console.warn(
-          "Spotify SDK autoplay failed — user interaction required.",
-        );
+        sileo.warning({
+          title: "Autoplay failed",
+          description: "Click play to start listening.",
+        });
       });
 
       // activateElement ensures playback can continue after transfer

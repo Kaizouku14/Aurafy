@@ -3,7 +3,11 @@ import {
   loadChatHistory,
   saveChatExchange,
 } from "@/lib/api/chat/memory";
-import { handleSpotifyMood, handleSpotifySong } from "@/lib/api/chat/spotify";
+import {
+  handleSpotifyArtist,
+  handleSpotifyMood,
+  handleSpotifySong,
+} from "@/lib/api/chat/spotify";
 import {
   convertToModelMessages,
   createUIMessageStream,
@@ -118,7 +122,7 @@ export const POST = async (req: Request) => {
   }
 
   if (intent.intent === INTENT_LABELS.PLAY_SONG) {
-    if (!intent.songTitle || !intent.artist) {
+    if (!intent.songTitle) {
       const assistantText = "Which song would you like to play?";
 
       void saveChatExchange({
@@ -137,6 +141,12 @@ export const POST = async (req: Request) => {
       intent.artist,
     );
 
+    if (!tracks.length) {
+      const assistantText = `Sorry, I couldn't find "${intent.songTitle}" by ${intent.artist}.`;
+
+      return createTextWithTracksResponse(assistantText);
+    }
+
     const assistantText = `Playing "${intent.songTitle}" by ${intent.artist}`;
 
     void saveChatExchange({
@@ -146,6 +156,29 @@ export const POST = async (req: Request) => {
       metadata: {
         intent: INTENT_LABELS.PLAY_SONG,
         songTitle: intent.songTitle,
+        artist: intent.artist,
+      },
+    });
+
+    return createTextWithTracksResponse(assistantText, tracks);
+  }
+
+  if (intent.intent === INTENT_LABELS.PLAY_ARTIST) {
+    if (!intent.artist) {
+      const assistantText = "Which artist?";
+      return createTextWithTracksResponse(assistantText);
+    }
+
+    const tracks = await handleSpotifyArtist(userId, intent.artist);
+
+    const assistantText = `Here are popular songs by ${intent.artist}.`;
+
+    void saveChatExchange({
+      userId,
+      userMessage: userText,
+      assistantMessage: assistantText,
+      metadata: {
+        intent: INTENT_LABELS.PLAY_ARTIST,
         artist: intent.artist,
       },
     });
@@ -172,7 +205,7 @@ export const POST = async (req: Request) => {
         userId,
         userMessage: userText,
         assistantMessage: text,
-        metadata: { intent: INTENT_LABELS.OTHER! },
+        metadata: { intent: INTENT_LABELS.OTHERS! },
       });
     },
   });

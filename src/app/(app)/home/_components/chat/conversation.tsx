@@ -3,7 +3,6 @@
 import React from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { z } from "zod";
 import {
   Card,
   CardContent,
@@ -19,19 +18,7 @@ import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
 import type { SpotifyTrack } from "@/types/spotify";
 import { usePlayerStore } from "@/store/play-store";
-
-const trackSchema = z.array(
-  z.object({
-    id: z.string(),
-    title: z.string(),
-    artist: z.string(),
-    album: z.string(),
-    cover: z.string().nullable(),
-    duration: z.number(),
-    uri: z.string(),
-    previewUrl: z.string().nullable(),
-  }),
-);
+import { trackSchema } from "@/types/schema/chat";
 
 const Conversation = () => {
   const { setTracks } = usePlayerStore();

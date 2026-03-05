@@ -1,12 +1,16 @@
 import { create } from "zustand";
 import type { SpotifyTrack } from "@/types/spotify";
 import { fetchFreshToken } from "@/lib/spotify-auth";
+import { sileo } from "sileo";
+import { getErrorMessage } from "@/lib/utils";
 
 interface PlayerState {
   tracks: SpotifyTrack[];
   currentIndex: number;
   isPlaying: boolean;
+  _progressInterval: ReturnType<typeof setInterval> | null;
   isMuted: boolean;
+  volume: number;
   currentTime: number;
   duration: number;
   // Premium
@@ -26,9 +30,11 @@ interface PlayerState {
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
   setCurrentIndex: (index: number) => void;
+  setVolume: (volume: number) => void;
   play: () => void;
   pause: () => void;
   mute: () => void;
+  seek: (progress: number) => void;
   next: () => void;
   prev: () => void;
 }
@@ -38,6 +44,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentIndex: 0,
   isPlaying: false,
   isMuted: false,
+  volume: 1,
   currentTime: 0,
   duration: 0,
   player: null,
@@ -45,6 +52,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   accessToken: null,
   isPremium: false,
   audio: null,
+  _progressInterval: null,
 
   setPlayer: (player) => set({ player }),
   setDeviceId: (deviceId) => set({ deviceId }),
@@ -54,16 +62,28 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
 
-  setTracks: (tracks) => {
+  setVolume: (volume: number) => {
     const { audio, player, isPremium } = get();
+    if (isPremium && player) {
+      player.setVolume(volume);
+    } else if (audio) {
+      audio.volume = volume;
+    }
+    set({ volume, isMuted: volume === 0 });
+  },
 
-    // Stop whatever is currently playing
+  setTracks: (tracks) => {
+    const { audio, player, isPremium, _progressInterval } = get();
+
     if (audio) {
       audio.pause();
       audio.src = "";
     }
     if (isPremium && player) {
       player.pause();
+    }
+    if (_progressInterval) {
+      clearInterval(_progressInterval);
     }
 
     set({
@@ -73,11 +93,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       duration: 0,
       isPlaying: false,
       audio: null,
+      _progressInterval: null,
     });
 
-    // Auto-play the first track if tracks were loaded
     if (tracks.length > 0) {
-      // Use setTimeout to ensure state is settled before triggering playback
       setTimeout(() => {
         get().setCurrentIndex(0);
       }, 0);
@@ -85,12 +104,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   setCurrentIndex: async (index) => {
-    const { tracks, audio, isPremium, deviceId, accessToken, player } = get();
+    const {
+      tracks,
+      audio,
+      isPremium,
+      deviceId,
+      accessToken,
+      player,
+      _progressInterval,
+    } = get();
 
-    // Stop current audio (free tier)
     if (audio) {
       audio.pause();
       audio.src = "";
+    }
+
+    if (_progressInterval) {
+      clearInterval(_progressInterval);
+      set({ _progressInterval: null });
     }
 
     const track = tracks[index];
@@ -105,8 +136,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     });
 
     if (isPremium && deviceId) {
-      // Premium — use Spotify Web API to start playback on the SDK device.
-      // Always fetch a fresh token to avoid 401s from expired tokens.
       const makePlayRequest = async (token: string) => {
         return fetch(
           `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
@@ -126,38 +155,58 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         let response = await makePlayRequest(token);
 
         if (response.status === 401) {
-          console.log("Spotify play API returned 401, refreshing token...");
           token = await fetchFreshToken();
           set({ accessToken: token });
           response = await makePlayRequest(token);
         }
 
         if (response.ok || response.status === 204) {
+          const { _progressInterval: existing } = get();
+          if (existing) clearInterval(existing);
+
           set({ isPlaying: true });
+
+          const interval = setInterval(async () => {
+            const state = await player?.getCurrentState();
+            if (!state) return;
+            set({
+              currentTime: state.position,
+              isPlaying: !state.paused,
+            });
+          }, 500);
+
+          set({ _progressInterval: interval });
         } else {
           const errorBody = await response.text();
-          console.error(
-            `Spotify play API error (${response.status}):`,
-            errorBody,
-          );
+
+          sileo.error({
+            title: "Spotify play API error",
+            description: `Failed to start playback: ${errorBody}`,
+          });
         }
       } catch (error) {
-        console.error("Failed to start Spotify playback:", error);
+        sileo.error({
+          title: "Failed to start Spotify playback",
+          description: String(error),
+        });
       }
     } else {
-      // Free — use preview_url as fallback
       if (!track.previewUrl) {
-        console.warn(
-          `No preview URL available for "${track.title}" — cannot play on free tier.`,
-        );
+        sileo.warning({
+          title: "No preview URL available",
+          description: `Cannot play "${track.title}" — cannot play on free tier.`,
+        });
         set({ audio: null });
         return;
       }
 
       const newAudio = new Audio(track.previewUrl);
+      const { volume, isMuted } = get();
+      newAudio.volume = volume;
+      newAudio.muted = isMuted;
 
       newAudio.addEventListener("timeupdate", () => {
-        set({ currentTime: newAudio.currentTime * 1000 }); //  convert to ms
+        set({ currentTime: newAudio.currentTime * 1000 });
       });
 
       newAudio.addEventListener("loadedmetadata", () => {
@@ -169,7 +218,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       });
 
       newAudio.addEventListener("error", (e) => {
-        console.error("Audio playback error:", e);
+        sileo.error({
+          title: "Failed to play audio",
+          description: "Failed to play audio preview: " + getErrorMessage(e),
+        });
         set({ isPlaying: false });
       });
 
@@ -179,7 +231,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         await newAudio.play();
         set({ isPlaying: true });
       } catch (error) {
-        console.error("Failed to play audio preview:", error);
+        sileo.error({
+          title: "Failed to play audio",
+          description:
+            "Failed to play audio preview: " + getErrorMessage(error),
+        });
         set({ isPlaying: false });
       }
     }
@@ -188,22 +244,22 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   play: () => {
     const { audio, player, isPremium } = get();
     if (isPremium && player) {
-      player.resume().then(() => {
-        set({ isPlaying: true });
-      });
+      player.resume().then(() => set({ isPlaying: true }));
     } else if (audio) {
-      audio.play().then(() => {
-        set({ isPlaying: true });
-      });
+      audio.play().then(() => set({ isPlaying: true }));
     }
   },
 
   pause: () => {
-    const { audio, player, isPremium } = get();
+    const { audio, player, isPremium, _progressInterval } = get();
+
+    if (_progressInterval) {
+      clearInterval(_progressInterval);
+      set({ _progressInterval: null });
+    }
+
     if (isPremium && player) {
-      player.pause().then(() => {
-        set({ isPlaying: false });
-      });
+      player.pause().then(() => set({ isPlaying: false }));
     } else if (audio) {
       audio.pause();
       set({ isPlaying: false });
@@ -211,13 +267,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   mute: () => {
-    const { audio, player, isMuted, isPremium } = get();
+    const { audio, player, isMuted, isPremium, volume } = get();
+    const newMuted = !isMuted;
+
     if (isPremium && player) {
-      player.setVolume(isMuted ? 0.5 : 0);
+      player.setVolume(newMuted ? 0 : volume);
     } else if (audio) {
-      audio.muted = !isMuted;
+      audio.muted = newMuted;
     }
-    set({ isMuted: !isMuted });
+    set({ isMuted: newMuted });
+  },
+
+  seek: (progress: number) => {
+    const { audio, player, isPremium, duration } = get();
+    const positionMs = progress * duration;
+
+    if (isPremium && player) {
+      player.seek(positionMs);
+    } else if (audio) {
+      audio.currentTime = positionMs / 1000;
+    }
+    set({ currentTime: positionMs });
   },
 
   next: () => {
@@ -225,7 +295,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     if (currentIndex < tracks.length - 1) {
       get().setCurrentIndex(currentIndex + 1);
     } else {
-      set({ isPlaying: false }); // stop playback at end of list
+      set({ isPlaying: false });
     }
   },
 

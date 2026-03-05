@@ -141,13 +141,15 @@ export const POST = async (req: Request) => {
       intent.artist,
     );
 
+    const artistText = intent.artist ? ` by ${intent.artist}` : "";
+
     if (!tracks.length) {
-      const assistantText = `Sorry, I couldn't find "${intent.songTitle}" by ${intent.artist}.`;
+      const assistantText = `Sorry, I couldn't find "${intent.songTitle}"${artistText}.`;
 
       return createTextWithTracksResponse(assistantText);
     }
 
-    const assistantText = `Playing "${intent.songTitle}" by ${intent.artist}`;
+    const assistantText = `Playing "${intent.songTitle}"${artistText}`;
 
     void saveChatExchange({
       userId,

@@ -19,6 +19,7 @@ import ChatInput from "./chat-input";
 import type { SpotifyTrack } from "@/types/spotify";
 import { usePlayerStore } from "@/store/play-store";
 import { trackSchema } from "@/types/schema/chat";
+import { sileo } from "sileo";
 
 const Conversation = () => {
   const { setTracks } = usePlayerStore();
@@ -35,6 +36,16 @@ const Conversation = () => {
       if (dataPart.type === "data-tracks") {
         setTracks(dataPart.data as SpotifyTrack[]);
       }
+    },
+    onError: (err) => {
+      console.error(err);
+      sileo.error({
+        title: "Chat Error",
+        description:
+          err instanceof Error
+            ? err.message
+            : (String(err) ?? "An unknown error occurred"),
+      });
     },
   });
 

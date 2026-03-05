@@ -9,9 +9,15 @@ import {
   VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import Image from "next/image";
 import { formatTime } from "@/lib/utils";
+import { Slider } from "@/components/ui/slider";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import React from "react";
 
 const PLACEHOLDER = {
   title: "No song playing",
@@ -27,6 +33,7 @@ interface MusicPlayerProps {
   cover?: string | null;
   currentTime?: number;
   duration?: number;
+  volume?: number;
   isPlaying?: boolean;
   isMuted?: boolean;
   onPlay?: () => void;
@@ -34,6 +41,8 @@ interface MusicPlayerProps {
   onNext?: () => void;
   onPrev?: () => void;
   onMute?: () => void;
+  onVolumeChange?: (volume: number) => void;
+  onSeek?: (progress: number) => void;
 }
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({
@@ -44,12 +53,16 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
   duration = PLACEHOLDER.duration,
   isPlaying = false,
   isMuted = false,
+  volume = 1,
   onPlay,
   onPause,
   onNext,
   onPrev,
   onMute,
+  onVolumeChange,
+  onSeek,
 }) => {
+  const [volumeOpen, setVolumeOpen] = React.useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const hasSong = title !== PLACEHOLDER.title;
 
@@ -75,29 +88,54 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
           <p className="text-muted-foreground truncate text-xs">{artist}</p>
         </div>
 
-        <Button
-          type="button"
-          variant="neutral"
-          size="icon"
-          onClick={onMute}
-          disabled={!hasSong}
-          className="size-8 disabled:opacity-40"
-        >
-          {isMuted ? (
-            <VolumeX className="size-4" />
-          ) : (
-            <Volume2 className="size-4" />
-          )}
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="neutral"
+              size="icon"
+              disabled={!hasSong}
+              className="size-8 disabled:opacity-40"
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setVolumeOpen(false);
+                onMute?.();
+              }}
+            >
+              {isMuted ? (
+                <VolumeX className="size-4" />
+              ) : (
+                <Volume2 className="size-4" />
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="bg-secondary-background w-34 p-3"
+            side="top"
+          >
+            <Slider
+              value={[isMuted ? 0 : volume * 100]}
+              max={100}
+              step={1}
+              disabled={!hasSong}
+              onValueChange={([val]) => onVolumeChange?.(val! / 100)}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground w-8 text-right text-[10px]">
           {formatTime(currentTime)}
         </span>
-
-        <Progress value={progress} className="w-full" />
-
+        <Slider
+          value={[progress]}
+          max={100}
+          step={0.1}
+          disabled={!hasSong}
+          onValueChange={([val]) => onSeek?.(val! / 100)}
+          className="w-full"
+        />
         <span className="text-muted-foreground w-8 text-[10px]">
           {formatTime(duration)}
         </span>

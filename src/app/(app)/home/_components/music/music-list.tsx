@@ -29,6 +29,9 @@ const MusicList = () => {
     next,
     prev,
     tracks,
+    volume,
+    seek,
+    setVolume,
   } = usePlayerStore();
 
   const selectedTrack = tracks[currentIndex] ?? null;
@@ -85,6 +88,9 @@ const MusicList = () => {
           onMute={mute}
           onNext={next}
           onPrev={prev}
+          volume={volume}
+          onSeek={seek}
+          onVolumeChange={setVolume}
         />
       </CardFooter>
     </Card>

@@ -89,11 +89,26 @@ export const SpotifyPlayerProvider = ({
         usePlayerStore.getState().setDeviceId(null);
       });
 
+      let isAdvancing = false;
       player.addListener("player_state_changed", (state) => {
         if (!state) return;
+
         usePlayerStore.getState().setIsPlaying(!state.paused);
         usePlayerStore.getState().setCurrentTime(state.position);
         usePlayerStore.getState().setDuration(state.duration);
+
+        if (
+          state.paused &&
+          state.position === 0 &&
+          state.track_window.previous_tracks.length > 0 &&
+          !isAdvancing
+        ) {
+          isAdvancing = true;
+          setTimeout(() => {
+            usePlayerStore.getState().next();
+            isAdvancing = false;
+          }, 500);
+        }
       });
 
       player.addListener("autoplay_failed", () => {
@@ -110,9 +125,14 @@ export const SpotifyPlayerProvider = ({
 
       player.connect().then((success) => {
         if (success) {
-          console.log("Spotify Web Playback SDK connected successfully.");
+          sileo.success({
+            title: "Spotify Web Playback SDK connected successfully.",
+          });
         } else {
-          console.error("Spotify Web Playback SDK failed to connect.");
+          sileo.error({
+            title: "Failed to connect",
+            description: "Please check your internet connection and try again.",
+          });
         }
       });
 

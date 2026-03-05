@@ -29,11 +29,13 @@ export const handleSpotifyMood = async (userId: string, mood: Mood) => {
     const params = MOOD_MAP[mood];
 
     const results = await client.search(
-      `genre:${params.genres[0]} ${mood}`,
+      `genre:${params.genres.join(" ")}`,
       ["track"],
       undefined,
       10,
     );
+
+    console.log(results);
 
     return results.tracks.items.map((track) => ({
       id: track.id,
@@ -110,18 +112,25 @@ export const handleSpotifyArtist = async (userId: string, artist: string) => {
       return [];
     }
 
-    const topTracks = await client.artists.topTracks(artistId, "US");
+    const trackResults = await client.search(
+      `artist:${artist}`,
+      ["track"],
+      undefined,
+      10,
+    );
 
-    return topTracks.tracks.map((track) => ({
-      id: track.id,
-      title: track.name,
-      artist: track.artists.map((a) => a.name).join(", "),
-      album: track.album.name,
-      cover: track.album.images[0]?.url ?? null,
-      duration: track.duration_ms,
-      uri: track.uri,
-      previewUrl: track.preview_url,
-    }));
+    return trackResults.tracks.items
+      .filter((track) => track.artists.some((a) => a.id === artistId))
+      .map((track) => ({
+        id: track.id,
+        title: track.name,
+        artist: track.artists.map((a) => a.name).join(", "),
+        album: track.album.name,
+        cover: track.album.images[0]?.url ?? null,
+        duration: track.duration_ms,
+        uri: track.uri,
+        previewUrl: track.preview_url,
+      }));
   } catch (error) {
     if (error instanceof TRPCError) throw error;
 

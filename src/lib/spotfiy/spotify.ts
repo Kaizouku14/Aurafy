@@ -1,4 +1,5 @@
 import { env } from "@/env";
+import { getSpotifyToken } from "@/server/better-auth";
 import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 
 export const createSpotifyClient = (accessToken: string) =>
@@ -8,3 +9,8 @@ export const createSpotifyClient = (accessToken: string) =>
     expires_in: 3600,
     refresh_token: "",
   });
+
+export const getSpotifyClient = async (userId: string) => {
+  const accessToken = await getSpotifyToken(userId);
+  return createSpotifyClient(accessToken);
+};

@@ -1,23 +1,21 @@
 import { MOOD_MAP, type Mood } from "@/constants/chat";
 import { createSpotifyClient } from "@/lib/spotify";
 import { getErrorMessage } from "@/lib/utils";
-import { db } from "@/server/db";
-import { account } from "@/server/db/schema";
+import { auth } from "@/server/better-auth";
 import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
+import { headers } from "next/headers";
 
-const getSpotifyToken = async (userId: string) => {
-  const [result] = await db
-    .select({ accessToken: account.accessToken })
-    .from(account)
-    .where(and(eq(account.userId, userId), eq(account.providerId, "spotify")))
-    .limit(1);
+export const getSpotifyToken = async (userId: string): Promise<string> => {
+  const result = await auth.api.getAccessToken({
+    body: {
+      providerId: "spotify",
+      userId,
+    },
+    headers: await headers(),
+  });
 
   if (!result?.accessToken) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Spotify account not connected",
-    });
+    throw new Error("Spotify access token not found");
   }
 
   return result.accessToken;

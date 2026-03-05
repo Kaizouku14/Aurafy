@@ -23,3 +23,20 @@ export const saveChatExchangeSchema = userIdSchema.extend({
 });
 
 export type SaveChatExchange = z.infer<typeof saveChatExchangeSchema>;
+
+export const generateIntentSchema = z.object({
+  intent: z.enum(INTENT),
+  songTitle: z.string().nullable(),
+  artist: z.string().nullable(),
+});
+
+export type GenerateIntent = z.infer<typeof generateIntentSchema>;
+
+export const generateMoodSchema = z.object({
+  mood: z.enum(MOOD),
+  energy: z.number().min(0).max(1),
+  valence: z.number().min(0).max(1),
+  confidence: z.number().min(0).max(1),
+});
+
+export type GenerateMood = z.infer<typeof generateMoodSchema>;

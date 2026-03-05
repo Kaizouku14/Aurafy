@@ -60,11 +60,6 @@ export const saveChatExchange = async (
   }
 };
 
-/**
- * Builds a concise summary string from DB chat history for the system prompt.
- * Extracts mood preferences, song requests, and recent conversation topics
- * so the AI has context without re-reading raw messages.
- */
 export const buildRecentTopics = (
   history: Awaited<ReturnType<typeof loadChatHistory>>,
 ): string => {

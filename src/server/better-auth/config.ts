@@ -25,11 +25,12 @@ export const auth = betterAuth({
     spotify: {
       clientId: process.env.SPOTIFY_CLIENT_ID as string,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET as string,
-      scopes: [
+      scope: [
         "streaming",
+        "user-read-email",
+        "user-read-private",
         "user-read-playback-state",
         "user-modify-playback-state",
-        "user-read-private",
         "user-top-read",
       ],
     },

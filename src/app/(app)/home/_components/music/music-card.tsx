@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/lib/utils";
 import { usePlayerStore } from "@/store/play-store";
@@ -32,7 +34,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   return (
     <div
-      onClick={() => setSelectedIndex(index)}
+      onClick={handleClick}
       className={cn(
         "rounded-base flex h-10 w-full max-w-md items-center gap-3 border-2 px-2 py-8 text-left transition-colors",
         selectedIndex === index
@@ -58,7 +60,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
         <p className="max-w-52 truncate text-sm font-bold">{track.title}</p>
         <p
           className={cn(
-            "truncate text-xs",
+            "max-w-52 truncate text-xs",
             selectedIndex === index
               ? "text-main-foreground/70"
               : "text-muted-foreground",
@@ -70,7 +72,15 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
       <div className="shrink-0">
         {isSelected ? (
-          <Button size="icon" variant="neutral" className="shadow-none">
+          <Button
+            size="icon"
+            variant="neutral"
+            className="shadow-none"
+            onClick={(e) => {
+              e.stopPropagation(); // ← prevent double trigger
+              handleClick();
+            }}
+          >
             {isPlaying ? (
               <Pause className="size-3.5" />
             ) : (
@@ -79,7 +89,7 @@ const MusicCard: React.FC<MusicCardProps> = ({
           </Button>
         ) : (
           <span className="text-muted-foreground text-xs">
-            {formatTime(Math.floor(track.duration / 1000))}
+            {formatTime(Math.floor(track.duration))}
           </span>
         )}
       </div>

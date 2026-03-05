@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import {
   Card,
   CardContent,
@@ -13,32 +12,24 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Music } from "lucide-react";
 import MusicPlayer from "./music-player";
 import MusicEmpty from "./music-empty";
-import type { SpotifyTrack } from "@/types/spotify";
 import MusicCard from "./music-card";
 import { usePlayerStore } from "@/store/play-store";
 
-interface MusicListProps {
-  tracks: SpotifyTrack[];
-}
-
-const MusicList: React.FC<MusicListProps> = ({ tracks }) => {
+const MusicList = () => {
   const {
     currentIndex,
     isPlaying,
     isMuted,
     currentTime,
-    setTracks,
+    duration,
     setCurrentIndex,
     play,
     pause,
     mute,
     next,
     prev,
+    tracks,
   } = usePlayerStore();
-
-  React.useEffect(() => {
-    if (tracks.length > 0) setTracks(tracks);
-  }, [tracks]);
 
   const selectedTrack = tracks[currentIndex] ?? null;
 
@@ -86,9 +77,7 @@ const MusicList: React.FC<MusicListProps> = ({ tracks }) => {
           artist={selectedTrack?.artist}
           cover={selectedTrack?.cover}
           currentTime={currentTime}
-          duration={
-            selectedTrack ? Math.floor(selectedTrack.duration / 1000) : 0
-          }
+          duration={duration}
           isPlaying={isPlaying}
           isMuted={isMuted}
           onPlay={play}

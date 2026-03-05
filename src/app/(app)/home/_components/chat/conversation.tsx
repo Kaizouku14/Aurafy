@@ -3,6 +3,7 @@
 import React from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { z } from "zod";
 import {
   Card,
   CardContent,
@@ -17,23 +18,35 @@ import ChatBubble from "./chat-bubble";
 import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
 import type { SpotifyTrack } from "@/types/spotify";
+import { usePlayerStore } from "@/store/play-store";
 
-interface ConversationProps {
-  onTracksReceived?: (tracks: SpotifyTrack[]) => void;
-}
+const trackSchema = z.array(
+  z.object({
+    id: z.string(),
+    title: z.string(),
+    artist: z.string(),
+    album: z.string(),
+    cover: z.string().nullable(),
+    duration: z.number(),
+    uri: z.string(),
+    previewUrl: z.string().nullable(),
+  }),
+);
 
-const Conversation = ({ onTracksReceived }: ConversationProps) => {
-  const onTracksReceivedRef = React.useRef(onTracksReceived);
-  onTracksReceivedRef.current = onTracksReceived;
+const Conversation = () => {
+  const { setTracks } = usePlayerStore();
 
   const { messages, sendMessage, status, stop, error } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
+    dataPartSchemas: {
+      tracks: trackSchema,
+    },
     experimental_throttle: 50,
     onData: (dataPart) => {
       if (dataPart.type === "data-tracks") {
-        onTracksReceivedRef.current?.(dataPart.data as SpotifyTrack[]);
+        setTracks(dataPart.data as SpotifyTrack[]);
       }
     },
   });
@@ -72,7 +85,7 @@ const Conversation = ({ onTracksReceived }: ConversationProps) => {
       </CardHeader>
 
       <CardContent className="px-1">
-        <ScrollArea ref={scrollRef} className="h-84">
+        <ScrollArea className="h-84">
           {messages.length === 0 ? (
             <ChatEmpty onSuggestion={handleSend} />
           ) : (
@@ -95,6 +108,7 @@ const Conversation = ({ onTracksReceived }: ConversationProps) => {
                   Something went wrong. Try again.
                 </div>
               )}
+              <div ref={scrollRef} />
             </div>
           )}
         </ScrollArea>

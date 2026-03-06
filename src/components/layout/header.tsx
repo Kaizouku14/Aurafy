@@ -7,14 +7,15 @@ import { PAGE_ROUTES } from "@/constants/page-routes";
 import { sileo } from "sileo";
 import { authClient } from "@/server/better-auth/client";
 import { useRouter } from "next/navigation";
+import NavigationBar from "../navigation-bar";
+import { HeaderSkeleton } from "../skeleton/header-skeleton";
 
 const Header = () => {
   const router = useRouter();
   const { data } = authClient.useSession();
 
   if (!data) {
-    router.push(PAGE_ROUTES.LOGIN);
-    return;
+    return <HeaderSkeleton />;
   }
 
   const { user } = data;
@@ -37,10 +38,12 @@ const Header = () => {
   };
 
   return (
-    <div className="flex justify-between py-4">
+    <div className="flex items-center justify-between py-4">
       <div className="bg-main shadow-shadow rounded-base border-border flex size-12 items-center justify-center border-2">
         <AudioLines className="text-border size-6" />
       </div>
+
+      <NavigationBar />
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3">

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Brain, MessageCircle } from "lucide-react";
 import { PAGE_ROUTES } from "@/constants/page-routes";
+import Link from "next/link";
 
 const MENUS = [
   {
@@ -35,14 +36,15 @@ const NavigationBar = () => {
         return (
           <Tooltip key={menu.href}>
             <TooltipTrigger asChild>
-              <Button
-                variant={isActive ? "default" : "neutral"}
-                className="flex items-center gap-2"
-                onClick={() => (window.location.href = menu.href)}
-              >
-                {Icon && <Icon className="h-4 w-4" />}
-                <span className="hidden sm:inline">{menu.label}</span>
-              </Button>
+              <Link href={menu.href}>
+                <Button
+                  variant={isActive ? "default" : "neutral"}
+                  className="flex items-center gap-2"
+                >
+                  {Icon && <Icon className="size-4" />}
+                  <span className="hidden sm:inline">{menu.label}</span>
+                </Button>
+              </Link>
             </TooltipTrigger>
             {menu.description && (
               <TooltipContent side="bottom" className="max-w-xs">

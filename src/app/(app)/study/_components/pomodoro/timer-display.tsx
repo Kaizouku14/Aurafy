@@ -36,34 +36,49 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
     <div
       ref={containerRef}
       className={cn(
-        "flex h-full flex-col items-center justify-center gap-8 py-8",
+        "flex h-full w-full flex-col items-center justify-center gap-6",
         isFullscreen && "size-screen bg-background",
       )}
     >
-      <div className="text-[clamp(6rem,12vw,16rem)] font-bold tabular-nums">
-        {formatTime(timeLeft * 1000)}
+      <div className="flex flex-col items-center gap-4">
+        <div className="text-center">
+          <div className="text-foreground text-[clamp(5rem,14vw,18rem)] leading-none font-bold tabular-nums">
+            {formatTime(timeLeft * 1000)}
+          </div>
+        </div>
+
+        <p className="text-muted-foreground text-sm font-medium tracking-wide">
+          {isRunning
+            ? "Stay focused..."
+            : timeLeft === duration
+              ? "Ready to start"
+              : "Paused"}
+        </p>
       </div>
 
-      <div className="flex items-center gap-3">
+      {/* Controls Section */}
+      <div className="flex items-center gap-4">
         <Button
           variant="neutral"
           size="icon"
           onClick={reset}
-          className="size-10"
+          className="border-border hover:bg-secondary-background size-11 rounded-lg border-2 transition-all"
+          title="Reset timer"
         >
-          <RotateCcw className="size-4" />
+          <RotateCcw className="size-5" />
         </Button>
 
         <Button
           variant="default"
           size="icon"
           onClick={isRunning ? pause : start}
-          className="flex size-14 items-center justify-center rounded-full"
+          className="flex size-16 items-center justify-center rounded-full"
+          title={isRunning ? "Pause" : "Start"}
         >
           {isRunning ? (
-            <Pause className="size-6" />
+            <Pause className="size-7" />
           ) : (
-            <Play className="size-6" />
+            <Play className="size-7" />
           )}
         </Button>
 
@@ -71,23 +86,17 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
           variant="neutral"
           size="icon"
           onClick={toggleFullscreen}
-          className="size-10"
+          className="border-border hover:bg-secondary-background size-11 rounded-lg border-2 transition-all"
+          title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
         >
           {isFullscreen ? (
-            <Minimize className="size-4" />
+            <Minimize className="size-5" />
           ) : (
-            <Maximize className="size-4" />
+            <Maximize className="size-5" />
           )}
         </Button>
       </div>
 
-      <p className="text-muted-foreground text-sm">
-        {isRunning
-          ? "Stay focused..."
-          : timeLeft === duration
-            ? "Ready to start"
-            : "Paused"}
-      </p>
       {isFullscreen && <MiniPlayer />}
     </div>
   );

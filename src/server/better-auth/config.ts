@@ -21,6 +21,12 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   socialProviders: {
     spotify: {
       clientId: process.env.SPOTIFY_CLIENT_ID as string,

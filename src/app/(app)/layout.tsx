@@ -14,11 +14,10 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
   const accessToken = await getSpotifyToken(session.user.id);
 
   return (
-    <main className="flex flex-col p-2">
+    <main className="mb-4 flex flex-col p-1.5">
       <Header />
       {accessToken && <SpotifyPlayerProvider accessToken={accessToken} />}
-
-      <div className="pb-24">{children}</div>
+      <div className="pb-12">{children}</div>
       <MiniPlayer />
     </main>
   );

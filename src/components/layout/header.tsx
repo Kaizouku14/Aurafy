@@ -38,7 +38,7 @@ const Header = () => {
   };
 
   return (
-    <div className="flex items-center justify-between py-4">
+    <div className="flex items-center justify-between p-4">
       <div className="bg-main shadow-shadow rounded-base border-border flex size-12 items-center justify-center border-2">
         <AudioLines className="text-border size-6" />
       </div>

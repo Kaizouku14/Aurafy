@@ -8,10 +8,7 @@ export const getSession = cache(async () =>
 
 export const getSpotifyToken = cache(async (userId: string) => {
   const result = await auth.api.getAccessToken({
-    body: {
-      providerId: "spotify",
-      userId,
-    },
+    body: { providerId: "spotify", userId },
     headers: await headers(),
   });
 

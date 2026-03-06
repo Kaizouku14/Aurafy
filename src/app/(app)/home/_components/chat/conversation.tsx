@@ -18,6 +18,7 @@ import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
 import { sileo } from "sileo";
 import { sharedChat } from "@/lib/chat-instance";
+import { getErrorMessage } from "@/lib/utils";
 
 const Conversation = () => {
   const { messages, sendMessage, status, stop, error } = useChat({
@@ -37,12 +38,6 @@ const Conversation = () => {
     },
     [sendMessage],
   );
-
-  error &&
-    sileo.error({
-      title: error.name,
-      description: error.message,
-    });
 
   return (
     <Card className="w-full max-w-md pt-1">

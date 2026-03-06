@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Timer, NotebookPen, CalendarCheck2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import PomodoroTab from "./pomodoro/pomodoro-tab";
+import PomodoroTab from "./pomodoro/pomodoro";
 
 const StudyTab = () => {
   const tabs = [

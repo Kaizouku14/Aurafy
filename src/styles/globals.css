@@ -56,7 +56,7 @@
 
 @layer base {
   body {
-    @apply text-foreground font-base bg-background font-poppins;
+    @apply text-foreground font-base bg-background font-poppins md:mx-30;
   }
 
   h1,

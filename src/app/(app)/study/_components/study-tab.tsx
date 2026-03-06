@@ -22,8 +22,8 @@ const StudyTab = () => {
   ];
 
   return (
-    <Tabs defaultValue="pomodoro" className="flex size-full items-center gap-4">
-      <TabsList className="flex h-auto flex-col gap-2 border-none bg-transparent p-0">
+    <Tabs defaultValue="pomodoro" className="flex items-center">
+      <TabsList className="flex h-auto flex-col gap-2 border-none p-0">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           return (
@@ -47,15 +47,13 @@ const StudyTab = () => {
         })}
       </TabsList>
 
-      <div className="h-full flex-1">
-        <TabsContent value="pomodoro" className="mt-0 h-full">
-          <PomodoroTab />
-        </TabsContent>
-        <TabsContent value="flashcards" className="mt-0">
-          <div>Flashcards here.</div>
-        </TabsContent>
-        <TabsContent value="listcheck" className="mt-0" />
-      </div>
+      <TabsContent value="pomodoro" className="mt-0">
+        <PomodoroTab />
+      </TabsContent>
+      <TabsContent value="flashcards" className="mt-0">
+        <div>Flashcards here.</div>
+      </TabsContent>
+      <TabsContent value="listcheck" className="mt-0" />
     </Tabs>
   );
 };

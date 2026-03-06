@@ -4,50 +4,15 @@ import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/lib/utils";
 import { RotateCcw, Pause, Play, Maximize, Minimize } from "lucide-react";
 import { MiniPlayer } from "@/components/mini-player";
+import { usePomodoroStore } from "@/store/pomodoro-store";
 
-const TimerDisplay = ({
-  mode,
-  customDurations,
-}: {
-  mode: Mode;
-  customDurations: Record<Mode, number>;
-}) => {
+const TimerDisplay = ({ mode }: { mode: Mode }) => {
+  const { timeLeft, isRunning, customDurations, start, pause, reset } =
+    usePomodoroStore();
+
   const duration = customDurations[mode];
-  const [timeLeft, setTimeLeft] = React.useState(duration);
-  const [isRunning, setIsRunning] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    setTimeLeft(duration);
-    setIsRunning(false);
-  }, [duration]);
-
-  React.useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(intervalRef.current!);
-            setIsRunning(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isRunning]);
-
-  const handleReset = () => {
-    setIsRunning(false);
-    setTimeLeft(duration);
-  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -71,11 +36,11 @@ const TimerDisplay = ({
     <div
       ref={containerRef}
       className={cn(
-        "bg-background flex h-full flex-col items-center gap-8 py-8",
-        isFullscreen && "size-screen justify-center",
+        "flex h-full flex-col items-center justify-center gap-8 py-8",
+        isFullscreen && "size-screen bg-background",
       )}
     >
-      <div className="text-foreground text-9xl font-bold tabular-nums">
+      <div className="text-[clamp(6rem,12vw,16rem)] font-bold tabular-nums">
         {formatTime(timeLeft * 1000)}
       </div>
 
@@ -83,7 +48,7 @@ const TimerDisplay = ({
         <Button
           variant="neutral"
           size="icon"
-          onClick={handleReset}
+          onClick={reset}
           className="size-10"
         >
           <RotateCcw className="size-4" />
@@ -92,7 +57,7 @@ const TimerDisplay = ({
         <Button
           variant="default"
           size="icon"
-          onClick={() => setIsRunning((r) => !r)}
+          onClick={isRunning ? pause : start}
           className="flex size-14 items-center justify-center rounded-full"
         >
           {isRunning ? (

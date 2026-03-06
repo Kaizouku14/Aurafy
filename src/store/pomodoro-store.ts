@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { DEFAULT_DURATIONS, type Mode } from "@/constants/pomodoro-modes";
+import { getDefaultDurations, type Mode } from "@/constants/pomodoro-modes";
 
 interface PomodoroState {
   mode: Mode;
@@ -7,20 +7,30 @@ interface PomodoroState {
   isRunning: boolean;
   customDurations: Record<Mode, number>;
   intervalId: ReturnType<typeof setInterval> | null;
+  onTimerStart: (() => void) | null;
+  onTimerEnd: (() => void) | null;
   setMode: (mode: Mode) => void;
   setCustomDurations: (durations: Record<Mode, number>) => void;
+  setCallbacks: (
+    onStart: () => void,
+    onEnd: () => void,
+  ) => void;
   start: () => void;
   pause: () => void;
   reset: () => void;
   tick: () => void;
 }
 
+const defaults = getDefaultDurations();
+
 export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   mode: "pomo",
-  timeLeft: DEFAULT_DURATIONS.pomo,
+  timeLeft: defaults.pomo,
   isRunning: false,
-  customDurations: DEFAULT_DURATIONS,
+  customDurations: defaults,
   intervalId: null,
+  onTimerStart: null,
+  onTimerEnd: null,
 
   setMode: (mode) => {
     const { intervalId, customDurations } = get();
@@ -42,22 +52,28 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
     });
   },
 
+  setCallbacks: (onStart, onEnd) => {
+    set({ onTimerStart: onStart, onTimerEnd: onEnd });
+  },
+
   tick: () => {
-    const { timeLeft } = get();
+    const { timeLeft, onTimerEnd } = get();
     if (timeLeft <= 1) {
       const { intervalId } = get();
       if (intervalId) clearInterval(intervalId);
       set({ timeLeft: 0, isRunning: false, intervalId: null });
+      onTimerEnd?.();
     } else {
       set({ timeLeft: timeLeft - 1 });
     }
   },
 
   start: () => {
-    const { intervalId, tick } = get();
+    const { intervalId, tick, onTimerStart } = get();
     if (intervalId) clearInterval(intervalId);
     const id = setInterval(tick, 1000);
     set({ isRunning: true, intervalId: id });
+    onTimerStart?.();
   },
 
   pause: () => {

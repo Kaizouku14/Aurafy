@@ -12,14 +12,33 @@ import {
 } from "lucide-react";
 import { MiniPlayer } from "@/components/mini-player";
 import { usePomodoroStore } from "@/store/pomodoro-store";
+import { usePlayerStore } from "@/store/play-store";
+import { playStartChime, playEndRing } from "@/lib/audio/sounds";
 
 const TimerDisplay = ({ mode }: { mode: Mode }) => {
-  const { timeLeft, isRunning, customDurations, start, pause, reset } =
+  const { timeLeft, isRunning, customDurations, start, pause, reset, setCallbacks } =
     usePomodoroStore();
+  const playerPlay = usePlayerStore((s) => s.play);
+  const playerPause = usePlayerStore((s) => s.pause);
+  const hasTracks = usePlayerStore((s) => s.tracks.length > 0);
 
   const duration = customDurations[mode];
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setCallbacks(
+      () => {
+        playStartChime();
+        const currentMode = usePomodoroStore.getState().mode;
+        if (currentMode === "pomo" && hasTracks) playerPlay();
+      },
+      () => {
+        playEndRing();
+        playerPause();
+      },
+    );
+  }, [setCallbacks, playerPlay, playerPause, hasTracks]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -53,7 +72,6 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
         isFullscreen && "size-screen bg-background",
       )}
     >
-      {/* Timer */}
       <div className="flex flex-col items-center gap-3">
         <div className="text-foreground text-[clamp(5rem,14vw,18rem)] leading-none font-bold tabular-nums">
           {formatTime(timeLeft * 1000)}
@@ -68,9 +86,7 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
         </p>
       </div>
 
-      {/* Controls */}
       <div className="mt-10 flex items-center gap-3">
-        {/* Left: Reset */}
         <Button
           variant="neutral"
           size="icon"
@@ -81,7 +97,6 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
           <RotateCcw className="size-4" />
         </Button>
 
-        {/* Center: Play/Pause — larger focal point */}
         <Button
           variant="default"
           size="icon"
@@ -96,7 +111,6 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
           )}
         </Button>
 
-        {/* Right: Settings + Fullscreen */}
         <div className="flex items-center gap-2">
           <Button
             variant="neutral"

@@ -29,7 +29,6 @@ const PomodoroTab = () => {
       onValueChange={handleModeChange}
       className="flex h-full w-full flex-col"
     >
-      {/* Mode tabs */}
       <div className="border-border border-b-2 px-6 pt-5 pb-0">
         <TabsList className="h-auto gap-0 border-none bg-transparent p-0">
           {POMODORO_MODES.map(({ value, label }) => (
@@ -49,7 +48,6 @@ const PomodoroTab = () => {
         </TabsList>
       </div>
 
-      {/* Timer content */}
       <div className="flex flex-1 items-center justify-center">
         {POMODORO_MODES.map(({ value }) => (
           <TabsContent

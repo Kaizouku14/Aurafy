@@ -27,6 +27,17 @@ const withSpotifyError = async <T>(fn: () => Promise<T>): Promise<T> => {
   }
 };
 
+const deduplicateTracks = (
+  tracks: ReturnType<typeof mapTrack>[],
+): ReturnType<typeof mapTrack>[] => {
+  const seen = new Set<string>();
+  return tracks.filter((t) => {
+    if (seen.has(t.id)) return false;
+    seen.add(t.id);
+    return true;
+  });
+};
+
 export const getUserTopArtists = async (userId: string): Promise<string[]> =>
   withSpotifyError(async () => {
     const client = await getSpotifyClient(userId);
@@ -38,47 +49,54 @@ export const getUserTopArtists = async (userId: string): Promise<string[]> =>
     return result.items.map((a: Artist) => a.name);
   });
 
+
+export interface UserLibrary {
+  topArtists: string[];
+}
+
+export const fetchUserLibrary = async (
+  userId: string,
+): Promise<UserLibrary> => {
+  const topArtists = await getUserTopArtists(userId).catch(() => []);
+  return { topArtists };
+};
+
 export const handleSpotifyMood = async (
   userId: string,
   mood: Mood,
-  topArtists?: string[],
+  library: UserLibrary,
 ) =>
   withSpotifyError(async () => {
     const client = await getSpotifyClient(userId);
     const { genres } = MOOD_MAP[mood];
+    const moodGenre = genres[0] ?? "";
+    const collected: ReturnType<typeof mapTrack>[] = [];
 
-    const moodContext = genres[0] || "";
+    if (library.topArtists.length > 0) {
+      const artistQueries = library.topArtists.slice(0, 3).map((artist) =>
+        client
+          .search(`genre:${moodGenre} artist:${artist}`, ["track"], undefined, 5)
+          .then((r) => r.tracks.items.map(mapTrack))
+          .catch(() => []),
+      );
+      const results = await Promise.all(artistQueries);
+      collected.push(...results.flat());
+    }
 
-    if (topArtists && topArtists.length > 0) {
-      const artistNames = topArtists.slice(0, 2).join(" ");
-      const flatQuery = `${moodContext} ${artistNames}`.trim();
-
-
-      try {
-        const biasedResults = await client.search(
-          flatQuery,
-          ["track"],
-          undefined,
-          10,
-        );
-
-        if (biasedResults.tracks.items?.length > 0) {
-          return biasedResults.tracks.items.map(mapTrack);
-        }
-      } catch (e) {
-        console.warn("Flat query failed, skipping to fallback...");
-      }
+    if (collected.length >= 10) {
+      return deduplicateTracks(collected).slice(0, 10);
     }
 
     const fallbackQuery = genres.join(" ");
-    const results = await client.search(
+    const fallback = await client.search(
       fallbackQuery,
       ["track"],
       undefined,
       10,
     );
+    collected.push(...fallback.tracks.items.map(mapTrack));
 
-    return results.tracks.items.map(mapTrack);
+    return deduplicateTracks(collected).slice(0, 10);
   });
 
 export const handleSpotifySong = async (

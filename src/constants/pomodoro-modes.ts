@@ -4,10 +4,9 @@ export const MODES = {
   long: { label: "Long Break", duration: 15 * 60 },
 } as const;
 
-export const DEFAULT_DURATIONS: Record<Mode, number> = {
-  pomo: 25 * 60,
-  short: 5 * 60,
-  long: 15 * 60,
-};
-
 export type Mode = keyof typeof MODES;
+
+export const getDefaultDurations = (): Record<Mode, number> =>
+  Object.fromEntries(
+    Object.entries(MODES).map(([key, { duration }]) => [key, duration]),
+  ) as Record<Mode, number>;

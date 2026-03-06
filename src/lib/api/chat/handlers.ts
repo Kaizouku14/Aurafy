@@ -15,7 +15,7 @@ import { INTENT_LABELS, type Mood } from "@/constants/chat";
 import { generateMoodSchema } from "@/types/schema/chat";
 import type { GenerateIntent } from "@/types/schema/chat";
 import {
-  getUserTopArtists,
+  type UserLibrary,
   handleSpotifyArtist,
   handleSpotifyMood,
   handleSpotifySong,
@@ -42,16 +42,14 @@ const persistExchange = (
 export const handleMoodIntent = async (
   userId: string,
   userText: string,
+  library: UserLibrary,
 ): Promise<Response> => {
-  const [{ output: mood }, topArtists] = await Promise.all([
-    generateText({
-      model: groq(MODELS.default),
-      output: Output.object({ schema: generateMoodSchema }),
-      prompt: GET_MOOD_PROMPT(userText),
-      temperature: 0.2,
-    }),
-    getUserTopArtists(userId).catch(() => []),
-  ]);
+  const { output: mood } = await generateText({
+    model: groq(MODELS.default),
+    output: Output.object({ schema: generateMoodSchema }),
+    prompt: GET_MOOD_PROMPT(userText),
+    temperature: 0.2,
+  });
 
   if (mood.confidence < 0.6) {
     const text = "Tell me more about how you're feeling";
@@ -66,7 +64,7 @@ export const handleMoodIntent = async (
     const tracks = await handleSpotifyMood(
       userId,
       mood.mood as Mood,
-      topArtists,
+      library,
     );
 
     const text = `I can feel you're in a ${mood.mood} mood. Let me find you some songs.`;

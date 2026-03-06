@@ -3,6 +3,7 @@ import { getSession } from "@/server/better-auth";
 import { INTENT_LABELS } from "@/constants/chat";
 import { classifyIntent } from "@/lib/api/chat/intent";
 import { loadChatHistory } from "@/lib/api/chat/memory";
+import { fetchUserLibrary } from "@/lib/api/chat/spotify";
 import {
   handleMoodIntent,
   handleSongIntent,
@@ -29,14 +30,15 @@ export const POST = async (req: Request) => {
     return new Response("Bad Request", { status: 400 });
   }
 
-  const [intent, history] = await Promise.all([
+  const [intent, history, library] = await Promise.all([
     classifyIntent(userText),
     loadChatHistory({ userId }),
+    fetchUserLibrary(userId),
   ]);
 
   switch (intent.intent) {
     case INTENT_LABELS.PLAY_MOOD:
-      return handleMoodIntent(userId, userText);
+      return handleMoodIntent(userId, userText, library);
     case INTENT_LABELS.PLAY_SONG:
       return handleSongIntent(userId, userText, intent);
     case INTENT_LABELS.PLAY_ARTIST:

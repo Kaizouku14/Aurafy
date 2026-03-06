@@ -29,7 +29,6 @@ export const flashcards = createTable("flashcards", {
   front: text("front").notNull(), // Question shown to user
   back: text("back").notNull(), // Correct answer for AI evaluation
 
-  // SM-2 algorithm fields
   repetitions: integer("repetitions").notNull().default(0), // Times reviewed successfully
   easeFactor: real("ease_factor").notNull().default(2.5), // SM-2 EF, min 1.3
   interval: integer("interval").notNull().default(1), // Days until next review

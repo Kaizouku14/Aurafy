@@ -1,68 +1,14 @@
-import {
-  buildRecentTopics,
-  loadChatHistory,
-  saveChatExchange,
-} from "@/lib/api/chat/memory";
-import {
-  getUserTopArtists,
-  handleSpotifyArtist,
-  handleSpotifyMood,
-  handleSpotifySong,
-} from "@/lib/api/chat/spotify";
-import {
-  convertToModelMessages,
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  generateId,
-  generateText,
-  Output,
-  streamText,
-  type UIMessage,
-} from "ai";
-import { groq } from "@/lib/ai/groq";
-import { MODELS } from "@/lib/ai/models";
-import {
-  CONVERSATIONAL_SYSTEM_PROMPT,
-  GET_INTENT_PROMPT,
-  GET_MOOD_PROMPT,
-} from "@/lib/ai/prompt";
+import type { UIMessage } from "ai";
 import { getSession } from "@/server/better-auth";
-import { INTENT_LABELS, type Mood } from "@/constants/chat";
+import { INTENT_LABELS } from "@/constants/chat";
+import { classifyIntent } from "@/lib/api/chat/intent";
+import { loadChatHistory } from "@/lib/api/chat/memory";
 import {
-  generateIntentSchema,
-  generateMoodSchema,
-  type Track,
-} from "@/types/schema/chat";
-
-const createTextWithTracksResponse = (
-  assistantText: string,
-  tracks?: Track[],
-) => {
-  const textId = generateId();
-  const stream = createUIMessageStream({
-    execute: ({ writer }) => {
-      writer.write({ type: "start" });
-
-      if (tracks && tracks.length > 0) {
-        writer.write({
-          type: "data-tracks",
-          data: tracks,
-        });
-      }
-
-      writer.write({ type: "text-start", id: textId });
-      writer.write({
-        type: "text-delta",
-        id: textId,
-        delta: assistantText,
-      });
-      writer.write({ type: "text-end", id: textId });
-      writer.write({ type: "finish" });
-    },
-  });
-
-  return createUIMessageStreamResponse({ stream });
-};
+  handleMoodIntent,
+  handleSongIntent,
+  handleArtistIntent,
+  handleConversation,
+} from "@/lib/api/chat/handlers";
 
 export const POST = async (req: Request) => {
   const [session, { messages }] = await Promise.all([
@@ -75,7 +21,6 @@ export const POST = async (req: Request) => {
   }
 
   const { id: userId } = session.user;
-
   const lastMessage = messages[messages.length - 1];
   const userText =
     lastMessage?.parts?.find((p) => p.type === "text")?.text ?? "";
@@ -84,145 +29,19 @@ export const POST = async (req: Request) => {
     return new Response("Bad Request", { status: 400 });
   }
 
-  const [history, { output: intent }] = await Promise.all([
+  const [intent, history] = await Promise.all([
+    classifyIntent(userText),
     loadChatHistory({ userId }),
-    generateText({
-      model: groq(MODELS.default),
-      output: Output.object({ schema: generateIntentSchema }),
-      prompt: GET_INTENT_PROMPT(userText),
-      temperature: 0.1,
-    }),
   ]);
 
-  if (intent.intent === INTENT_LABELS.PLAY_MOOD) {
-    const [{ output: mood }, topArtists] = await Promise.all([
-      generateText({
-        model: groq(MODELS.default),
-        output: Output.object({ schema: generateMoodSchema }),
-        prompt: GET_MOOD_PROMPT(userText),
-        temperature: 0.2,
-      }),
-      getUserTopArtists(userId).catch((error) => {
-        console.error(error);
-        return [];
-      }),
-    ]);
-
-    if (mood.confidence < 0.6) {
-      const assistantText = "Tell me more about how you're feeling";
-
-      void saveChatExchange({
-        userId,
-        userMessage: userText,
-        assistantMessage: assistantText,
-        metadata: { intent: INTENT_LABELS.PLAY_MOOD, mood: mood.mood },
-      });
-
-      return createTextWithTracksResponse(assistantText);
-    }
-
-    const tracks = await handleSpotifyMood(
-      userId,
-      mood.mood as Mood,
-      topArtists,
-    );
-
-    const assistantText = `I can feel you're in a ${mood.mood} mood. Let me find you some songs.`;
-
-    void saveChatExchange({
-      userId,
-      userMessage: userText,
-      assistantMessage: assistantText,
-      metadata: { intent: INTENT_LABELS.PLAY_MOOD, mood: mood.mood },
-    });
-
-    return createTextWithTracksResponse(assistantText, tracks);
+  switch (intent.intent) {
+    case INTENT_LABELS.PLAY_MOOD:
+      return handleMoodIntent(userId, userText);
+    case INTENT_LABELS.PLAY_SONG:
+      return handleSongIntent(userId, userText, intent);
+    case INTENT_LABELS.PLAY_ARTIST:
+      return handleArtistIntent(userId, userText, intent);
+    default:
+      return handleConversation(userId, userText, messages, history);
   }
-
-  if (intent.intent === INTENT_LABELS.PLAY_SONG) {
-    if (!intent.songTitle) {
-      const assistantText = "Which song would you like to play?";
-
-      void saveChatExchange({
-        userId,
-        userMessage: userText,
-        assistantMessage: assistantText,
-        metadata: { intent: INTENT_LABELS.PLAY_SONG },
-      });
-
-      return createTextWithTracksResponse(assistantText);
-    }
-
-    const tracks = await handleSpotifySong(
-      userId,
-      intent.songTitle,
-      intent.artist,
-    );
-
-    const artistText = intent.artist ? ` by ${intent.artist}` : "";
-
-    if (!tracks.length) {
-      const assistantText = `Sorry, I couldn't find "${intent.songTitle}"${artistText}.`;
-
-      return createTextWithTracksResponse(assistantText);
-    }
-
-    const assistantText = `Playing "${intent.songTitle}"${artistText}`;
-
-    void saveChatExchange({
-      userId,
-      userMessage: userText,
-      assistantMessage: assistantText,
-      metadata: {
-        intent: INTENT_LABELS.PLAY_SONG,
-        songTitle: intent.songTitle,
-        artist: intent.artist,
-      },
-    });
-
-    return createTextWithTracksResponse(assistantText, tracks);
-  }
-
-  if (intent.intent === INTENT_LABELS.PLAY_ARTIST) {
-    if (!intent.artist) {
-      const assistantText = "Which artist?";
-      return createTextWithTracksResponse(assistantText);
-    }
-
-    const tracks = await handleSpotifyArtist(userId, intent.artist);
-
-    const assistantText = `Here are popular songs by ${intent.artist}.`;
-
-    void saveChatExchange({
-      userId,
-      userMessage: userText,
-      assistantMessage: assistantText,
-      metadata: {
-        intent: INTENT_LABELS.PLAY_ARTIST,
-        artist: intent.artist,
-      },
-    });
-
-    return createTextWithTracksResponse(assistantText, tracks);
-  }
-
-  const recentTopics = buildRecentTopics(history);
-
-  const result = streamText({
-    model: groq(MODELS.default),
-    system: CONVERSATIONAL_SYSTEM_PROMPT(recentTopics),
-    temperature: 0.6,
-    maxOutputTokens: 500,
-    messages: [...history, ...(await convertToModelMessages(messages))],
-    onFinish: async ({ text }) => {
-      void saveChatExchange({
-        userId,
-        userMessage: userText,
-        assistantMessage: text,
-        metadata: { intent: INTENT_LABELS.OTHERS! },
-      });
-    },
-  });
-
-  return result.toUIMessageStreamResponse();
 };

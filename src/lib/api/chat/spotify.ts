@@ -53,7 +53,6 @@ export const handleSpotifyMood = async (
       const artistNames = topArtists.slice(0, 2).join(" ");
       const flatQuery = `${moodContext} ${artistNames}`.trim();
 
-      // console.log("Attempting safe query:", flatQuery);
 
       try {
         const biasedResults = await client.search(
@@ -71,7 +70,6 @@ export const handleSpotifyMood = async (
       }
     }
 
-    // 3. Fallback: Just the genre keywords
     const fallbackQuery = genres.join(" ");
     const results = await client.search(
       fallbackQuery,

@@ -3,7 +3,6 @@ import { flashcardDecks, flashcardReviews, flashcards } from "./flashcard";
 import { user, account, session } from "./user";
 import { chat } from "./chat";
 
-// User Table
 export const userRelations = relations(user, ({ many }) => ({
   account: many(account),
   session: many(session),
@@ -20,7 +19,6 @@ export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, { fields: [session.userId], references: [user.id] }),
 }));
 
-// Flashcard Decks Table
 export const flashcardDecksRelations = relations(
   flashcardDecks,
   ({ one, many }) => ({
@@ -32,7 +30,6 @@ export const flashcardDecksRelations = relations(
   }),
 );
 
-// Flashcards Table
 export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
   deck: one(flashcardDecks, {
     fields: [flashcards.deckId],
@@ -41,7 +38,6 @@ export const flashcardsRelations = relations(flashcards, ({ one, many }) => ({
   reviews: many(flashcardReviews),
 }));
 
-// Flashcard Reviews Table
 export const flashcardReviewsRelations = relations(
   flashcardReviews,
   ({ one }) => ({

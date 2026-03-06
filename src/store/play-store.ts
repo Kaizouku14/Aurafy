@@ -13,12 +13,10 @@ interface PlayerState {
   volume: number;
   currentTime: number;
   duration: number;
-  // Premium
   player: Spotify.Player | null;
   deviceId: string | null;
   accessToken: string | null;
   isPremium: boolean;
-  // Free
   audio: HTMLAudioElement | null;
 
   setTracks: (tracks: Track[]) => void;

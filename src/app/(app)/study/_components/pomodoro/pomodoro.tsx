@@ -13,12 +13,10 @@ const POMODORO_MODES = [
 
 const PomodoroTab = () => {
   const { setMode } = usePomodoroStore();
-  const [selected, setSelected] = React.useState("pomo");
 
   const handleModeChange = useCallback(
     (value: string) => {
       setMode(value as Mode);
-      setSelected(value);
     },
     [setMode],
   );

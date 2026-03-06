@@ -109,7 +109,7 @@ export const handleSpotifySong = async (
     const query = artist
       ? `track:${songTitle} artist:${artist}`
       : `track:${songTitle}`;
-    const results = await client.search(query, ["track"], undefined, 5);
+    const results = await client.search(query, ["track"], undefined, 10);
     return results.tracks.items.map(mapTrack);
   });
 

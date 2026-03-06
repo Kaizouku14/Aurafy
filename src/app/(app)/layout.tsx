@@ -17,7 +17,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     <main className="mx-auto flex min-h-screen w-full max-w-screen-xl flex-col px-4">
       <Header />
       {accessToken && <SpotifyPlayerProvider accessToken={accessToken} />}
-      <div className="pb-20">{children}</div>
+      {children}
       <MiniPlayer />
     </main>
   );

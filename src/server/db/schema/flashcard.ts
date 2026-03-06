@@ -10,7 +10,7 @@ export const flashcardDecks = createTable("flashcard_decks", {
     .references(() => user.id, { onDelete: "cascade" }),
 
   subject: text("subject").notNull(),
-  examDate: text("exam_date").notNull(), // ISO string "YYYY-MM-DD" — used to cap SM-2 intervals
+  examDate: text("exam_date").notNull(),
 
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -26,13 +26,13 @@ export const flashcards = createTable("flashcards", {
     .notNull()
     .references(() => flashcardDecks.id, { onDelete: "cascade" }),
 
-  front: text("front").notNull(), // Question shown to user
-  back: text("back").notNull(), // Correct answer for AI evaluation
+  front: text("front").notNull(),
+  back: text("back").notNull(),
 
-  repetitions: integer("repetitions").notNull().default(0), // Times reviewed successfully
-  easeFactor: real("ease_factor").notNull().default(2.5), // SM-2 EF, min 1.3
-  interval: integer("interval").notNull().default(1), // Days until next review
-  nextReviewAt: text("next_review_at"), // ISO string "YYYY-MM-DD"
+  repetitions: integer("repetitions").notNull().default(0),
+  easeFactor: real("ease_factor").notNull().default(2.5),
+  interval: integer("interval").notNull().default(1),
+  nextReviewAt: text("next_review_at"),
 
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -48,9 +48,9 @@ export const flashcardReviews = createTable("flashcard_reviews", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 
-  userAnswer: text("user_answer").notNull(), // What the user typed
-  qualityScore: integer("quality_score").notNull(), // 0–5 from AI evaluation
-  nextReviewAt: text("next_review_at").notNull(), // Resulting SM-2 schedule "YYYY-MM-DD"
+  userAnswer: text("user_answer").notNull(),
+  qualityScore: integer("quality_score").notNull(),
+  nextReviewAt: text("next_review_at").notNull(),
 
   reviewedAt: integer("reviewed_at", { mode: "timestamp" })
     .notNull()

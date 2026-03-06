@@ -9,6 +9,7 @@ import {
 import { Timer, NotebookPen, CalendarCheck2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PomodoroTab from "./pomodoro/pomodoro";
+import FlashcardsTab from "./flashcards/flashcards";
 import React from "react";
 
 const STUDY_TABS = [
@@ -71,7 +72,6 @@ const StudyTab = () => {
         </TabsList>
       </aside>
 
-      {/* Content */}
       <main className="border-border flex flex-1 flex-col overflow-hidden border-l-0">
         {STUDY_TABS.map((tab) => (
           <TabsContent
@@ -80,11 +80,7 @@ const StudyTab = () => {
             className="data-[state=active]:animate-in data-[state=active]:fade-in mt-0 h-full flex-1"
           >
             {tab.value === "pomodoro" && <PomodoroTab />}
-            {tab.value === "flashcards" && (
-              <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-                Flashcards coming soon
-              </div>
-            )}
+            {tab.value === "flashcards" && <FlashcardsTab />}
             {tab.value === "listcheck" && (
               <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
                 Task manager coming soon

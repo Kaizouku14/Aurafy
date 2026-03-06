@@ -48,3 +48,17 @@ When you suggest a song, always mention it clearly by name so the user can ask t
 You have context from previous conversations with this user:
 ${recentTopics}
 `;
+
+export const GENERATE_CARDS_PROMPT = (notes: string) => `You are an expert educator. Extract the core concepts, terms, and facts from the following notes and generate a deck of flashcards. Keep the 'front' succinct and clear. Keep the 'back' concise but fully accurate.
+
+Notes:
+${notes}`;
+
+export const EVALUATE_ANSWER_PROMPT = (front: string, back: string, userAnswer: string) => `You are an expert tutor evaluating a student's answer to a flashcard. 
+Your goal is to test if the student grasps the underlying CONCEPTS, not just if they memorized the exact wording.
+If their answer means the same thing logically, score them highly. If they missed a critical nuance, score them lower and explain why.
+
+Card Question (Front): ${front}
+True Answer (Back): ${back}
+
+Student's Answer: ${userAnswer}`;

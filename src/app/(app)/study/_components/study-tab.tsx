@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Timer, NotebookPen, CalendarCheck2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import PomodoroTab from "./pomodoro/pomodoro-tab";
 
 const StudyTab = () => {
-  const [active, setActive] = useState("pomodoro");
-
   const tabs = [
     { value: "pomodoro", icon: Timer, description: "Pomodoro timer" },
     {
@@ -24,34 +22,41 @@ const StudyTab = () => {
   ];
 
   return (
-    <div className="flex size-full items-center gap-4">
-      <div className="flex h-auto flex-col gap-2">
+    <Tabs defaultValue="pomodoro" className="flex size-full items-center gap-4">
+      <TabsList className="flex h-auto flex-col gap-2 border-none bg-transparent p-0">
         {tabs.map((tab) => {
           const Icon = tab.icon;
-          const isActive = active === tab.value;
           return (
             <Tooltip key={tab.value}>
               <TooltipTrigger asChild>
-                <Button
-                  variant={isActive ? "default" : "neutral"}
-                  onClick={() => setActive(tab.value)}
-                  className="p-4 [&_svg]:size-5"
+                <TabsTrigger
+                  value={tab.value}
+                  className={cn(
+                    "flex items-center justify-center rounded-lg border-2 p-4 transition-all [&_svg]:size-5",
+                    "border-border shadow-shadow",
+                    "bg-secondary-background text-foreground",
+                    "hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none",
+                  )}
                 >
                   <Icon />
-                </Button>
+                </TabsTrigger>
               </TooltipTrigger>
               <TooltipContent side="right">{tab.description}</TooltipContent>
             </Tooltip>
           );
         })}
-      </div>
+      </TabsList>
 
       <div className="h-full flex-1">
-        {active === "pomodoro" && <PomodoroTab />}
-        {active === "flashcards" && <div>Flashcards here.</div>}
-        {active === "listcheck" && <div></div>}
+        <TabsContent value="pomodoro" className="mt-0 h-full">
+          <PomodoroTab />
+        </TabsContent>
+        <TabsContent value="flashcards" className="mt-0">
+          <div>Flashcards here.</div>
+        </TabsContent>
+        <TabsContent value="listcheck" className="mt-0" />
       </div>
-    </div>
+    </Tabs>
   );
 };
 

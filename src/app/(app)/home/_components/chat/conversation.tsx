@@ -16,26 +16,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatBubble from "./chat-bubble";
 import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
-import { usePlayerStore } from "@/store/play-store";
-import { trackSchema, type Track } from "@/types/schema/chat";
 import { sileo } from "sileo";
+import { sharedChat } from "@/lib/chat-instance";
 
 const Conversation = () => {
-  const { setTracks } = usePlayerStore();
-
   const { messages, sendMessage, status, stop, error } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-    }),
-    dataPartSchemas: {
-      tracks: trackSchema,
-    },
+    chat: sharedChat,
     experimental_throttle: 50,
-    onData: (dataPart) => {
-      if (dataPart.type === "data-tracks") {
-        setTracks(dataPart.data as Track[]);
-      }
-    },
   });
 
   const scrollRef = React.useRef<HTMLDivElement>(null);

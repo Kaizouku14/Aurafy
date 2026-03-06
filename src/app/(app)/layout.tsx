@@ -4,6 +4,7 @@ import { getSpotifyToken } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { redirect } from "next/navigation";
 import { PAGE_ROUTES } from "@/constants/page-routes";
+import { MiniPlayer } from "@/components/mini-player";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getSession();
@@ -17,7 +18,8 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
       <Header />
       {accessToken && <SpotifyPlayerProvider accessToken={accessToken} />}
 
-      <div>{children}</div>
+      <div className="pb-24">{children}</div>
+      <MiniPlayer />
     </main>
   );
 };

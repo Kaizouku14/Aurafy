@@ -1,130 +1,116 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { type LoginFormSchema, loginFormSchema } from "@/types/schema/auth";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import LoadingButton from "@/components/form/submit-button";
-import PasswordInput from "@/components/form/password-input";
+import { useState } from "react";
+import { Loader2, AudioLines, Brain, Sparkles, MoveRight } from "lucide-react";
 import { authClient } from "@/server/better-auth/client";
-import Link from "next/link";
 import { PAGE_ROUTES } from "@/constants/page-routes";
+import FeatureCard from "./card/feature-card";
+import { SpotifyIcon } from "./spotify-icon";
 
-const LoginForm = () => {
-  const form = useForm<LoginFormSchema>({
-    resolver: zodResolver(loginFormSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+export default function LoginForm() {
+  const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = async (values: LoginFormSchema) => {
-    console.log(values);
-  };
-
-  const handleLoginWithSpotify = async () => {
+  const handleLogin = async () => {
+    setIsLoading(true);
     try {
-      const { data, error } = await authClient.signIn.social({
+      await authClient.signIn.social({
         provider: "spotify",
         callbackURL: PAGE_ROUTES.HOME,
         errorCallbackURL: PAGE_ROUTES.LOGIN,
       });
-      console.error(error?.message);
-      console.log(data);
     } catch (error) {
-      console.error(error);
+      console.error("Auth error:", error);
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="bg-main-foreground/20 h-fit w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
-        <CardDescription>
-          Enter your email below to login to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="i.e. john@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="bg-background grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="bg-main border-border relative flex flex-col justify-between overflow-hidden border-r-[3px] p-8 lg:p-16">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-size-[40px_40px] opacity-[0.03]" />
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <PasswordInput {...field} placeholder="Enter your password" />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex flex-col gap-2">
-              <LoadingButton isLoading={false} type="submit">
-                Login
-              </LoadingButton>
-              <LoadingButton
-                isLoading={false}
-                variant="neutral"
-                type="button"
-                onClick={handleLoginWithSpotify}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="20"
-                  height="20"
-                  fill="currentColor"
-                >
-                  <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
-                </svg>
-                Continue with Spotify
-              </LoadingButton>
+        <div className="relative z-10">
+          <div className="bg-background border-border shadow-shadow flex w-fit -rotate-1 items-center gap-2 border-[3px] px-4 py-2">
+            <AudioLines className="size-5" />
+            <span className="text-lg font-black tracking-tighter uppercase">
+              Aurafy
+            </span>
+          </div>
 
-              <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link
-                  href={PAGE_ROUTES.REGISTER}
-                  className="underline underline-offset-4"
-                >
-                  Sign up
-                </Link>
-              </div>
+          <div className="mt-20 max-w-2xl">
+            <h1 className="text-main-foreground text-5xl leading-[0.85] font-black tracking-tighter md:text-7xl">
+              STUDY DEEPER. <br />
+              <span className="text-background drop-shadow-[2px_2px_0_#000]">
+                FEEL BETTER.
+              </span>
+            </h1>
+            <p className="text-main-foreground/80 mt-6 max-w-md text-lg leading-tight font-medium text-balance">
+              AI-driven mood detection meets Spotify. Build focus with Pomodoro
+              cycles and SM-2 spaced repetition.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative z-10 mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mt-0">
+          <FeatureCard
+            icon={<Sparkles className="size-4" />}
+            title="Llama-4 Discovery"
+            desc="Blends your top artists with real-time mood mapping."
+            rotation="rotate-1"
+          />
+          <FeatureCard
+            icon={<Brain className="size-4" />}
+            title="SM-2 Flashcards"
+            desc="Adaptive review cycles for exam deadlines."
+            rotation="rotate-[-1deg]"
+          />
+        </div>
+
+        <div className="relative z-10 hidden pt-8 lg:block">
+          <p className="text-main-foreground/40 text-[10px] font-bold tracking-[0.15em] uppercase">
+            System: Llama-4-Scout // Qwen-3-Reasoning
+          </p>
+        </div>
+      </section>
+
+      <main className="flex flex-col items-center justify-center p-8 lg:p-12">
+        <div className="w-full max-w-95">
+          <header className="mb-10">
+            <h2 className="text-4xl font-black tracking-tighter">
+              Get Started
+            </h2>
+            <div className="bg-main mt-2 h-1.5 w-12" />
+            <p className="text-muted-foreground mt-4 font-medium text-balance">
+              Join students using Aurafy to sync their sound with their study
+              flow.
+            </p>
+          </header>
+
+          <div className="space-y-4">
+            <button
+              onClick={handleLogin}
+              disabled={isLoading}
+              className="bg-main text-main-foreground border-border shadow-shadow group relative flex w-full items-center justify-center gap-3 border-[3px] py-4 text-base font-black transition-all hover:translate-x-px hover:translate-y-px active:translate-x-0.75 active:translate-y-0.75 active:shadow-none disabled:opacity-50"
+            >
+              {isLoading ? (
+                <Loader2 className="size-5 animate-spin" />
+              ) : (
+                <SpotifyIcon className="size-6" />
+              )}
+              <span>{isLoading ? "Authenticating..." : "Connect Spotify"}</span>
+              <MoveRight className="absolute right-4 size-5 translate-x-[-4px] opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+            </button>
+
+            <div className="bg-secondary/30 border-border border-2 p-4 text-[13px] leading-snug">
+              <p className="text-muted-foreground">
+                <strong className="text-foreground">Playback Note:</strong> Full
+                controls require Spotify Premium. For free accounts, playback
+                depends on Spotify's available track previews.
+              </p>
             </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      </main>
+    </div>
   );
-};
-
-export default LoginForm;
+}

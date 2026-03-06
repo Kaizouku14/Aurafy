@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { DeckList } from "./deck-list";
 import { StudySession } from "./study-session";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const FlashcardsTab = () => {
   const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
@@ -12,13 +13,13 @@ const FlashcardsTab = () => {
   };
 
   return (
-    <div className="h-full w-full bg-background overflow-y-auto">
+    <ScrollArea className="size-full bg-background">
       {activeDeckId ? (
         <StudySession deckId={activeDeckId} onFinish={handleFinishSession} />
       ) : (
         <DeckList onSelectDeck={(deckId) => setActiveDeckId(deckId)} />
       )}
-    </div>
+    </ScrollArea>
   );
 };
 

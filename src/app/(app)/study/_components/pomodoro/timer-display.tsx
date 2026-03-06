@@ -2,7 +2,14 @@ import React from "react";
 import { MODES, type Mode } from "@/constants/pomodoro-modes";
 import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/lib/utils";
-import { RotateCcw, Pause, Play, Maximize, Minimize } from "lucide-react";
+import {
+  RotateCcw,
+  Pause,
+  Play,
+  Maximize,
+  Minimize,
+  Settings,
+} from "lucide-react";
 import { MiniPlayer } from "@/components/mini-player";
 import { usePomodoroStore } from "@/store/pomodoro-store";
 
@@ -56,7 +63,6 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
         </p>
       </div>
 
-      {/* Controls Section */}
       <div className="flex items-center gap-4">
         <Button
           variant="neutral"
@@ -80,6 +86,15 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
           ) : (
             <Play className="size-7" />
           )}
+        </Button>
+
+        <Button
+          variant="neutral"
+          size="icon"
+          className="border-border hover:bg-secondary-background size-11 rounded-lg border-2 transition-all"
+          title="Settings"
+        >
+          <Settings className="size-5" />
         </Button>
 
         <Button

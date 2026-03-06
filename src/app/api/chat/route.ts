@@ -4,6 +4,7 @@ import {
   saveChatExchange,
 } from "@/lib/api/chat/memory";
 import {
+  getUserTopArtists,
   handleSpotifyArtist,
   handleSpotifyMood,
   handleSpotifySong,
@@ -94,12 +95,18 @@ export const POST = async (req: Request) => {
   ]);
 
   if (intent.intent === INTENT_LABELS.PLAY_MOOD) {
-    const { output: mood } = await generateText({
-      model: groq(MODELS.default),
-      output: Output.object({ schema: generateMoodSchema }),
-      prompt: GET_MOOD_PROMPT(userText),
-      temperature: 0.2,
-    });
+    const [{ output: mood }, topArtists] = await Promise.all([
+      generateText({
+        model: groq(MODELS.default),
+        output: Output.object({ schema: generateMoodSchema }),
+        prompt: GET_MOOD_PROMPT(userText),
+        temperature: 0.2,
+      }),
+      getUserTopArtists(userId).catch((error) => {
+        console.error(error);
+        return [];
+      }),
+    ]);
 
     if (mood.confidence < 0.6) {
       const assistantText = "Tell me more about how you're feeling";
@@ -114,7 +121,11 @@ export const POST = async (req: Request) => {
       return createTextWithTracksResponse(assistantText);
     }
 
-    const tracks = await handleSpotifyMood(userId, mood.mood as Mood);
+    const tracks = await handleSpotifyMood(
+      userId,
+      mood.mood as Mood,
+      topArtists,
+    );
 
     const assistantText = `I can feel you're in a ${mood.mood} mood. Let me find you some songs.`;
 

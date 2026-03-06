@@ -1,7 +1,7 @@
 import { MOOD_MAP, type Mood } from "@/constants/chat";
 import { getSpotifyClient } from "@/lib/spotfiy/spotify";
 import { getErrorMessage } from "@/lib/utils";
-import type { Track } from "@spotify/web-api-ts-sdk";
+import type { Artist, Track } from "@spotify/web-api-ts-sdk";
 import { TRPCError } from "@trpc/server";
 
 const mapTrack = (track: Track) => ({
@@ -27,16 +27,59 @@ const withSpotifyError = async <T>(fn: () => Promise<T>): Promise<T> => {
   }
 };
 
-export const handleSpotifyMood = async (userId: string, mood: Mood) =>
+export const getUserTopArtists = async (userId: string): Promise<string[]> =>
+  withSpotifyError(async () => {
+    const client = await getSpotifyClient(userId);
+    const result = await client.currentUser.topItems(
+      "artists",
+      "short_term",
+      5,
+    );
+    return result.items.map((a: Artist) => a.name);
+  });
+
+export const handleSpotifyMood = async (
+  userId: string,
+  mood: Mood,
+  topArtists?: string[],
+) =>
   withSpotifyError(async () => {
     const client = await getSpotifyClient(userId);
     const { genres } = MOOD_MAP[mood];
+
+    const moodContext = genres[0] || "";
+
+    if (topArtists && topArtists.length > 0) {
+      const artistNames = topArtists.slice(0, 2).join(" ");
+      const flatQuery = `${moodContext} ${artistNames}`.trim();
+
+      // console.log("Attempting safe query:", flatQuery);
+
+      try {
+        const biasedResults = await client.search(
+          flatQuery,
+          ["track"],
+          undefined,
+          10,
+        );
+
+        if (biasedResults.tracks.items?.length > 0) {
+          return biasedResults.tracks.items.map(mapTrack);
+        }
+      } catch (e) {
+        console.warn("Flat query failed, skipping to fallback...");
+      }
+    }
+
+    // 3. Fallback: Just the genre keywords
+    const fallbackQuery = genres.join(" ");
     const results = await client.search(
-      `genre:${genres.join(" ")}`,
+      fallbackQuery,
       ["track"],
       undefined,
       10,
     );
+
     return results.tracks.items.map(mapTrack);
   });
 

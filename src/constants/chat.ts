@@ -25,21 +25,39 @@ export const MOOD = [
 export const MOOD_MAP = {
   happy: {
     genres: ["pop", "dance"],
+    energy: 0.8,
+    valence: 0.9,
+    tempo: 120,
   },
   calm: {
     genres: ["lo-fi", "ambient"],
+    energy: 0.3,
+    valence: 0.6,
+    tempo: 75,
   },
   sad: {
     genres: ["acoustic", "indie"],
+    energy: 0.3,
+    valence: 0.2,
+    tempo: 70,
   },
   energetic: {
     genres: ["electronic", "hip-hop"],
+    energy: 0.9,
+    valence: 0.7,
+    tempo: 140,
   },
   stressed: {
     genres: ["classical", "jazz"],
+    energy: 0.4,
+    valence: 0.5,
+    tempo: 85,
   },
   focused: {
     genres: ["study", "classical"],
+    energy: 0.5,
+    valence: 0.5,
+    tempo: 95,
   },
 } as const;
 

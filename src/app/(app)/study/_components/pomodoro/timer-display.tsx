@@ -39,81 +39,93 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
     return () => document.removeEventListener("fullscreenchange", handler);
   }, []);
 
+  const statusLabel = isRunning
+    ? "Stay focused"
+    : timeLeft === duration
+      ? "Ready to start"
+      : "Paused";
+
   return (
     <div
       ref={containerRef}
       className={cn(
-        "flex h-full w-full flex-col items-center justify-center gap-6",
+        "flex h-full w-full flex-col items-center justify-center",
         isFullscreen && "size-screen bg-background",
       )}
     >
-      <div className="flex flex-col items-center gap-4">
-        <div className="text-center">
-          <div className="text-foreground text-[clamp(5rem,14vw,18rem)] leading-none font-bold tabular-nums">
-            {formatTime(timeLeft * 1000)}
-          </div>
+      {/* Timer */}
+      <div className="flex flex-col items-center gap-3">
+        <div className="text-foreground text-[clamp(5rem,14vw,18rem)] leading-none font-bold tabular-nums">
+          {formatTime(timeLeft * 1000)}
         </div>
-
-        <p className="text-muted-foreground text-sm font-medium tracking-wide">
-          {isRunning
-            ? "Stay focused..."
-            : timeLeft === duration
-              ? "Ready to start"
-              : "Paused"}
+        <p
+          className={cn(
+            "text-xs font-semibold tracking-[0.15em] uppercase transition-colors",
+            isRunning ? "text-main" : "text-muted-foreground",
+          )}
+        >
+          {statusLabel}
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Controls */}
+      <div className="mt-10 flex items-center gap-3">
+        {/* Left: Reset */}
         <Button
           variant="neutral"
           size="icon"
           onClick={reset}
-          className="border-border hover:bg-secondary-background size-11 rounded-lg border-2 transition-all"
-          title="Reset timer"
+          className="border-border size-10 border-2"
+          title="Reset"
         >
-          <RotateCcw className="size-5" />
+          <RotateCcw className="size-4" />
         </Button>
 
+        {/* Center: Play/Pause — larger focal point */}
         <Button
           variant="default"
           size="icon"
           onClick={isRunning ? pause : start}
-          className="flex size-16 items-center justify-center rounded-full"
+          className="border-border shadow-shadow size-16 border-2"
           title={isRunning ? "Pause" : "Start"}
         >
           {isRunning ? (
-            <Pause className="size-7" />
+            <Pause className="size-6" />
           ) : (
-            <Play className="size-7" />
+            <Play className="size-6" />
           )}
         </Button>
 
-        <Button
-          variant="neutral"
-          size="icon"
-          className="border-border hover:bg-secondary-background size-11 rounded-lg border-2 transition-all"
-          title="Settings"
-        >
-          <Settings className="size-5" />
-        </Button>
+        {/* Right: Settings + Fullscreen */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="neutral"
+            size="icon"
+            className="border-border size-10 border-2"
+            title="Settings"
+          >
+            <Settings className="size-4" />
+          </Button>
 
-        <Button
-          variant="neutral"
-          size="icon"
-          onClick={toggleFullscreen}
-          className="border-border hover:bg-secondary-background size-11 rounded-lg border-2 transition-all"
-          title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
-        >
-          {isFullscreen ? (
-            <Minimize className="size-5" />
-          ) : (
-            <Maximize className="size-5" />
-          )}
-        </Button>
+          <Button
+            variant="neutral"
+            size="icon"
+            onClick={toggleFullscreen}
+            className="border-border size-10 border-2"
+            title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+          >
+            {isFullscreen ? (
+              <Minimize className="size-4" />
+            ) : (
+              <Maximize className="size-4" />
+            )}
+          </Button>
+        </div>
       </div>
 
       {isFullscreen && <MiniPlayer />}
     </div>
   );
 };
+
 export default TimerDisplay;

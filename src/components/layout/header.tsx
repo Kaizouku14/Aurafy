@@ -38,38 +38,32 @@ const Header = () => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4">
-      <div className="bg-main shadow-shadow rounded-base border-border flex size-12 items-center justify-center border-2">
-        <AudioLines className="text-border size-6" />
+    <header className="flex items-center justify-between py-3">
+      <div className="bg-main border-border shadow-shadow flex -rotate-1 items-center gap-2 border-2 px-3 py-1.5">
+        <AudioLines className="text-main-foreground size-4" />
+        <span className="text-main-foreground text-sm font-black tracking-tighter uppercase">
+          Aurafy
+        </span>
       </div>
 
       <NavigationBar />
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9">
-            <AvatarImage
-              src={user?.image ?? "https://github.com/shadcn.png"}
-              alt={user?.name ?? "@shadcn"}
-            />
-            <AvatarFallback>
-              {user?.name?.charAt(0)?.toUpperCase() ?? "A"}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-medium">
-              {user?.name ?? "Anonymous"}
-            </span>
-            <span className="text-muted-foreground text-xs">Signed in</span>
-          </div>
-        </div>
+      <div className="flex items-center gap-3">
+        <Avatar className="h-8 w-8">
+          <AvatarImage
+            src={user?.image ?? "https://github.com/shadcn.png"}
+            alt={user?.name ?? "User"}
+          />
+          <AvatarFallback className="text-xs font-bold">
+            {user?.name?.charAt(0)?.toUpperCase() ?? "A"}
+          </AvatarFallback>
+        </Avatar>
 
         <Button variant="neutral" size="sm" onClick={handleLogout}>
           Logout
         </Button>
       </div>
-    </div>
+    </header>
   );
 };
 

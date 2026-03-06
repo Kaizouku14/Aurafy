@@ -39,58 +39,57 @@ const StudyTab = () => {
     <Tabs
       defaultValue="pomodoro"
       onValueChange={(value) => setSelected(value)}
-      className="bg-background flex w-full flex-col md:flex-row"
+      className="flex h-[calc(100vh-4.5rem)] w-full"
     >
-      <aside
-        className={cn(
-          "flex items-center justify-center px-3 py-4",
-          "bg-secondary-background md:h-full md:w-20 md:flex-col md:justify-start md:px-2 md:py-6",
-        )}
-      >
-        <nav className="flex gap-2 md:w-full md:flex-col md:gap-3">
-          <TabsList className="flex h-auto gap-2 border-none bg-transparent p-0 md:w-full md:flex-col">
-            {STUDY_TABS.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = selected === tab.value;
-              return (
-                <Tooltip key={tab.value}>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger
-                      value={tab.value}
-                      className={cn(
-                        "group relative flex items-center justify-center rounded-lg border-2 p-3",
-                        "transition-all duration-200 ease-out [&_svg]:size-5",
-                        "border-border bg-background text-muted-foreground",
-                        isActive && "bg-main text-main-foreground",
-                      )}
-                      aria-label={tab.label}
-                    >
-                      <Icon />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="right"
-                    className="hidden text-xs md:block"
+      <aside className="border-border bg-secondary-background flex w-16 shrink-0 flex-col border-r-2 py-4">
+        <TabsList className="flex h-auto w-full flex-col gap-1.5 border-none bg-transparent p-0 px-2">
+          {STUDY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selected === tab.value;
+            return (
+              <Tooltip key={tab.value}>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value={tab.value}
+                    className={cn(
+                      "group relative flex w-full items-center justify-center border-2 p-2.5 transition-all duration-150",
+                      isActive
+                        ? "bg-main text-muted-foreground border-border shadow-shadow"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background",
+                    )}
+                    aria-label={tab.label}
                   >
-                    {tab.label}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </TabsList>
-        </nav>
+                    <Icon className="size-4.5" />
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="text-xs">
+                  {tab.label}
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </TabsList>
       </aside>
 
-      <main className="border-border flex flex-1 flex-col overflow-hidden">
+      {/* Content */}
+      <main className="border-border flex flex-1 flex-col overflow-hidden border-l-0">
         {STUDY_TABS.map((tab) => (
           <TabsContent
             key={tab.value}
             value={tab.value}
-            className="data-[state=active]:animate-in data-[state=active]:fade-in mt-0 flex-1"
+            className="data-[state=active]:animate-in data-[state=active]:fade-in mt-0 h-full flex-1"
           >
             {tab.value === "pomodoro" && <PomodoroTab />}
-            {tab.value === "flashcards" && "flashcards"}
-            {tab.value === "listcheck" && "Task Manager"}
+            {tab.value === "flashcards" && (
+              <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+                Flashcards coming soon
+              </div>
+            )}
+            {tab.value === "listcheck" && (
+              <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+                Task manager coming soon
+              </div>
+            )}
           </TabsContent>
         ))}
       </main>

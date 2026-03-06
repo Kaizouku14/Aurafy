@@ -1,26 +1,17 @@
 "use client";
 
 import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Info, Music } from "lucide-react";
+import { Music } from "lucide-react";
 import MusicPlayer from "./music-player";
 import MusicEmpty from "./music-empty";
 import MusicCard from "./music-card";
 import { usePlayerStore } from "@/store/play-store";
-import { Button } from "@/components/ui/button";
 
 const MusicList = () => {
   const {
@@ -44,29 +35,27 @@ const MusicList = () => {
   const selectedTrack = tracks[currentIndex] ?? null;
 
   return (
-    <Card className="w-full max-w-md pt-1">
-      <CardHeader className="border-border border-b-2 py-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-main shadow-shadow rounded-base border-border flex size-9 items-center justify-center border-2">
-            <Music className="text-border size-5" />
-          </div>
-          <div>
-            <CardTitle className="text-foreground text-base">
-              Your Music
-            </CardTitle>
-            <CardDescription className="text-muted-foreground text-xs">
-              Powered by Spotify
-            </CardDescription>
-          </div>
+    <div className="border-border bg-background shadow-shadow flex h-full flex-col border-2">
+      {/* Header */}
+      <div className="border-border flex items-center gap-2.5 border-b-2 px-4 py-3">
+        <div className="bg-main border-border flex size-8 shrink-0 items-center justify-center border-2">
+          <Music className="text-main-foreground size-4" />
         </div>
-      </CardHeader>
+        <div>
+          <p className="text-foreground text-sm font-black tracking-tight">
+            Your Music
+          </p>
+          <p className="text-muted-foreground text-[11px]">via Spotify</p>
+        </div>
+      </div>
 
-      <CardContent className="px-1">
-        <ScrollArea className="h-71">
+      {/* Track list */}
+      <ScrollArea className="flex-1">
+        <div className="p-2">
           {tracks.length === 0 ? (
             <MusicEmpty />
           ) : (
-            <div className="flex flex-col gap-1 px-2.5">
+            <div className="flex flex-col gap-px">
               {tracks.map((track, index) => (
                 <MusicCard
                   key={track.id}
@@ -78,10 +67,11 @@ const MusicList = () => {
               ))}
             </div>
           )}
-        </ScrollArea>
-      </CardContent>
+        </div>
+      </ScrollArea>
 
-      <CardFooter className="border-border border-t-2 px-4 pt-4">
+      {/* Player controls */}
+      <div className="border-border border-t-2 px-4 py-3">
         <MusicPlayer
           title={selectedTrack?.title}
           artist={selectedTrack?.artist}
@@ -99,8 +89,8 @@ const MusicList = () => {
           onSeek={seek}
           onVolumeChange={setVolume}
         />
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 };
 

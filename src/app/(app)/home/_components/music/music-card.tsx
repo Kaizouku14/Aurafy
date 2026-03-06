@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/lib/utils";
 import { usePlayerStore } from "@/store/play-store";
 import type { Track } from "@/types/schema/chat";
@@ -30,52 +29,51 @@ const MusicCard: React.FC<MusicCardProps> = ({
     }
     setSelectedIndex(index);
   };
+
   return (
     <div
       onClick={handleClick}
       className={cn(
-        "rounded-base flex h-10 w-full max-w-md items-center gap-3 border-2 px-2 py-8 text-left transition-colors",
-        selectedIndex === index
-          ? "bg-main text-main-foreground"
-          : "border-border bg-background text-foreground hover:bg-secondary-background",
+        "group flex w-full cursor-pointer items-center gap-3 px-2 py-2 text-left transition-colors",
+        isSelected
+          ? "bg-secondary-background border-l-main border-l-[3px]"
+          : "border-l-[3px] border-l-transparent hover:bg-secondary-background",
       )}
     >
-      <div className="rounded-base border-border flex size-12 shrink-0 items-center justify-center border">
+      <div className="border-border flex size-9 shrink-0 items-center justify-center overflow-hidden border">
         {track.cover ? (
           <Image
             src={track.cover}
             alt={track.album}
-            width={80}
-            height={80}
-            className="rounded-base size-full object-cover"
+            width={36}
+            height={36}
+            className="size-full object-cover"
           />
         ) : (
-          <Music className="text-muted-foreground size-4" />
+          <Music className="text-muted-foreground size-3.5" />
         )}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="max-w-52 truncate text-sm font-bold">{track.title}</p>
         <p
           className={cn(
-            "max-w-52 truncate text-xs",
-            selectedIndex === index
-              ? "text-main-foreground/70"
-              : "text-muted-foreground",
+            "truncate text-xs font-bold",
+            isSelected ? "text-foreground" : "text-foreground",
           )}
         >
+          {track.title}
+        </p>
+        <p className="text-muted-foreground truncate text-[11px]">
           {track.artist}
         </p>
       </div>
 
       <div className="shrink-0">
         {isSelected ? (
-          <Button
-            size="icon"
-            variant="neutral"
-            className="shadow-none"
+          <button
+            className="text-main flex items-center justify-center"
             onClick={(e) => {
-              e.stopPropagation(); // ← prevent double trigger
+              e.stopPropagation();
               handleClick();
             }}
           >
@@ -84,9 +82,9 @@ const MusicCard: React.FC<MusicCardProps> = ({
             ) : (
               <Play className="size-3.5" />
             )}
-          </Button>
+          </button>
         ) : (
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-[11px]">
             {formatTime(Math.floor(track.duration))}
           </span>
         )}

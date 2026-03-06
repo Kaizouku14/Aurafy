@@ -41,14 +41,14 @@ export const MiniPlayer = () => {
   if (!currentTrack || pathname === PAGE_ROUTES.HOME) return null;
 
   return (
-    <div className="border-border bg-secondary-background shadow-shadow fixed right-0 bottom-4 z-50 flex -translate-x-1/2 items-center gap-3 rounded-2xl border px-3 py-2">
-      <div className="size-10 shrink-0 overflow-hidden rounded-md">
+    <div className="border-border bg-secondary-background shadow-shadow fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 border-2 px-4 py-2.5">
+      <div className="size-9 shrink-0 overflow-hidden">
         {currentTrack.cover ? (
           <Image
             src={currentTrack.cover}
             alt={currentTrack.title}
-            width={40}
-            height={40}
+            width={36}
+            height={36}
             className="size-full object-cover"
           />
         ) : (
@@ -56,11 +56,11 @@ export const MiniPlayer = () => {
         )}
       </div>
 
-      <div className="max-w-35 min-w-0">
-        <p className="text-foreground truncate text-sm leading-tight font-bold">
+      <div className="max-w-36 min-w-0">
+        <p className="text-foreground truncate text-xs font-bold leading-tight">
           {currentTrack.title}
         </p>
-        <p className="text-muted-foreground truncate text-xs leading-tight">
+        <p className="text-muted-foreground truncate text-[11px] leading-tight">
           {currentTrack.artist}
         </p>
       </div>
@@ -71,20 +71,20 @@ export const MiniPlayer = () => {
             type="button"
             variant="neutral"
             size="icon"
-            className="size-8 disabled:opacity-40"
+            className="size-7 border-0 shadow-none"
             onDoubleClick={(e) => {
               e.stopPropagation();
               mute();
             }}
           >
             {isMuted ? (
-              <VolumeX className="size-4" />
+              <VolumeX className="size-3.5" />
             ) : (
-              <Volume2 className="size-4" />
+              <Volume2 className="size-3.5" />
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="bg-secondary-background w-34 p-3" side="top">
+        <PopoverContent className="bg-secondary-background w-32 p-3" side="top">
           <Slider
             value={[isMuted ? 0 : volume * 100]}
             max={100}
@@ -100,7 +100,7 @@ export const MiniPlayer = () => {
           variant="neutral"
           size="icon"
           onClick={prev}
-          className="size-8"
+          className="size-7 border-0 shadow-none"
         >
           <SkipBack className="size-3.5" />
         </Button>
@@ -110,12 +110,12 @@ export const MiniPlayer = () => {
           variant="default"
           size="icon"
           onClick={isPlaying ? pause : play}
-          className="size-8 rounded-full"
+          className="size-7"
         >
           {isPlaying ? (
-            <Pause className="size-3.5" />
+            <Pause className="size-3" />
           ) : (
-            <Play className="size-3.5" />
+            <Play className="size-3" />
           )}
         </Button>
 
@@ -124,7 +124,7 @@ export const MiniPlayer = () => {
           variant="neutral"
           size="icon"
           onClick={next}
-          className="size-8"
+          className="size-7 border-0 shadow-none"
         >
           <SkipForward className="size-3.5" />
         </Button>

@@ -27,7 +27,6 @@ export const getSpotifyToken = cache(async (userId: string) => {
         throw new Error("Spotify access token not found in DB");
       }
 
-      // Check if expired (or expiring in the next 60 seconds)
       const isExpired =
         dbAccount.accessTokenExpiresAt &&
         dbAccount.accessTokenExpiresAt.getTime() - Date.now() < 60000;
@@ -40,7 +39,6 @@ export const getSpotifyToken = cache(async (userId: string) => {
         throw new Error("Spotify token expired and no refresh token available");
       }
 
-      // Token is expired, refresh it directly via Spotify API
       const response = await fetch("https://accounts.spotify.com/api/token", {
         method: "POST",
         headers: {
@@ -59,7 +57,6 @@ export const getSpotifyToken = cache(async (userId: string) => {
 
       const data = await response.json();
 
-      // Update the DB with the new token
       await db
         .update(account)
         .set({

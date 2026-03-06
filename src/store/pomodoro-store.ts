@@ -59,9 +59,9 @@ export const usePomodoroStore = create<PomodoroState>()(
       updateSettings: (newSettings) => {
         const { mode, settings: currentSettings, isRunning } = get();
         const settings = { ...currentSettings, ...newSettings };
-        
+
         const updates: Partial<PomodoroState> = { settings };
-        
+
         // If we're not running, or if the duration for the current mode changed, update timeLeft
         if (!isRunning) {
           updates.timeLeft = settings[mode];
@@ -76,16 +76,15 @@ export const usePomodoroStore = create<PomodoroState>()(
 
       tick: () => {
         const { timeLeft, onTimerEnd, mode, currentSession, settings } = get();
-        
+
         if (timeLeft <= 1) {
           const { intervalId } = get();
           if (intervalId) clearInterval(intervalId);
-          
+
           let nextMode: Mode = mode;
           let nextSession = currentSession;
 
           if (mode === "pomo") {
-            // Focus session finished
             if (currentSession >= settings.sessionsBeforeLongBreak) {
               nextMode = "long";
               nextSession = 1; // Reset cycle
@@ -94,16 +93,15 @@ export const usePomodoroStore = create<PomodoroState>()(
               nextSession = currentSession + 1;
             }
           } else {
-            // Break finished, back to focus
             nextMode = "pomo";
           }
 
-          set({ 
+          set({
             timeLeft: settings[nextMode],
             mode: nextMode,
             currentSession: nextSession,
-            isRunning: false, 
-            intervalId: null 
+            isRunning: false,
+            intervalId: null
           });
           onTimerEnd?.();
         } else {
@@ -137,7 +135,7 @@ export const usePomodoroStore = create<PomodoroState>()(
     }),
     {
       name: "aurafy-pomodoro-settings",
-      partialize: (state) => ({ settings: state.settings }), // Only persist settings
+      partialize: (state) => ({ settings: state.settings }),
     }
   )
 );

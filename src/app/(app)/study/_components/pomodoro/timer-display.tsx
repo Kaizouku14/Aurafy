@@ -14,15 +14,16 @@ import { MiniPlayer } from "@/components/mini-player";
 import { usePomodoroStore } from "@/store/pomodoro-store";
 import { usePlayerStore } from "@/store/play-store";
 import { playStartChime, playEndRing } from "@/lib/audio/sounds";
+import { PomodoroSettings } from "./pomodoro-settings";
 
 const TimerDisplay = ({ mode }: { mode: Mode }) => {
-  const { timeLeft, isRunning, customDurations, start, pause, reset, setCallbacks } =
+  const { timeLeft, isRunning, settings, start, pause, reset, setCallbacks } =
     usePomodoroStore();
   const playerPlay = usePlayerStore((s) => s.play);
   const playerPause = usePlayerStore((s) => s.pause);
   const hasTracks = usePlayerStore((s) => s.tracks.length > 0);
 
-  const duration = customDurations[mode];
+  const duration = settings[mode];
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
@@ -112,14 +113,16 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
         </Button>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="neutral"
-            size="icon"
-            className="border-border size-10 border-2"
-            title="Settings"
-          >
-            <Settings className="size-4" />
-          </Button>
+          <PomodoroSettings>
+            <Button
+              variant="neutral"
+              size="icon"
+              className="border-border size-10 border-2"
+              title="Settings"
+            >
+              <Settings className="size-4" />
+            </Button>
+          </PomodoroSettings>
 
           <Button
             variant="neutral"

@@ -54,7 +54,7 @@ const StudyTab = () => {
                     className={cn(
                       "group relative flex w-full items-center justify-center border-2 p-2.5 transition-all duration-150",
                       isActive
-                        ? "bg-main text-muted-foreground border-border shadow-shadow"
+                        ? "bg-main text-main-foreground border-border shadow-shadow"
                         : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background",
                     )}
                     aria-label={tab.label}

@@ -38,7 +38,7 @@ const PomodoroTab = () => {
               className={cn(
                 "border-b-2 border-b-transparent px-4 pb-3 pt-1 text-xs font-semibold tracking-wide transition-colors",
                 "text-muted-foreground hover:text-foreground",
-                "data-[state=active]:text-main data-[state=active]:border-b-main",
+                "data-[state=active]:text-main-foreground data-[state=active]:border-b-main",
                 "rounded-none bg-transparent shadow-none",
               )}
             >

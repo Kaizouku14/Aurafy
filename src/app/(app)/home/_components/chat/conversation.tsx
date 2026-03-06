@@ -11,7 +11,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { AudioLines, Loader2 } from "lucide-react";
+import { BotMessageSquare, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatBubble from "./chat-bubble";
 import ChatEmpty from "./chat-empty";
@@ -62,7 +62,7 @@ const Conversation = () => {
       <CardHeader className="border-border border-b-2 py-4">
         <div className="flex items-center gap-3">
           <div className="bg-main shadow-shadow rounded-base border-border flex size-9 items-center justify-center border-2">
-            <AudioLines className="text-border size-5" />
+            <BotMessageSquare className="text-border size-5" />
           </div>
           <div>
             <CardTitle className="text-foreground text-base">

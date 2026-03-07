@@ -55,7 +55,11 @@ export const getSpotifyToken = cache(async (userId: string) => {
         throw new Error(`Spotify refresh failed: ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as {
+        access_token: string;
+        expires_in: number;
+        refresh_token?: string;
+      };
 
       await db
         .update(account)
@@ -67,7 +71,7 @@ export const getSpotifyToken = cache(async (userId: string) => {
         })
         .where(eq(account.id, dbAccount.id));
 
-      return data.access_token as string;
+      return data.access_token;
     } finally {
       serverTokenPromise = null;
     }

@@ -1,6 +1,6 @@
 import { INTENT } from "@/constants/chat";
 
-export const GET_INTENT_PROMPT = (message: string, previousAssistantMessage: string = "") => `
+export const GET_INTENT_PROMPT = (message: string, previousAssistantMessage = "") => `
 You are an intent classifier for a music chatbot called Aurafy.
 
 Classify the user's message into exactly one intent and extract relevant fields.

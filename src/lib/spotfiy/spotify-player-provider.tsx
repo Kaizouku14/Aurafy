@@ -142,9 +142,9 @@ export const SpotifyPlayerProvider = ({
       // activateElement ensures playback can continue after transfer
       // from other Spotify Connect devices without being paused by
       // browser autoplay policies.
-      player.activateElement();
+      void player.activateElement();
 
-      player.connect().then((success) => {
+      void player.connect().then((success) => {
         if (!success) {
           sileo.error({
             title: "Failed to connect to Spotify",

@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { api } from "@/trpc/react";
 import { DeckCreator } from "./deck-creator";
 import { Button } from "@/components/ui/button";
 import { Library, PlayCircle, Calendar, Trash2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { sileo } from "sileo";
 import { StaggerList } from "@/components/animation/stagger-list";
 
 export const DeckList = ({ onSelectDeck }: { onSelectDeck: (id: string, subject: string) => void }) => {
@@ -16,20 +15,9 @@ export const DeckList = ({ onSelectDeck }: { onSelectDeck: (id: string, subject:
 
   const deleteDeck = api.flashcard.deleteDeck.useMutation({
     onSuccess: () => {
-      utils.flashcard.getDecks.invalidate();
+      void utils.flashcard.getDecks.invalidate();
     },
   });
-
-  const handleDelete = useCallback((deckId: string, subject: string) => {
-   sileo.action({
-    title: `Delete "${subject}"?`,
-    description: "This will delete the deck and all its cards. This cannot be undone.",
-    button: {
-        title: "Delete",
-        onClick: () => deleteDeck.mutate({ deckId }),
-    },
-    });
-  }, [deleteDeck]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

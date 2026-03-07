@@ -21,7 +21,7 @@ const Header = () => {
   const { user } = data;
 
   const handleLogout = async () => {
-    sileo.promise(authClient.signOut(), {
+    void sileo.promise(authClient.signOut(), {
       loading: { title: "Signing you out..." },
       success: () => {
         router.push(PAGE_ROUTES.LOGIN);

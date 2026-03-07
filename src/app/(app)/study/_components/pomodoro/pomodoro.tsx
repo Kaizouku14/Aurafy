@@ -53,7 +53,7 @@ const PomodoroTab = () => {
             value={value}
             className="data-[state=active]:animate-in data-[state=active]:fade-in mt-0 h-full w-full"
           >
-            <TimerDisplay mode={value as Mode} />
+            <TimerDisplay mode={value} />
           </TabsContent>
         ))}
       </div>

@@ -62,7 +62,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
   onVolumeChange,
   onSeek,
 }) => {
-  const [volumeOpen, setVolumeOpen] = React.useState(false);
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const hasSong = title !== PLACEHOLDER.title;
 
@@ -98,7 +97,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
               className="size-8 disabled:opacity-40"
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                setVolumeOpen(false);
                 onMute?.();
               }}
             >

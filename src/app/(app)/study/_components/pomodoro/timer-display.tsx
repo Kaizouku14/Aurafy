@@ -1,5 +1,5 @@
 import React from "react";
-import { MODES, type Mode } from "@/constants/pomodoro-modes";
+import { type Mode } from "@/constants/pomodoro-modes";
 import { Button } from "@/components/ui/button";
 import { cn, formatTime } from "@/lib/utils";
 import {
@@ -43,10 +43,10 @@ const TimerDisplay = ({ mode }: { mode: Mode }) => {
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
+      void containerRef.current?.requestFullscreen();
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
+      void document.exitFullscreen();
       setIsFullscreen(false);
     }
   };

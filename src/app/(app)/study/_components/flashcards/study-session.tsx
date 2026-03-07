@@ -34,7 +34,7 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
         <div className="border-4 border-border rounded-base bg-main p-6 sm:p-12 text-center shadow-shadow max-w-lg mx-4">
           <BrainCircuit className="size-14 sm:size-20 mx-auto text-main-foreground mb-4 sm:mb-6" />
           <h2 className="text-xl sm:text-3xl font-black uppercase tracking-widest text-main-foreground mb-4">All Caught Up!</h2>
-          <p className="text-main-foreground font-bold mb-8">You've finished all your due cards for this deck today. Outstanding work.</p>
+          <p className="text-main-foreground font-bold mb-8">You&apos;ve finished all your due cards for this deck today. Outstanding work.</p>
           <Button
             onClick={onFinish}
             className="w-full bg-background text-foreground font-black uppercase tracking-widest text-lg p-6 border-4 border-border hover:bg-muted transition-colors rounded-base"

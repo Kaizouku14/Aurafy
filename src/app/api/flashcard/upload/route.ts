@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/server/better-auth";
 import { nanoid } from "nanoid";
 import { generateCardsFromNotes } from "@/lib/ai/flashcard-ai";
 import { createDeckRecord, createCardsBatch } from "@/lib/api/flashcard/queries";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
 
 function extractAndSampleChunks(fullText: string, maxChars = 8000): string {
@@ -44,7 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields (subject, examDate)." }, { status: 400 });
     }
 
-    let finalNotes = fallbackNotes || "";
+    let finalNotes = fallbackNotes ?? "";
 
     if (file) {
       if (file.type !== "application/pdf") {
@@ -63,9 +64,10 @@ export async function POST(req: NextRequest) {
         }
 
         finalNotes = extractAndSampleChunks(extractedText);
-      } catch (pdfError: any) {
+      } catch (pdfError: unknown) {
         console.error("PDF Parsing Error:", pdfError);
-        return NextResponse.json({ error: "Failed to parse the PDF document. " + pdfError.message }, { status: 500 });
+        const errMessage = pdfError instanceof Error ? pdfError.message : "Unknown error";
+        return NextResponse.json({ error: "Failed to parse the PDF document. " + errMessage }, { status: 500 });
       }
     }
 
@@ -97,8 +99,9 @@ export async function POST(req: NextRequest) {
         cardCount: cardsToInsert.length
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Upload Route Error:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    const errMessage = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errMessage }, { status: 500 });
   }
 }

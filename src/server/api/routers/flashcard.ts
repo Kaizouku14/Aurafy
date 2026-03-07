@@ -57,15 +57,15 @@ export const flashcardRouter = createTRPCRouter({
 
     if (decks.length === 0) return [];
 
-    const todayStr = new Date().toISOString().split("T")[0] as string;
+    const todayStr = new Date().toISOString().split("T")[0]!;
 
     const counts = await getDeckCardCounts(ctx.session.user.id, todayStr);
     const countMap = new Map(counts.map((c) => [c.deckId, { due: c.dueCount, total: c.totalCount }]));
 
     return decks.map((deck) => ({
       ...deck,
-      dueCardsCount: countMap.get(deck.id)?.due || 0,
-      totalCardsCount: countMap.get(deck.id)?.total || 0,
+      dueCardsCount: countMap.get(deck.id)?.due ?? 0,
+      totalCardsCount: countMap.get(deck.id)?.total ?? 0,
     }));
   }),
 
@@ -78,7 +78,7 @@ export const flashcardRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Deck not found" });
       }
 
-      const todayStr = new Date().toISOString().split("T")[0] as string;
+      const todayStr = new Date().toISOString().split("T")[0]!;
       const dueCards = await getDueCardsByDeck(input.deckId, todayStr);
 
       return dueCards;
@@ -98,7 +98,7 @@ export const flashcardRouter = createTRPCRouter({
       
       const deck = await getDeckById(card.deckId);
       
-      if (!deck || deck.userId !== ctx.session.user.id) {
+      if (deck?.userId !== ctx.session.user.id) {
          throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 

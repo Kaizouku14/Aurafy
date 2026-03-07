@@ -11,16 +11,16 @@ import {
   CONVERSATIONAL_SYSTEM_PROMPT,
   GET_MOOD_PROMPT,
 } from "@/lib/ai/prompt";
-import { INTENT_LABELS, type Mood } from "@/constants/chat";
+import { INTENT_LABELS } from "@/constants/chat";
 import { generateMoodSchema } from "@/types/schema/chat";
-import type { GenerateIntent } from "@/types/schema/chat";
+import type { GenerateIntent, ChatMetadata } from "@/types/schema/chat";
 import {
   type UserLibrary,
   handleSpotifyArtist,
   handleSpotifyMood,
   handleSpotifySong,
 } from "./spotify";
-import { buildRecentTopics, loadChatHistory, saveChatExchange } from "./memory";
+import { buildRecentTopics, type loadChatHistory, saveChatExchange } from "./memory";
 import { createTextWithTracksResponse } from "./response";
 
 type ChatHistory = Awaited<ReturnType<typeof loadChatHistory>>;
@@ -29,13 +29,13 @@ const persistExchange = (
   userId: string,
   userText: string,
   assistantText: string,
-  metadata?: Record<string, unknown>,
+  metadata?: ChatMetadata,
 ) => {
   saveChatExchange({
     userId,
     userMessage: userText,
     assistantMessage: assistantText,
-    metadata: metadata as any,
+    metadata,
   }).catch((err) => console.error("[persistExchange] Failed to save:", err));
 };
 
@@ -54,7 +54,7 @@ export const handleMoodIntent = async (
   if (mood.confidence < 0.6) {
     const text = "Tell me more about how you're feeling";
     persistExchange(userId, userText, text, {
-      intent: INTENT_LABELS.PLAY_MOOD,
+      intent: INTENT_LABELS.PLAY_MOOD!,
       mood: mood.mood,
     });
     return createTextWithTracksResponse(text);
@@ -63,20 +63,20 @@ export const handleMoodIntent = async (
   try {
     const tracks = await handleSpotifyMood(
       userId,
-      mood.mood as Mood,
+      mood.mood,
       library,
     );
 
     const text = `I can feel you're in a ${mood.mood} mood. Let me find you some songs.`;
     persistExchange(userId, userText, text, {
-      intent: INTENT_LABELS.PLAY_MOOD,
+      intent: INTENT_LABELS.PLAY_MOOD!,
       mood: mood.mood,
     });
     return createTextWithTracksResponse(text, tracks);
   } catch {
     const text = `I sense you're feeling ${mood.mood}, but I couldn't reach Spotify right now. Try again in a moment.`;
     persistExchange(userId, userText, text, {
-      intent: INTENT_LABELS.PLAY_MOOD,
+      intent: INTENT_LABELS.PLAY_MOOD!,
       mood: mood.mood,
     });
     return createTextWithTracksResponse(text);
@@ -91,7 +91,7 @@ export const handleSongIntent = async (
   if (!intent.songTitle) {
     const text = "Which song would you like to play?";
     persistExchange(userId, userText, text, {
-      intent: INTENT_LABELS.PLAY_SONG,
+      intent: INTENT_LABELS.PLAY_SONG!,
     });
     return createTextWithTracksResponse(text);
   }
@@ -112,7 +112,7 @@ export const handleSongIntent = async (
 
     const text = `Playing "${intent.songTitle}"${artistSuffix}`;
     persistExchange(userId, userText, text, {
-      intent: INTENT_LABELS.PLAY_SONG,
+      intent: INTENT_LABELS.PLAY_SONG!,
       songTitle: intent.songTitle,
       artist: intent.artist,
     });
@@ -137,7 +137,7 @@ export const handleArtistIntent = async (
     const tracks = await handleSpotifyArtist(userId, intent.artist);
     const text = `Here are popular songs by ${intent.artist}.`;
     persistExchange(userId, userText, text, {
-      intent: INTENT_LABELS.PLAY_ARTIST,
+      intent: INTENT_LABELS.PLAY_ARTIST!,
       artist: intent.artist,
     });
     return createTextWithTracksResponse(text, tracks);

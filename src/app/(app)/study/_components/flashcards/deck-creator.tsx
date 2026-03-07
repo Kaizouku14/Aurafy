@@ -44,7 +44,7 @@ export const DeckCreator = ({ className }: { className?: string }) => {
 
   const createDeck = api.flashcard.createDeck.useMutation({
     onSuccess: () => {
-      utils.flashcard.getDecks.invalidate();
+      void utils.flashcard.getDecks.invalidate();
       setOpen(false);
       form.reset();
       setFile(null);
@@ -78,22 +78,27 @@ export const DeckCreator = ({ className }: { className?: string }) => {
         });
 
         if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Failed to parse PDF and generate deck");
+          const errorData = (await res.json()) as { error?: string };
+          throw new Error(errorData.error ?? "Failed to parse PDF and generate deck");
         }
 
-        utils.flashcard.getDecks.invalidate();
+        void utils.flashcard.getDecks.invalidate();
         setOpen(false);
         form.reset();
         setFile(null);
         router.refresh();
-      } catch (err: any) {
-        setUploadError(err.message || "An unexpected error occurred during file upload.");
+        router.refresh();
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setUploadError(err.message ?? "An unexpected error occurred during file upload.");
+        } else {
+          setUploadError("An unexpected error occurred during file upload.");
+        }
       } finally {
         setIsUploading(false);
       }
     } else {
-      createDeck.mutate({ subject: data.subject, examDate: dateStr, notes: data.notes || "" });
+      createDeck.mutate({ subject: data.subject, examDate: dateStr, notes: data.notes ?? "" });
     }
   };
 
@@ -139,7 +144,7 @@ export const DeckCreator = ({ className }: { className?: string }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={`border-2 border-border gap-2 font-bold px-4 py-2 ${className || ""}`}>
+        <Button className={`border-2 border-border gap-2 font-bold px-4 py-2 ${className ?? ""}`}>
           <Plus className="size-4" /> New Deck
         </Button>
       </DialogTrigger>

@@ -26,7 +26,7 @@ export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => v
   const updateNote = api.notes.updateNote.useMutation({
     onSuccess: () => {
       setHasChanges(false);
-      utils.notes.getNotes.invalidate();
+      void utils.notes.getNotes.invalidate();
     },
   });
 

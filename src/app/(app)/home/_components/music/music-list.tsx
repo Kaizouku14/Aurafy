@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Music } from "lucide-react";
 import { StaggerList } from "@/components/animation/stagger-list";

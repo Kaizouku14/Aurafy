@@ -2,8 +2,7 @@
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Clock, BookOpen } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, ArrowLeft, Clock } from "lucide-react";
 
 export const PlanViewer = ({ planId, onBack }: { planId: string; onBack: () => void }) => {
   const { data: plan, isLoading } = api.planner.getPlan.useQuery({ planId });

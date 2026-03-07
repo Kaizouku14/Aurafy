@@ -13,7 +13,7 @@ const FALLBACK_INTENT: GenerateIntent = {
 
 export const classifyIntent = async (
   userText: string,
-  previousAssistantMessage: string = "",
+  previousAssistantMessage = "",
 ): Promise<GenerateIntent> => {
   try {
     const { output } = await generateText({

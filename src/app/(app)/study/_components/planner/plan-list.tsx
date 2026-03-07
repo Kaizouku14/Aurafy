@@ -12,7 +12,7 @@ export const PlanList = ({ onSelectPlan }: { onSelectPlan: (planId: string) => v
 
   const deletePlan = api.planner.deletePlan.useMutation({
     onSuccess: () => {
-      utils.planner.getPlans.invalidate();
+      void utils.planner.getPlans.invalidate();
     },
   });
 

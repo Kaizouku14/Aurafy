@@ -2,16 +2,12 @@
 
 import React from "react";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
-import { BotMessageSquare } from "lucide-react";
+import { BotMessageSquare, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ChatBubble from "./chat-bubble";
 import ChatEmpty from "./chat-empty";
 import ChatInput from "./chat-input";
-import { sileo } from "sileo";
 import { sharedChat } from "@/lib/chat-instance";
-import { getErrorMessage } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { StaggerList } from "@/components/animation/stagger-list";
 
 const Conversation = () => {
@@ -28,7 +24,7 @@ const Conversation = () => {
 
   const handleSend = React.useCallback(
     (text: string) => {
-      sendMessage({ text });
+      void sendMessage({ text });
     },
     [sendMessage],
   );

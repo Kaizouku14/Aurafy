@@ -4,7 +4,6 @@ import { nanoid } from "nanoid";
 import { TRPCError } from "@trpc/server";
 import { generateStudyPlan } from "@/lib/ai/planner-ai";
 import { createPlan, getUserPlans, getPlanById, deletePlanById } from "@/lib/api/planner/queries";
-import { format } from "date-fns";
 
 export const plannerRouter = createTRPCRouter({
   generatePlan: protectedProcedure
@@ -65,7 +64,7 @@ export const plannerRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const plan = await getPlanById(input.planId);
 
-      if (!plan || plan.userId !== ctx.session.user.id) {
+      if (plan?.userId !== ctx.session.user.id) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
       }
 
@@ -81,7 +80,7 @@ export const plannerRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const plan = await getPlanById(input.planId);
 
-      if (!plan || plan.userId !== ctx.session.user.id) {
+      if (plan?.userId !== ctx.session.user.id) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
       }
 

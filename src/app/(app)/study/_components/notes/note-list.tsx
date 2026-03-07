@@ -16,7 +16,7 @@ export const NoteList = ({ onSelectNote }: { onSelectNote: (noteId: string) => v
 
   const createNote = api.notes.createNote.useMutation({
     onSuccess: (data) => {
-      utils.notes.getNotes.invalidate();
+      void utils.notes.getNotes.invalidate();
       setOpen(false);
       setSubject("");
       onSelectNote(data.noteId);
@@ -25,7 +25,7 @@ export const NoteList = ({ onSelectNote }: { onSelectNote: (noteId: string) => v
 
   const deleteNote = api.notes.deleteNote.useMutation({
     onSuccess: () => {
-      utils.notes.getNotes.invalidate();
+      void utils.notes.getNotes.invalidate();
     },
   });
 

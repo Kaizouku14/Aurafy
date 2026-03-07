@@ -27,7 +27,7 @@ interface PlayerState {
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
-  setCurrentIndex: (index: number) => void;
+  setCurrentIndex: (index: number) => Promise<void>;
   setVolume: (volume: number) => void;
   play: () => void;
   pause: () => void;
@@ -63,7 +63,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setVolume: (volume: number) => {
     const { audio, player, isPremium } = get();
     if (isPremium && player) {
-      player.setVolume(volume);
+      void player.setVolume(volume);
     } else if (audio) {
       audio.volume = volume;
     }
@@ -78,7 +78,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       audio.src = "";
     }
     if (isPremium && player) {
-      player.pause();
+      void player.pause();
     }
     if (_progressInterval) {
       clearInterval(_progressInterval);
@@ -96,7 +96,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     if (tracks.length > 0) {
       setTimeout(() => {
-        get().setCurrentIndex(0);
+        void get().setCurrentIndex(0);
       }, 0);
     }
   },
@@ -164,10 +164,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
           set({ isPlaying: true });
 
-          const interval = setInterval(async () => {
-            const state = await player?.getCurrentState();
-            if (!state || state.paused) return;
-            set({ currentTime: state.position });
+          const interval = setInterval(() => {
+            void (async () => {
+              const state = await player?.getCurrentState();
+              if (!state || state.paused) return;
+              set({ currentTime: state.position });
+            })();
           }, 500);
 
           set({ _progressInterval: interval });
@@ -275,7 +277,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const newMuted = !isMuted;
 
     if (isPremium && player) {
-      player.setVolume(newMuted ? 0 : volume);
+      void player.setVolume(newMuted ? 0 : volume);
     } else if (audio) {
       audio.muted = newMuted;
     }
@@ -287,7 +289,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const positionMs = progress * duration;
 
     if (isPremium && player) {
-      player.seek(positionMs);
+      void player.seek(positionMs);
     } else if (audio) {
       audio.currentTime = positionMs / 1000;
     }
@@ -297,7 +299,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   next: () => {
     const { currentIndex, tracks } = get();
     if (currentIndex < tracks.length - 1) {
-      get().setCurrentIndex(currentIndex + 1);
+      void get().setCurrentIndex(currentIndex + 1);
     } else {
       set({ isPlaying: false });
     }
@@ -306,7 +308,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   prev: () => {
     const { currentIndex } = get();
     if (currentIndex > 0) {
-      get().setCurrentIndex(currentIndex - 1);
+      void get().setCurrentIndex(currentIndex - 1);
     }
   },
 }));

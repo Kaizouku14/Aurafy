@@ -16,7 +16,7 @@ export const auth = betterAuth({
   }),
   trustedOrigins: [
     process.env.BETTER_AUTH_URL!,
-    process.env.NEXT_PUBLIC_API_URL as string,
+    process.env.NEXT_PUBLIC_API_URL!,
   ],
   emailAndPassword: {
     enabled: true,
@@ -29,8 +29,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     spotify: {
-      clientId: process.env.SPOTIFY_CLIENT_ID as string,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET as string,
+      clientId: process.env.SPOTIFY_CLIENT_ID!,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
       scope: [
         "streaming",
         "user-read-email",

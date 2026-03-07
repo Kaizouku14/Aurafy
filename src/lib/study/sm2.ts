@@ -56,7 +56,7 @@ export function calculateSM2(
           repetitions: nextRepetitions,
           easeFactor: nextEaseFactor,
           interval: 1,
-          nextReviewAt: today.toISOString().split('T')[0] as string,
+          nextReviewAt: today.toISOString().split('T')[0]!,
       };
   }
 
@@ -74,6 +74,6 @@ export function calculateSM2(
     repetitions: nextRepetitions,
     easeFactor: nextEaseFactor,
     interval: nextInterval,
-    nextReviewAt: nextReviewDate.toISOString().split('T')[0] as string,
+    nextReviewAt: nextReviewDate.toISOString().split('T')[0]!,
   };
 }

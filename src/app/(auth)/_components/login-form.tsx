@@ -117,7 +117,7 @@ export default function LoginForm() {
               <p className="text-muted-foreground">
                 <strong className="text-foreground">Playback Note:</strong> Full
                 controls require Spotify Premium. For free accounts, playback
-                depends on Spotify's available track previews.
+                depends on Spotify&apos;s available track previews.
               </p>
             </div>
           </div>

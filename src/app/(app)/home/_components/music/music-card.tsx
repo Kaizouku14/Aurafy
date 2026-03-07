@@ -24,7 +24,11 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   const handleClick = () => {
     if (isSelected) {
-      isPlaying ? pause() : play();
+      if (isPlaying) {
+        pause();
+      } else {
+        play();
+      }
       return;
     }
     setSelectedIndex(index);

@@ -31,7 +31,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
     defaultValues: {
       title: "",
       hoursPerDay: 4,
-      subjects: [{ name: "", examDate: undefined as any }],
+      subjects: [{ name: "", examDate: undefined as unknown as Date }],
     },
   });
 
@@ -42,7 +42,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
 
   const generatePlan = api.planner.generatePlan.useMutation({
     onSuccess: () => {
-      utils.planner.getPlans.invalidate();
+      void utils.planner.getPlans.invalidate();
       setOpen(false);
       form.reset();
     },
@@ -64,7 +64,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={`border-2 border-border gap-2 font-bold px-4 py-2 ${className || ""}`}>
+        <Button className={`border-2 border-border gap-2 font-bold px-4 py-2 ${className ?? ""}`}>
           <Plus className="size-4" /> New Plan
         </Button>
       </DialogTrigger>
@@ -183,7 +183,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
                   type="button"
                   variant="noShadow"
                   className="text-xs border-2 border-border px-3 py-1 h-auto font-bold"
-                  onClick={() => append({ name: "", examDate: undefined as any })}
+                  onClick={() => append({ name: "", examDate: undefined as unknown as Date })}
                 >
                   <Plus className="size-3 mr-1" /> Add
                 </Button>

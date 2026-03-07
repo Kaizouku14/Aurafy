@@ -2,6 +2,8 @@ import { relations } from "drizzle-orm";
 import { flashcardDecks, flashcardReviews, flashcards } from "./flashcard";
 import { user, account, session } from "./user";
 import { chat } from "./chat";
+import { studyPlans } from "./planner";
+import { cornellNotes } from "./note";
 
 export const userRelations = relations(user, ({ many }) => ({
   account: many(account),
@@ -9,6 +11,8 @@ export const userRelations = relations(user, ({ many }) => ({
   flashcardDecks: many(flashcardDecks),
   flashcardReviews: many(flashcardReviews),
   chats: many(chat),
+  studyPlans: many(studyPlans),
+  cornellNotes: many(cornellNotes),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
@@ -55,6 +59,20 @@ export const flashcardReviewsRelations = relations(
 export const chatRelations = relations(chat, ({ one }) => ({
   user: one(user, {
     fields: [chat.userId],
+    references: [user.id],
+  }),
+}));
+
+export const studyPlansRelations = relations(studyPlans, ({ one }) => ({
+  user: one(user, {
+    fields: [studyPlans.userId],
+    references: [user.id],
+  }),
+}));
+
+export const cornellNotesRelations = relations(cornellNotes, ({ one }) => ({
+  user: one(user, {
+    fields: [cornellNotes.userId],
     references: [user.id],
   }),
 }));

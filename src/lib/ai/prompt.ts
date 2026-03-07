@@ -62,3 +62,23 @@ Card Question (Front): ${front}
 True Answer (Back): ${back}
 
 Student's Answer: ${userAnswer}`;
+
+export const GENERATE_STUDY_PLAN_PROMPT = (
+  subjects: string,
+  startDate: string,
+  endDate: string,
+  hoursPerDay: number
+) => `You are an expert academic planner. Generate a detailed, day-by-day study schedule.
+
+Subjects and their exam dates:
+${subjects}
+
+Schedule period: ${startDate} to ${endDate}
+Available study hours per day: ${hoursPerDay}
+
+Rules:
+- Distribute subjects evenly, but prioritize subjects whose exams are sooner.
+- Each day should have concrete study blocks with a subject, activity type (e.g., "Review flashcards", "Read chapter", "Practice problems", "Pomodoro deep work"), and a duration in minutes.
+- Include short breaks between blocks.
+- As an exam approaches, increase that subject's frequency.
+- Keep the schedule realistic and achievable.`;

@@ -1,120 +1,117 @@
-# 🎧 Aurafy — Mood-to-Playlist & Study App
+# 🎧 Aurafy
 
-> Chat with an AI about your day, get a personalized Spotify playlist, and study smarter with built-in focus tools.
-
----
-
-## Overview
-
-Aurafy combines AI-powered mood detection, Spotify playlist generation, and study productivity tools into one experience. Describe how you're feeling, and Aurafy figures out your mood, builds a matching playlist, and plays it — all without leaving the app.
+> **Your AI-Powered Music & Study Companion**
+> Aurafy is a modern web application spanning the divide between productivity and relaxation. It seamlessly blends conversational AI, mood-based Spotify music discovery, and scientifically-proven study tools into one centralized, beautifully designed platform.
 
 ---
 
-## Features
+## ✨ Core Features
 
-### 🎵 Mood & Music
-- Chat naturally — the AI detects your mood from conversation
-- Generates a playlist matched to your energy, valence, and tempo
-- Request specific songs directly in chat ("play X by Y")
-- Custom in-app Mini-Player (no redirects to Spotify)
-  - **Free users** — 30-second preview autoplay queue
-  - **Premium users** — Full playback, seek, skip, and volume controls
-- Spotify OAuth required for both login and music access
+### 🎵 Intelligent Music Discovery & Player
+- **Conversational Mood-to-Playlist:** Chat with the integrated Aurafy AI about your day. It analyzes your emotional tone, maps it to Spotify audio features (energy, valence), and generates a tailored playlist.
+- **Direct Requests:** Tell the AI to "play Break Free by Ariana Grande" and it instantly queues the track. It even understands context like "play that song you just suggested."
+- **Integrated Mini-Player:** A custom, floating Spotify Web Playback SDK player.
+  - *Free users* enjoy continuous 30-second preview streams.
+  - *Premium users* get full track playback, seeking, and volume controls without ever opening the Spotify app.
 
-### 📚 Study Tools
-- **Pomodoro Timer** — 25/5 focus cycles with automatic playlist launching
-- **Flashcards** — AI evaluates your open-ended answers instead of simple card flipping
-- **Spaced Repetition (SM-2)** — Schedules reviews around your exam date so nothing slips through
-- **AI Study Planner** — Builds an adaptive plan based on your deadlines and availability
+### 📚 Advanced Study Ecosystem
+- **AI-Evaluated Flashcards:** Upload PDF lecture slides or paste notes. The AI automatically extracts core concepts into a flashcard deck. When reviewing, you type your answer freely—the **AI grades your conceptual understanding** using a reasoning model, rather than relying on rigid exact-word matching.
+- **Exam-Aware Spaced Repetition:** Flashcard reviews are scheduled using the SM-2 algorithm, intelligently clamped to ensure all due cards are learned *before* your specified Exam Date.
+- **AI Study Planner:** Input your subjects, upcoming exam dates, and daily available study hours. Aurafy's intelligence generates a realistic, day-by-day chronological study schedule.
+- **Cornell Notes Workspace:** A dedicated digital notebook formatted specifically for the proven Cornell method (Cues, Notes, Summary).
+- **Focus / Pomodoro Timer:** Built-in configurable focus cycles (e.g., 25 focus / 5 break). The timer **automatically links to your music**, pausing the Spotify player when a break starts and resuming it when focus time begins, accompanied by Web Audio API spatial chimes.
 
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Next.js (App Router) + TypeScript |
-| Styling | Tailwind CSS + Shadcn/UI + Framer Motion |
-| API | tRPC |
-| AI | Vercel AI SDK + Groq |
-| Database | Turso (SQLite) via Drizzle ORM |
-| Auth | Better Auth (Spotify OAuth) |
-| Music | Spotify Web API + Web Playback SDK |
-
-**AI Models:**
-- `meta-llama/llama-4-scout-17b` — mood detection, chat, flashcard generation
-- `qwen/qwen3-32b` — flashcard answer evaluation (reasoning model)
+### 💻 Modern UI/UX
+- **Sleek Dark Mode Aesthetics:** A heavily customized, asymmetric layout featuring vibrant red accents (`var(--main)`), stark contrast borders, and responsive split-pane designs.
+- **Fully Mobile Responsive:** The complex dashboard gracefully collapses into scrollable, touch-friendly tabbed interfaces on mobile devices.
+- **Fluid Navigation:** Integrated Next.js TopLoader for seamless page transition feedback.
 
 ---
 
-## How It Works
+## 🛠️ Tech Stack
 
-**Mood Detection**
-Every message is classified before anything else. If you're expressing a mood, it maps to Spotify audio attributes (energy, valence, tempo) and pulls songs accordingly. If you're asking for a specific track, it searches Spotify directly. General conversation gets a conversational reply — no unnecessary API calls.
+### Frontend & UI
+- **Next.js 15 (App Router)** - React framework
+- **Tailwind CSS + shadcn/ui** - Styling and accessible component primitives
+- **Zustand** - Client-side state management (Spotify Player, Pomodoro)
+- **Framer Motion** - Micro-animations and layout transitions
 
-**Flashcards**
-Upload a PDF or paste notes, and Aurafy generates a deck. During review, you type your answer freely and the AI scores your understanding on a 0–5 scale — not just whether the wording matched.
+### Backend & Data
+- **tRPC** - End-to-end typesafe APIs
+- **Turso (SQLite) + Drizzle ORM** - Edge database and schema management
+- **Better Auth** - Authentication handling standard sessions and Spotify OAuth tokens
 
-**Spaced Repetition**
-Built on SM-2. Set an exam date when creating a deck and the algorithm caps review intervals so every card surfaces before the deadline.
+### AI & Integrations
+- **Vercel AI SDK** - Streaming UI capabilities and tool calling
+- **Groq** - Blazing fast LLM inference (`llama-4-scout` for general chat/mood, `openai/gpt-oss-120b` for deep reasoning flashcard evaluation)
+- **Spotify Web API & Web Playback SDK** - Music context, search, and audio streaming
 
 ---
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- Turso database
-- Spotify Developer account (`streaming`, `user-read-playback-state`, `user-modify-playback-state` scopes)
-- Groq API key
+1. **Node.js 18+** & **pnpm**
+2. **Turso** database account
+3. **Spotify Developer** account (App requires `streaming`, `user-read-playback-state`, `user-modify-playback-state`, `user-library-read` scopes)
+4. **Groq** API key
 
-### Setup
-
+### 1. Clone & Install
 ```bash
 git clone https://github.com/yourusername/aurafy.git
 cd aurafy
-npm install
-cp .env.example .env.local
+pnpm install
 ```
 
-### Environment Variables
-
+### 2. Environment Variables
+Create a `.env.local` file in the root directory:
 ```env
-DATABASE_URL=your_turso_connection_string
-BETTER_AUTH_SECRET=your_secret
-BETTER_AUTH_URL=http://localhost:3000
-GROQ_API_KEY=your_groq_api_key
-SPOTIFY_CLIENT_ID=your_spotify_client_id
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-SPOTIFY_REDIRECT_URI=http://localhost:3000/api/auth/spotify/callback
+# Database
+DATABASE_URL="libsql://your-db.turso.io"
+DATABASE_AUTH_TOKEN="your-turso-token"
+
+# Authentication (Better Auth)
+BETTER_AUTH_SECRET="your-random-secure-secret"
+BETTER_AUTH_URL="http://localhost:3000"
+
+# Spotify
+SPOTIFY_CLIENT_ID="your-spotify-client-id"
+SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
+SPOTIFY_REDIRECT_URI="http://localhost:3000/api/auth/spotify/callback"
+
+# AI
+GROQ_API_KEY="your-groq-api-key"
 ```
 
-### Database & Dev Server
-
+### 3. Database Setup
+Push the Drizzle schema to your Turso database:
 ```bash
-npx drizzle-kit push
-npm run dev
+pnpm db:push
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+### 4. Run Development Server
+```bash
+pnpm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser. Log in using your Spotify account to authorize the player!
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap (Completed ✅)
 
-- [ ] Spotify OAuth + mood chat + playlist generation
-- [ ] Mini-Player (Free preview / Premium full playback)
-- [ ] Rate limiting + Spotify result caching
-- [ ] Pomodoro timer with playlist integration
-- [ ] Flashcards with AI evaluation + SM-2 spaced repetition
-- [ ] AI study planner
-- [ ] Weekly mood & study recap
-- [ ] Mobile responsive + PWA support
-- [ ] Mind mapping tool
-- [ ] Cornell note-taking template
+- [x] Spotify OAuth + Mood Chat Intent Classification
+- [x] Mini-Player (Free preview fallback & Premium Web Playback)
+- [x] Background Token Refreshing mechanics
+- [x] Pomodoro timer with Spotify auto-pause/play integration
+- [x] Flashcards with AI comprehension grading + Exam-clamped SM-2 algorithm
+- [x] PDF Upload & Text Parsing Pipeline
+- [x] AI Study Planner chronological generation
+- [x] Cornell note-taking workspaces
+- [x] Mobile UI UX Refinements & TopLoader Layouts
+- [ ] Mind mapping tool (Upcoming Phase)
+- [ ] Weekly analytics dashboard (Upcoming Phase)
 
 ---
 
-## License
-
-MIT — see [LICENSE](./LICENSE) for details.
+## 📄 License
+This project is licensed under the MIT License.

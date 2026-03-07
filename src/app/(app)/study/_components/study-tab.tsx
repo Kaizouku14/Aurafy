@@ -6,11 +6,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Timer, NotebookPen, CalendarCheck2 } from "lucide-react";
+import { Timer, NotebookPen, CalendarCheck2, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PomodoroTab from "./pomodoro/pomodoro";
-import FlashcardsTab from "./flashcards/flashcards";
 import React from "react";
+import FlashcardsTab from "./flashcards/flashcards";
+import PlannerTab from "./planner/planner";
+import NotesTab from "./notes/notes";
 
 const STUDY_TABS = [
   {
@@ -20,16 +22,22 @@ const STUDY_TABS = [
     description: "Focus timer for deep work sessions",
   },
   {
-    value: "flashcards",
+      value: "flashcards",
     icon: NotebookPen,
     label: "Flashcards",
     description: "Learn and practice with flashcards",
   },
   {
-    value: "listcheck",
+    value: "planner",
     icon: CalendarCheck2,
-    label: "Tasks",
-    description: "Manage your study tasks",
+    label: "Planner",
+    description: "AI-powered study schedule generator",
+  },
+  {
+    value: "notes",
+    icon: FileText,
+    label: "Notes",
+    description: "Cornell method note-taking",
   },
 ];
 
@@ -81,11 +89,8 @@ const StudyTab = () => {
           >
             {tab.value === "pomodoro" && <PomodoroTab />}
             {tab.value === "flashcards" && <FlashcardsTab />}
-            {tab.value === "listcheck" && (
-              <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-                Task manager coming soon
-              </div>
-            )}
+            {tab.value === "planner" && <PlannerTab />}
+            {tab.value === "notes" && <NotesTab />}
           </TabsContent>
         ))}
       </main>

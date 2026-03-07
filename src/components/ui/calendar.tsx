@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DayPicker } from "react-day-picker";
 
-import * as React from "react"
+import * as React from "react";
 
-import { buttonVariants } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
   className,
@@ -21,26 +21,25 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "rounded-base! border-2 border-border bg-secondary-background p-3 font-heading shadow-shadow",
+        "rounded-base! border-border bg-secondary-background font-heading shadow-shadow border-2 p-3",
         className,
       )}
       classNames={{
         months: "flex flex-col sm:flex-row gap-2",
         month: "flex flex-col gap-4",
         caption:
-          "flex justify-center pt-1 relative items-center w-full text-main-foreground",
+          "flex justify-center pt-1 relative items-center w-full text-foreground",
         caption_label: "text-sm font-heading",
         nav: "gap-1 flex items-center",
         nav_button: cn(
-          buttonVariants({ variant: "noShadow" }),
+          buttonVariants({ variant: "neutral" }),
           "size-7 bg-transparent p-0",
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
-        head_cell:
-          "text-main-foreground rounded-base w-9 font-base text-[0.8rem]",
+        head_cell: "text-foreground rounded-base w-9 font-base text-[0.8rem]",
         row: "flex w-full mt-2",
         cell: cn(
           "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-black/50 [&:has([aria-selected])]:text-white! [&:has([aria-selected].day-range-end)]:rounded-r-base",
@@ -75,8 +74,8 @@ function Calendar({
       }}
       {...props}
     />
-  )
+  );
 }
-Calendar.displayName = "Calendar"
+Calendar.displayName = "Calendar";
 
-export { Calendar }
+export { Calendar };

@@ -20,18 +20,18 @@ export const PlanViewer = ({ planId, onBack }: { planId: string; onBack: () => v
   if (!plan) return null;
 
   return (
-    <div className="flex flex-col size-full max-w-5xl mx-auto p-4 md:p-8 animate-in fade-in duration-300">
-      <div className="flex items-center gap-4 mb-8 border-b-4 border-border pb-4">
+    <div className="flex flex-col size-full max-w-5xl mx-auto p-3 sm:p-4 md:p-8 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-8 border-b-4 border-border pb-4">
         <Button
           onClick={onBack}
           variant="noShadow"
-          className="border-2 border-border gap-2 font-bold px-4 py-2 bg-secondary-background hover:bg-background transition-colors text-foreground"
+          className="border-2 border-border gap-1.5 font-bold px-3 py-1.5 bg-secondary-background hover:bg-background transition-colors text-foreground shrink-0 w-fit"
         >
           <ArrowLeft className="size-4" /> Back
         </Button>
-        <div>
-          <h2 className="text-2xl font-black uppercase tracking-tight">{plan.title}</h2>
-          <p className="text-sm text-muted-foreground font-bold">{plan.startDate} → {plan.endDate} · {plan.hoursPerDay}h/day</p>
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight truncate">{plan.title}</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground font-bold">{plan.startDate} → {plan.endDate} · {plan.hoursPerDay}h/day</p>
         </div>
       </div>
 
@@ -44,15 +44,15 @@ export const PlanViewer = ({ planId, onBack }: { planId: string; onBack: () => v
             </div>
             <div className="divide-y-2 divide-border">
               {day.blocks.map((block, blockIndex) => (
-                <div key={blockIndex} className="flex items-center gap-4 px-5 py-3 hover:bg-background/50 transition-colors">
-                  <div className="flex items-center gap-2 w-20 shrink-0">
+                <div key={blockIndex} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-background/50 transition-colors">
+                  <div className="flex items-center gap-2 sm:w-20 shrink-0">
                     <Clock className="size-3.5 text-muted-foreground" />
                     <span className="text-sm font-black text-muted-foreground">{block.time}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-black text-foreground">{block.subject}</span>
-                    <span className="text-muted-foreground font-base mx-2">·</span>
-                    <span className="text-muted-foreground font-bold text-sm">{block.activity}</span>
+                  <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-1">
+                    <span className="font-black text-foreground text-sm sm:text-base">{block.subject}</span>
+                    <span className="text-muted-foreground font-base mx-1">·</span>
+                    <span className="text-muted-foreground font-bold text-xs sm:text-sm">{block.activity}</span>
                   </div>
                   <div className="shrink-0 bg-main/20 text-foreground text-xs font-bold px-2.5 py-1 rounded-base border border-border">
                     {block.duration}m

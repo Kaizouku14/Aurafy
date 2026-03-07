@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, AudioLines, Brain, Sparkles, MoveRight } from "lucide-react";
+import { Loader2, AudioLines, Brain, Sparkles, MoveRight, CalendarCheck2, FileText } from "lucide-react";
 import { authClient } from "@/server/better-auth/client";
 import { PAGE_ROUTES } from "@/constants/page-routes";
 import FeatureCard from "./card/feature-card";
@@ -26,7 +26,7 @@ export default function LoginForm() {
 
   return (
     <div className="bg-background grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="bg-main border-border relative flex flex-col justify-between overflow-hidden border-r-[3px] p-8 lg:p-16">
+      <section className="bg-main border-border relative flex flex-col justify-between overflow-hidden border-b-[3px] lg:border-b-0 lg:border-r-[3px] p-6 sm:p-8 lg:p-16">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-size-[40px_40px] opacity-[0.03]" />
 
         <div className="relative z-10">
@@ -37,21 +37,21 @@ export default function LoginForm() {
             </span>
           </div>
 
-          <div className="mt-20 max-w-2xl">
-            <h1 className="text-main-foreground text-5xl leading-[0.85] font-black tracking-tighter md:text-7xl">
+          <div className="mt-10 sm:mt-20 max-w-2xl">
+            <h1 className="text-main-foreground text-3xl sm:text-5xl md:text-7xl leading-[0.85] font-black tracking-tighter">
               STUDY DEEPER. <br />
               <span className="text-background drop-shadow-[2px_2px_0_#000]">
                 FEEL BETTER.
               </span>
             </h1>
-            <p className="text-main-foreground/80 mt-6 max-w-md text-lg leading-tight font-medium text-balance">
+            <p className="text-main-foreground/80 mt-4 sm:mt-6 max-w-md text-base sm:text-lg leading-tight font-medium text-balance">
               AI-driven mood detection meets Spotify. Build focus with Pomodoro
               cycles and SM-2 spaced repetition.
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mt-0">
+        <div className="relative z-10 mt-8 sm:mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:mt-0">
           <FeatureCard
             icon={<Sparkles className="size-4" />}
             title="Llama-4 Discovery"
@@ -64,6 +64,18 @@ export default function LoginForm() {
             desc="Adaptive review cycles for exam deadlines."
             rotation="rotate-[-1deg]"
           />
+          <FeatureCard
+            icon={<CalendarCheck2 className="size-4" />}
+            title="AI Study Planner"
+            desc="Auto-generate study schedules based on your exams."
+            rotation="rotate-[-0.5deg]"
+          />
+          <FeatureCard
+            icon={<FileText className="size-4" />}
+            title="Cornell Notes"
+            desc="Structured note-taking with cues, notes, and summaries."
+            rotation="rotate-[0.5deg]"
+          />
         </div>
 
         <div className="relative z-10 hidden pt-8 lg:block">
@@ -73,7 +85,7 @@ export default function LoginForm() {
         </div>
       </section>
 
-      <main className="flex flex-col items-center justify-center p-8 lg:p-12">
+      <main className="flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12">
         <div className="w-full max-w-95">
           <header className="mb-10">
             <h2 className="text-4xl font-black tracking-tighter">

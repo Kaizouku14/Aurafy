@@ -13,7 +13,7 @@ interface ChatEmptyProps {
 
 const ChatEmpty: React.FC<ChatEmptyProps> = React.memo(({ onSuggestion }) => {
   return (
-    <div className="flex h-full flex-col justify-center px-4 py-12">
+    <div className="flex h-full flex-col justify-center px-4 py-4 sm:py-12">
       <div className="mb-6">
         <h2 className="text-foreground text-base font-black tracking-tight">
           Hey, I&apos;m Aurafy

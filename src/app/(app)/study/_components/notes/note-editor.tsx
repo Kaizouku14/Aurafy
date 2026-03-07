@@ -54,22 +54,22 @@ export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => v
   if (!note) return null;
 
   return (
-    <div className="flex flex-col size-full max-w-6xl mx-auto p-4 md:p-6 animate-in fade-in duration-300">
-      <div className="flex items-center justify-between mb-4 border-b-4 border-border pb-3">
-        <div className="flex items-center gap-4">
+    <div className="flex flex-col size-full max-w-6xl mx-auto p-3 sm:p-4 md:p-6 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 border-b-4 border-border pb-3">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
           <Button
             onClick={() => { handleSave(); onBack(); }}
             variant="noShadow"
-            className="border-2 border-border gap-2 font-bold px-4 py-2 bg-secondary-background hover:bg-background transition-colors text-foreground"
+            className="border-2 border-border gap-1.5 font-bold px-3 py-1.5 bg-secondary-background hover:bg-background transition-colors text-foreground shrink-0"
           >
             <ArrowLeft className="size-4" /> Back
           </Button>
-          <h2 className="text-2xl font-black uppercase tracking-tight">{note.subject}</h2>
+          <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight truncate">{note.subject}</h2>
         </div>
         <Button
           onClick={handleSave}
           disabled={!hasChanges || updateNote.isPending}
-          className="border-2 border-border gap-2 font-bold px-4 bg-foreground text-background hover:bg-main hover:text-main-foreground transition-colors"
+          className="border-2 border-border gap-1.5 font-bold px-3 sm:px-4 bg-foreground text-background hover:bg-main hover:text-main-foreground transition-colors shrink-0 w-full sm:w-auto"
         >
           {updateNote.isPending ? <Loader2 className="animate-spin size-4" /> : <Save className="size-4" />}
           {hasChanges ? "Save" : "Saved"}
@@ -77,8 +77,8 @@ export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => v
       </div>
 
       <div className="flex-1 flex flex-col gap-0 border-4 border-border rounded-base overflow-hidden bg-secondary-background min-h-0">
-        <div className="flex flex-1 min-h-0">
-          <div className="w-1/3 border-r-4 border-border flex flex-col">
+        <div className="flex flex-col md:flex-row flex-1 min-h-0">
+          <div className="md:w-1/3 border-b-4 md:border-b-0 md:border-r-4 border-border flex flex-col min-h-[120px] md:min-h-0">
             <div className="bg-foreground text-background px-4 py-2">
               <span className="text-xs font-black uppercase tracking-widest">Cues / Questions</span>
             </div>
@@ -90,7 +90,7 @@ export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => v
               className="flex-1 resize-none border-none rounded-none bg-transparent focus-visible:ring-0 font-base text-sm p-4"
             />
           </div>
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-[120px] md:min-h-0">
             <div className="bg-foreground text-background px-4 py-2">
               <span className="text-xs font-black uppercase tracking-widest">Notes</span>
             </div>

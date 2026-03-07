@@ -22,7 +22,7 @@ const STUDY_TABS = [
     description: "Focus timer for deep work sessions",
   },
   {
-      value: "flashcards",
+    value: "flashcards",
     icon: NotebookPen,
     label: "Flashcards",
     description: "Learn and practice with flashcards",
@@ -48,9 +48,33 @@ const StudyTab = () => {
     <Tabs
       defaultValue="pomodoro"
       onValueChange={(value) => setSelected(value)}
-      className="flex h-[calc(100vh-4.5rem)] w-full"
+      className="flex flex-col md:flex-row h-[calc(100vh-4.5rem)] w-full"
     >
-      <aside className="border-border bg-secondary-background flex w-16 shrink-0 flex-col border-r-2 py-4">
+      <div className="border-border bg-secondary-background flex md:hidden shrink-0 border-b-2 px-1 py-2 overflow-x-auto scrollbar-hide">
+        <TabsList className="flex h-auto w-max gap-1 border-none bg-transparent p-0">
+          {STUDY_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selected === tab.value;
+            return (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className={cn(
+                  "flex items-center gap-1.5 border-2 px-3 py-1.5 text-xs font-bold transition-all duration-150 whitespace-nowrap",
+                  isActive
+                    ? "bg-main text-main-foreground border-border shadow-shadow"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background",
+                )}
+              >
+                <Icon className="size-3.5" />
+                {tab.label}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </div>
+
+      <aside className="border-border bg-secondary-background hidden md:flex w-16 shrink-0 flex-col border-r-2 py-4">
         <TabsList className="flex h-auto w-full flex-col gap-1.5 border-none bg-transparent p-0 px-2">
           {STUDY_TABS.map((tab) => {
             const Icon = tab.icon;

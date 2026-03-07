@@ -3,6 +3,7 @@ import { getSpotifyClient } from "@/lib/spotfiy/spotify";
 import { getErrorMessage } from "@/lib/utils";
 import type { Artist, Track } from "@spotify/web-api-ts-sdk";
 import { TRPCError } from "@trpc/server";
+import { cachedFetch } from "@/lib/spotfiy/spotify-cache";
 
 const mapTrack = (track: Track) => ({
   id: track.id,
@@ -39,15 +40,17 @@ const deduplicateTracks = (
 };
 
 export const getUserTopArtists = async (userId: string): Promise<string[]> =>
-  withSpotifyError(async () => {
-    const client = await getSpotifyClient(userId);
-    const result = await client.currentUser.topItems(
-      "artists",
-      "short_term",
-      5,
-    );
-    return result.items.map((a: Artist) => a.name);
-  });
+  cachedFetch(`topArtists:${userId}`, 5 * 60 * 1000, () =>
+    withSpotifyError(async () => {
+      const client = await getSpotifyClient(userId);
+      const result = await client.currentUser.topItems(
+        "artists",
+        "short_term",
+        5,
+      );
+      return result.items.map((a: Artist) => a.name);
+    })
+  );
 
 
 export interface UserLibrary {
@@ -66,38 +69,40 @@ export const handleSpotifyMood = async (
   mood: Mood,
   library: UserLibrary,
 ) =>
-  withSpotifyError(async () => {
-    const client = await getSpotifyClient(userId);
-    const { genres } = MOOD_MAP[mood];
-    const moodGenre = genres[0] ?? "";
-    const collected: ReturnType<typeof mapTrack>[] = [];
+  cachedFetch(`moodTracks:${userId}:${mood}`, 2 * 60 * 1000, () =>
+    withSpotifyError(async () => {
+      const client = await getSpotifyClient(userId);
+      const { genres } = MOOD_MAP[mood];
+      const moodGenre = genres[0] ?? "";
+      const collected: ReturnType<typeof mapTrack>[] = [];
 
-    if (library.topArtists.length > 0) {
-      const artistQueries = library.topArtists.slice(0, 3).map((artist) =>
-        client
-          .search(`genre:${moodGenre} artist:${artist}`, ["track"], undefined, 5)
-          .then((r) => r.tracks.items.map(mapTrack))
-          .catch(() => []),
+      if (library.topArtists.length > 0) {
+        const artistQueries = library.topArtists.slice(0, 3).map((artist) =>
+          client
+            .search(`genre:${moodGenre} artist:${artist}`, ["track"], undefined, 5)
+            .then((r) => r.tracks.items.map(mapTrack))
+            .catch(() => []),
+        );
+        const results = await Promise.all(artistQueries);
+        collected.push(...results.flat());
+      }
+
+      if (collected.length >= 10) {
+        return deduplicateTracks(collected).slice(0, 10);
+      }
+
+      const fallbackQuery = genres.join(" ");
+      const fallback = await client.search(
+        fallbackQuery,
+        ["track"],
+        undefined,
+        10,
       );
-      const results = await Promise.all(artistQueries);
-      collected.push(...results.flat());
-    }
+      collected.push(...fallback.tracks.items.map(mapTrack));
 
-    if (collected.length >= 10) {
       return deduplicateTracks(collected).slice(0, 10);
-    }
-
-    const fallbackQuery = genres.join(" ");
-    const fallback = await client.search(
-      fallbackQuery,
-      ["track"],
-      undefined,
-      10,
-    );
-    collected.push(...fallback.tracks.items.map(mapTrack));
-
-    return deduplicateTracks(collected).slice(0, 10);
-  });
+    })
+  );
 
 export const handleSpotifySong = async (
   userId: string,

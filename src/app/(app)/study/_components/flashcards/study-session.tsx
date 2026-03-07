@@ -31,9 +31,9 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
   if (!dueCards || dueCards.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center h-full animate-in fade-in zoom-in-95 duration-300">
-        <div className="border-4 border-border rounded-base bg-main p-12 text-center shadow-shadow max-w-lg">
-          <BrainCircuit className="size-20 mx-auto text-main-foreground mb-6" />
-          <h2 className="text-3xl font-black uppercase tracking-widest text-main-foreground mb-4">All Caught Up!</h2>
+        <div className="border-4 border-border rounded-base bg-main p-6 sm:p-12 text-center shadow-shadow max-w-lg mx-4">
+          <BrainCircuit className="size-14 sm:size-20 mx-auto text-main-foreground mb-4 sm:mb-6" />
+          <h2 className="text-xl sm:text-3xl font-black uppercase tracking-widest text-main-foreground mb-4">All Caught Up!</h2>
           <p className="text-main-foreground font-bold mb-8">You've finished all your due cards for this deck today. Outstanding work.</p>
           <Button
             onClick={onFinish}
@@ -67,27 +67,27 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
   };
 
   return (
-    <div className="flex flex-col size-full max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in duration-300">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
+    <div className="flex flex-col size-full max-w-4xl mx-auto p-3 sm:p-4 md:p-8 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 sm:mb-8">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button
             onClick={onFinish}
             variant="noShadow"
-            className="border-2 border-border gap-2 font-bold px-4 py-2 bg-secondary-background hover:bg-background transition-colors text-foreground"
+            className="border-2 border-border gap-1.5 font-bold px-3 py-1.5 bg-secondary-background hover:bg-background transition-colors text-foreground"
           >
             <ArrowLeft className="size-4" /> Leave
           </Button>
-          <h2 className="text-2xl font-black uppercase tracking-tight">Study Session</h2>
+          <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight">Study Session</h2>
         </div>
-        <div className="bg-secondary-background border-2 border-border font-bold px-4 py-2 rounded-base">
+        <div className="bg-secondary-background border-2 border-border font-bold px-3 py-1.5 rounded-base text-sm text-center">
           Card {currentIndex + 1} of {dueCards.length}
         </div>
       </div>
 
       <div className="flex-1 flex flex-col gap-6">
-        <div className="border-4 border-border rounded-base bg-background p-6 md:p-8 shadow-sm flex flex-col justify-center min-h-[250px]">
-          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Concept to Recall</h3>
-          <p className="text-2xl md:text-4xl font-black leading-tight">{currentCard.front}</p>
+        <div className="border-4 border-border rounded-base bg-background p-4 sm:p-6 md:p-8 shadow-sm flex flex-col justify-center min-h-[150px] sm:min-h-[250px]">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4">Concept to Recall</h3>
+          <p className="text-xl sm:text-2xl md:text-4xl font-black leading-tight">{currentCard.front}</p>
         </div>
 
         {!feedback ? (
@@ -108,7 +108,7 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
             <Button
               type="submit"
               disabled={!userAnswer.trim() || submitReview.isPending}
-              className="w-full bg-foreground text-background font-black uppercase tracking-widest text-xl p-6 rounded-base border-4 border-transparent hover:bg-main hover:text-main-foreground transition-all "
+              className="w-full bg-foreground text-background font-black uppercase tracking-widest text-base sm:text-xl p-4 sm:p-6 rounded-base border-4 border-transparent hover:bg-main hover:text-main-foreground transition-all "
             >
                {submitReview.isPending ? <Loader2 className="animate-spin size-6" /> : "Evaluate Answer"}
             </Button>
@@ -135,7 +135,7 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
 
              <Button
               onClick={handleNext}
-              className="mt-auto w-full bg-foreground text-background font-black uppercase tracking-widest text-xl p-8 rounded-base border-4 border-transparent hover:bg-muted transition-all gap-3"
+              className="mt-auto w-full bg-foreground text-background font-black uppercase tracking-widest text-base sm:text-xl p-4 sm:p-8 rounded-base border-4 border-transparent hover:bg-muted transition-all gap-3"
             >
                Next Card <ArrowRight className="size-6" />
             </Button>

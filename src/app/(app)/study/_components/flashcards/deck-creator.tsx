@@ -209,7 +209,7 @@ export const DeckCreator = ({ className }: { className?: string }) => {
 
             <div className="space-y-4 pt-2">
               <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Source Material</FormLabel>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="notes"

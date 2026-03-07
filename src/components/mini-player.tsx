@@ -41,7 +41,7 @@ export const MiniPlayer = () => {
   if (!currentTrack || pathname === PAGE_ROUTES.HOME) return null;
 
   return (
-    <div className="border-border bg-secondary-background shadow-shadow fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 border-2 px-4 py-2.5">
+    <div className="border-border bg-secondary-background shadow-shadow fixed bottom-3 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3 border-2 px-3 py-2 sm:px-4 sm:py-2.5">
       <div className="size-9 shrink-0 overflow-hidden">
         {currentTrack.cover ? (
           <Image

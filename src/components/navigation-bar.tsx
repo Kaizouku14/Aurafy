@@ -33,14 +33,14 @@ const NavigationBar = () => {
             key={menu.href}
             href={menu.href}
             className={cn(
-              "flex items-center gap-2 border-2 px-3 py-1.5 text-sm font-semibold transition-all",
+              "flex items-center gap-2 border-2 px-2 py-1.5 sm:px-3 text-sm font-semibold transition-all",
               isActive
                 ? "bg-main text-main-foreground border-border shadow-shadow"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <Icon className="size-4" />
-            <span>{menu.label}</span>
+            <span className="hidden sm:inline">{menu.label}</span>
           </Link>
         );
       })}

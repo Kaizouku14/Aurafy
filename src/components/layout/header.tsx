@@ -1,6 +1,6 @@
 "use client";
 
-import { AudioLines } from "lucide-react";
+import { AudioLines, LogOut } from "lucide-react";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { PAGE_ROUTES } from "@/constants/page-routes";
@@ -39,9 +39,9 @@ const Header = () => {
 
   return (
     <header className="flex items-center justify-between py-3">
-      <div className="bg-main border-border shadow-shadow flex -rotate-1 items-center gap-2 border-2 px-3 py-1.5">
+      <div className="bg-main border-border shadow-shadow flex -rotate-1 items-center gap-2 border-2 px-2 py-1 sm:px-3 sm:py-1.5">
         <AudioLines className="text-main-foreground size-4" />
-        <span className="text-main-foreground text-sm font-black tracking-tighter uppercase">
+        <span className="text-main-foreground text-sm font-black tracking-tighter uppercase hidden sm:inline">
           Aurafy
         </span>
       </div>
@@ -59,8 +59,9 @@ const Header = () => {
           </AvatarFallback>
         </Avatar>
 
-        <Button variant="neutral" size="sm" onClick={handleLogout}>
-          Logout
+        <Button variant="neutral" size="sm" onClick={handleLogout} className="gap-1.5">
+          <LogOut className="size-3.5" />
+          <span className="hidden sm:inline">Logout</span>
         </Button>
       </div>
     </header>

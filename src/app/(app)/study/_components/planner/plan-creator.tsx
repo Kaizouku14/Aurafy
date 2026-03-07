@@ -93,7 +93,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="startDate"
@@ -190,7 +190,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
               </div>
 
               {fields.map((field, index) => (
-                <div key={field.id} className="flex items-start gap-2">
+                <div key={field.id} className="space-y-2 border-2 border-border rounded-base p-3 sm:p-0 sm:border-0">
                   <FormField
                     control={form.control}
                     name={`subjects.${index}.name`}
@@ -207,45 +207,47 @@ export const PlanCreator = ({ className }: { className?: string }) => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name={`subjects.${index}.examDate`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="noShadow"
-                                className={cn(
-                                  "justify-start text-left font-bold border-2 border-border bg-background text-foreground h-10 w-[140px]",
-                                  !field.value && "text-muted-foreground font-normal bg-background/50"
-                                )}
-                              >
-                                <CalendarIcon className="mr-1 h-3.5 w-3.5" />
-                                {field.value ? format(field.value, "MMM dd") : "Exam date"}
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="flex items-center gap-2">
+                    <FormField
+                      control={form.control}
+                      name={`subjects.${index}.examDate`}
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="noShadow"
+                                  className={cn(
+                                    "justify-start text-left font-bold border-2 border-border bg-background text-foreground h-10 w-full",
+                                    !field.value && "text-muted-foreground font-normal bg-background/50"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-1 h-3.5 w-3.5" />
+                                  {field.value ? format(field.value, "MMM dd") : "Exam date"}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="noShadow"
+                        size="icon"
+                        className="border-2 border-transparent text-muted-foreground hover:text-destructive shrink-0"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
                     )}
-                  />
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="noShadow"
-                      size="icon"
-                      className="border-2 border-transparent text-muted-foreground hover:text-destructive shrink-0 mt-0.5"
-                      onClick={() => remove(index)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -54,7 +54,6 @@ export const DeckCreator = ({ className }: { className?: string }) => {
   const onSubmit = async (data: CreateDeckInput) => {
     setUploadError("");
 
-    // Check if neither is provided
     if (!data.notes && !file) {
       setUploadError("You must provide either text notes or upload a PDF document.");
       return;
@@ -63,7 +62,6 @@ export const DeckCreator = ({ className }: { className?: string }) => {
     const dateStr = format(data.examDate, "yyyy-MM-dd");
 
     if (file) {
-      // PDF Upload Flow via standard Next.js API route
       setIsUploading(true);
       try {
         const formData = new FormData();
@@ -95,7 +93,6 @@ export const DeckCreator = ({ className }: { className?: string }) => {
         setIsUploading(false);
       }
     } else {
-      // Standard Text Paste Flow via tRPC
       createDeck.mutate({ subject: data.subject, examDate: dateStr, notes: data.notes || "" });
     }
   };
@@ -103,7 +100,6 @@ export const DeckCreator = ({ className }: { className?: string }) => {
   const handleFile = (f: File | undefined) => {
     if (!f) return;
 
-    // 5MB Limit
     if (f.size > 5 * 1024 * 1024) {
       setUploadError("File exceeds the 5MB maximum size limit.");
       setFile(null);
@@ -220,7 +216,7 @@ export const DeckCreator = ({ className }: { className?: string }) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <textarea
+                        <Textarea
                           placeholder="Paste notes here..."
                           className="w-full h-full min-h-[150px] p-3 border-2 border-border rounded-base focus:outline-none focus:ring-2 focus:ring-main bg-background text-foreground resize-none font-base text-sm"
                           {...field}
@@ -248,7 +244,6 @@ export const DeckCreator = ({ className }: { className?: string }) => {
                      onChange={(e) => {
                        const f = e.target.files?.[0];
                        handleFile(f);
-                       // Reset input so the same file can be selected again if needed
                        e.target.value = "";
                      }}
                    />

@@ -14,7 +14,8 @@ import {
   getCardById, 
   getDeckById, 
   updateCardSM2, 
-  createReviewRecord 
+  createReviewRecord,
+  deleteDeckById
 } from "@/lib/api/flashcard/queries";
 
 export const flashcardRouter = createTRPCRouter({
@@ -133,5 +134,18 @@ export const flashcardRouter = createTRPCRouter({
         feedback: evaluation.feedback,
         back: card.back
       };
+    }),
+
+  deleteDeck: protectedProcedure
+    .input(z.object({ deckId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const deck = await getDeckByIdAndUser(input.deckId, ctx.session.user.id);
+
+      if (!deck) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Deck not found" });
+      }
+
+      await deleteDeckById(input.deckId);
+      return { success: true };
     }),
 });

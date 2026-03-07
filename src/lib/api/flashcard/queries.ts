@@ -102,3 +102,7 @@ export async function createReviewRecord(
     nextReviewAt,
   });
 }
+
+export async function deleteDeckById(deckId: string) {
+  return db.delete(flashcardDecks).where(eq(flashcardDecks.id, deckId));
+}

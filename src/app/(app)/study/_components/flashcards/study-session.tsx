@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, BrainCircuit } from "lucide-react";
+import { Loader2, ArrowRight, BrainCircuit, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -69,7 +69,16 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
   return (
     <div className="flex flex-col size-full max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in duration-300">
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl font-black uppercase tracking-tight">Study Session</h2>
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={onFinish}
+            variant="noShadow"
+            className="border-2 border-border gap-2 font-bold px-4 py-2 bg-secondary-background hover:bg-background transition-colors text-foreground"
+          >
+            <ArrowLeft className="size-4" /> Leave
+          </Button>
+          <h2 className="text-2xl font-black uppercase tracking-tight">Study Session</h2>
+        </div>
         <div className="bg-secondary-background border-2 border-border font-bold px-4 py-2 rounded-base">
           Card {currentIndex + 1} of {dueCards.length}
         </div>
@@ -126,7 +135,7 @@ export const StudySession = ({ deckId, onFinish }: { deckId: string, onFinish: (
 
              <Button
               onClick={handleNext}
-              className="mt-auto w-full bg-foreground text-background font-black uppercase tracking-widest text-xl p-8 rounded-base border-4 border-transparent hover:bg-muted transition-all gap-3 sm:h-20"
+              className="mt-auto w-full bg-foreground text-background font-black uppercase tracking-widest text-xl p-8 rounded-base border-4 border-transparent hover:bg-muted transition-all gap-3"
             >
                Next Card <ArrowRight className="size-6" />
             </Button>

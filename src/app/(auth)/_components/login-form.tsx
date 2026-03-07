@@ -68,7 +68,7 @@ export default function LoginForm() {
 
         <div className="relative z-10 hidden pt-8 lg:block">
           <p className="text-main-foreground/40 text-[10px] font-bold tracking-[0.15em] uppercase">
-            System: Llama-4-Scout // Qwen-3-Reasoning
+            System: Llama-4-Scout // openai/gpt-oss-120b
           </p>
         </div>
       </section>

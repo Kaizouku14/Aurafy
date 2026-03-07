@@ -38,7 +38,6 @@ export const auth = betterAuth({
         "user-read-playback-state",
         "user-modify-playback-state",
         "user-top-read",
-        "offline_access",
       ],
     },
   },

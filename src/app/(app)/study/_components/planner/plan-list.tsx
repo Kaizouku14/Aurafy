@@ -50,7 +50,7 @@ export const PlanList = ({ onSelectPlan }: { onSelectPlan: (planId: string) => v
                 size="icon"
                 onClick={() => deletePlan.mutate({ planId: plan.id })}
                 disabled={deletePlan.isPending}
-                className="absolute top-3 right-3 rounded-base border-2 border-transparent text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
+                className="absolute top-3 right-3 rounded-base border-2 border-transparent text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 transition-all md:opacity-0 group-hover:opacity-100"
               >
                 <Trash2 className="size-4" />
               </Button>

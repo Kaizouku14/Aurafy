@@ -110,12 +110,20 @@ export const handleSpotifySong = async (
   artist?: string | null,
 ) =>
   withSpotifyError(async () => {
-    const client = await getSpotifyClient(userId);
-    const query = artist
-      ? `track:${songTitle} artist:${artist}`
-      : `track:${songTitle}`;
-    const results = await client.search(query, ["track"], undefined, 10);
-    return results.tracks.items.map(mapTrack);
+    try {
+      const client = await getSpotifyClient(userId);
+      const query = artist
+        ? `${songTitle} ${artist}`
+        : songTitle;
+
+      const results = await client.search(query, ["track"], undefined, 10);
+
+      return results.tracks.items.map(mapTrack);
+    } catch (error) {
+      console.error("[Spotify Search] FATAL ERROR:");
+      console.error(error);
+      throw error;
+    }
   });
 
 export const handleSpotifyArtist = async (userId: string, artist: string) =>

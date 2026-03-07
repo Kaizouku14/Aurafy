@@ -102,7 +102,7 @@ export const NoteList = ({ onSelectNote }: { onSelectNote: (noteId: string) => v
                   deleteNote.mutate({ noteId: note.id });
                 }}
                 disabled={deleteNote.isPending}
-                className="absolute top-3 right-3 rounded-base border-2 border-transparent text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
+                className="absolute top-3 right-3 rounded-base border-2 border-transparent text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 transition-all md:opacity-0 group-hover:opacity-100"
               >
                 <Trash2 className="size-4" />
               </Button>

@@ -1,9 +1,12 @@
 import { INTENT } from "@/constants/chat";
 
-export const GET_INTENT_PROMPT = (message: string) => `
+export const GET_INTENT_PROMPT = (message: string, previousAssistantMessage: string = "") => `
 You are an intent classifier for a music chatbot called Aurafy.
 
 Classify the user's message into exactly one intent and extract relevant fields.
+
+### Context
+Previous Assistant Message: "${previousAssistantMessage}"
 
 ### Intents
 - **play_mood**: The user is describing how they feel, their energy level, or asking for music that matches a mood.
@@ -54,7 +57,7 @@ export const GENERATE_CARDS_PROMPT = (notes: string) => `You are an expert educa
 Notes:
 ${notes}`;
 
-export const EVALUATE_ANSWER_PROMPT = (front: string, back: string, userAnswer: string) => `You are an expert tutor evaluating a student's answer to a flashcard. 
+export const EVALUATE_ANSWER_PROMPT = (front: string, back: string, userAnswer: string) => `You are an expert tutor evaluating a student's answer to a flashcard.
 Your goal is to test if the student grasps the underlying CONCEPTS, not just if they memorized the exact wording.
 If their answer means the same thing logically, score them highly. If they missed a critical nuance, score them lower and explain why.
 

@@ -25,13 +25,17 @@ export const POST = async (req: Request) => {
   const lastMessage = messages[messages.length - 1];
   const userText =
     lastMessage?.parts?.find((p) => p.type === "text")?.text ?? "";
+  const previousAssistantMessage = messages
+    .filter((m) => m.role === "assistant")
+    .pop()
+    ?.parts?.find((p) => p.type === "text")?.text ?? "";
 
   if (!userText.trim()) {
     return new Response("Bad Request", { status: 400 });
   }
 
   const [intent, history, library] = await Promise.all([
-    classifyIntent(userText),
+    classifyIntent(userText, previousAssistantMessage),
     loadChatHistory({ userId }),
     fetchUserLibrary(userId),
   ]);

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Library, PlayCircle, Calendar, Trash2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { sileo } from "sileo";
+import { StaggerList } from "@/components/animation/stagger-list";
 
 export const DeckList = ({ onSelectDeck }: { onSelectDeck: (id: string, subject: string) => void }) => {
   const { data: decks, isLoading } = api.flashcard.getDecks.useQuery();
@@ -87,7 +88,7 @@ export const DeckList = ({ onSelectDeck }: { onSelectDeck: (id: string, subject:
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+        <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20" itemDistance={20} staggerDelay={0.08}>
           {decks.map((deck) => (
             <div
               key={deck.id}
@@ -126,7 +127,7 @@ export const DeckList = ({ onSelectDeck }: { onSelectDeck: (id: string, subject:
               </div>
             </div>
           ))}
-        </div>
+        </StaggerList>
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import { sileo } from "sileo";
 import { sharedChat } from "@/lib/chat-instance";
 import { getErrorMessage } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { StaggerList } from "@/components/animation/stagger-list";
 
 const Conversation = () => {
   const { messages, sendMessage, status, stop, error } = useChat({
@@ -53,7 +54,7 @@ const Conversation = () => {
           {messages.length === 0 ? (
             <ChatEmpty onSuggestion={handleSend} />
           ) : (
-            <div className="flex flex-col gap-2.5">
+            <StaggerList className="flex flex-col gap-2.5" itemDistance={10} itemDirection="up" staggerDelay={0.03} animateExit={false}>
               {messages.map((message) => (
                 <ChatBubble key={message.id} message={message} />
               ))}
@@ -73,7 +74,7 @@ const Conversation = () => {
                 </div>
               )}
               <div ref={scrollRef} />
-            </div>
+            </StaggerList>
           )}
         </div>
       </ScrollArea>

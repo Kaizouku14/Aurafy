@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Music } from "lucide-react";
+import { StaggerList } from "@/components/animation/stagger-list";
+
 import MusicPlayer from "./music-player";
 import MusicEmpty from "./music-empty";
 import MusicCard from "./music-card";
@@ -55,7 +57,7 @@ const MusicList = () => {
           {tracks.length === 0 ? (
             <MusicEmpty />
           ) : (
-            <div className="flex flex-col gap-px">
+            <StaggerList className="flex flex-col gap-px" itemDistance={15} staggerDelay={0.05} animateExit={false}>
               {tracks.map((track, index) => (
                 <MusicCard
                   key={track.id}
@@ -65,7 +67,7 @@ const MusicList = () => {
                   setSelectedIndex={setCurrentIndex}
                 />
               ))}
-            </div>
+            </StaggerList>
           )}
         </div>
       </ScrollArea>

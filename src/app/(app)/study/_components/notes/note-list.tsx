@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FileText, Trash2, Plus, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { StaggerList } from "@/components/animation/stagger-list";
 
 export const NoteList = ({ onSelectNote }: { onSelectNote: (noteId: string) => void }) => {
   const { data: notes, isLoading } = api.notes.getNotes.useQuery();
@@ -87,7 +88,7 @@ export const NoteList = ({ onSelectNote }: { onSelectNote: (noteId: string) => v
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+        <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20" itemDistance={20} staggerDelay={0.08}>
           {notes.map((note) => (
             <div
               key={note.id}
@@ -116,7 +117,7 @@ export const NoteList = ({ onSelectNote }: { onSelectNote: (noteId: string) => v
               </div>
             </div>
           ))}
-        </div>
+        </StaggerList>
       )}
     </div>
   );

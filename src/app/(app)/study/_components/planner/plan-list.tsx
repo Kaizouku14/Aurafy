@@ -4,6 +4,7 @@ import { api } from "@/trpc/react";
 import { PlanCreator } from "./plan-creator";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck2, Trash2, Eye, Calendar } from "lucide-react";
+import { StaggerList } from "@/components/animation/stagger-list";
 
 export const PlanList = ({ onSelectPlan }: { onSelectPlan: (planId: string) => void }) => {
   const { data: plans, isLoading } = api.planner.getPlans.useQuery();
@@ -39,7 +40,7 @@ export const PlanList = ({ onSelectPlan }: { onSelectPlan: (planId: string) => v
           <PlanCreator className="bg-main text-main-foreground hover:bg-main/90" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+        <StaggerList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20" itemDistance={20} staggerDelay={0.08}>
           {plans.map((plan) => (
             <div
               key={plan.id}
@@ -78,7 +79,7 @@ export const PlanList = ({ onSelectPlan }: { onSelectPlan: (planId: string) => v
               </Button>
             </div>
           ))}
-        </div>
+        </StaggerList>
       )}
     </div>
   );

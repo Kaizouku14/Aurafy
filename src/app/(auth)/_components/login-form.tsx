@@ -1,20 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, AudioLines, Brain, Sparkles, MoveRight, CalendarCheck2, FileText } from "lucide-react";
+import {
+  AudioLines,
+  Brain,
+  Sparkles,
+  CalendarCheck2,
+  FileText,
+  Chrome,
+} from "lucide-react";
 import { authClient } from "@/server/better-auth/client";
 import { PAGE_ROUTES } from "@/constants/page-routes";
 import FeatureCard from "./card/feature-card";
-import { SpotifyIcon } from "./spotify-icon";
+import { LoginButton } from "./login-button";
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
       await authClient.signIn.social({
-        provider: "spotify",
+        provider: "google",
         callbackURL: PAGE_ROUTES.HOME,
         errorCallbackURL: PAGE_ROUTES.LOGIN,
       });
@@ -26,7 +33,7 @@ export default function LoginForm() {
 
   return (
     <div className="bg-background grid min-h-screen lg:grid-cols-[1.1fr_0.9fr]">
-      <section className="bg-main border-border relative flex flex-col justify-between overflow-hidden border-b-[3px] lg:border-b-0 lg:border-r-[3px] p-6 sm:p-8 lg:p-16">
+      <section className="bg-main border-border relative flex flex-col justify-between overflow-hidden border-b-[3px] p-6 sm:p-8 lg:border-r-[3px] lg:border-b-0 lg:p-16">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#000_1px,transparent_1px),linear-gradient(to_bottom,#000_1px,transparent_1px)] bg-size-[40px_40px] opacity-[0.03]" />
 
         <div className="relative z-10">
@@ -37,21 +44,21 @@ export default function LoginForm() {
             </span>
           </div>
 
-          <div className="mt-10 sm:mt-20 max-w-2xl">
-            <h1 className="text-main-foreground text-3xl sm:text-5xl md:text-7xl leading-[0.85] font-black tracking-tighter">
+          <div className="mt-10 max-w-2xl sm:mt-20">
+            <h1 className="text-main-foreground text-3xl leading-[0.85] font-black tracking-tighter sm:text-5xl md:text-7xl">
               STUDY DEEPER. <br />
               <span className="text-background drop-shadow-[2px_2px_0_#000]">
                 FEEL BETTER.
               </span>
             </h1>
-            <p className="text-main-foreground/80 mt-4 sm:mt-6 max-w-md text-base sm:text-lg leading-tight font-medium text-balance">
+            <p className="text-main-foreground/80 mt-4 max-w-md text-base leading-tight font-medium text-balance sm:mt-6 sm:text-lg">
               AI-driven mood detection meets Spotify. Build focus with Pomodoro
               cycles and SM-2 spaced repetition.
             </p>
           </div>
         </div>
 
-        <div className="relative z-10 mt-8 sm:mt-12 grid grid-cols-2 gap-3 sm:gap-4 lg:mt-0">
+        <div className="relative z-10 mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-4 lg:mt-0">
           <FeatureCard
             icon={<Sparkles className="size-4" />}
             title="Llama-4 Discovery"
@@ -99,25 +106,26 @@ export default function LoginForm() {
           </header>
 
           <div className="space-y-4">
-            <button
-              onClick={handleLogin}
-              disabled={isLoading}
-              className="bg-main text-main-foreground border-border shadow-shadow group relative flex w-full items-center justify-center gap-3 border-[3px] py-4 text-base font-black transition-all hover:translate-x-px hover:translate-y-px active:translate-x-0.75 active:translate-y-0.75 active:shadow-none disabled:opacity-50"
-            >
-              {isLoading ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                <SpotifyIcon className="size-6" />
-              )}
-              <span>{isLoading ? "Authenticating..." : "Connect Spotify"}</span>
-              <MoveRight className="absolute right-4 size-5 translate-x-[-4px] opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-            </button>
-
+            <LoginButton
+              provider="google"
+              label="Google"
+              icon={Chrome}
+              isLoading={isLoading}
+              onClick={handleGoogleLogin}
+            />
             <div className="bg-secondary/30 border-border border-2 p-4 text-[13px] leading-snug">
               <p className="text-muted-foreground">
-                <strong className="text-foreground">Playback Note:</strong> Full
-                controls require Spotify Premium. For free accounts, playback
-                depends on Spotify&apos;s available track previews.
+                <strong className="text-foreground">Spotify Note:</strong> Sign
+                in with Google first, then connect Spotify from inside the app
+                if you want Premium playback.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                Full Spotify playback controls require Premium. Free accounts
+                may be limited to available previews.
+              </p>
+              <p className="text-muted-foreground mt-2">
+                If Spotify isn&apos;t available, you can still listen with
+                YouTube Music.
               </p>
             </div>
           </div>

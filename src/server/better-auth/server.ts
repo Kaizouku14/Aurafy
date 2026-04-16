@@ -9,7 +9,7 @@ export const getSession = cache(async () =>
   auth.api.getSession({ headers: await headers() }),
 );
 
-let serverTokenPromise: Promise<string> | null = null;
+let serverTokenPromise: Promise<string | null> | null = null;
 
 export const getSpotifyToken = cache(async (userId: string) => {
   if (serverTokenPromise) return serverTokenPromise;
@@ -23,9 +23,7 @@ export const getSpotifyToken = cache(async (userId: string) => {
         ),
       });
 
-      if (!dbAccount?.accessToken) {
-        throw new Error("Spotify access token not found in DB");
-      }
+      if (!dbAccount?.accessToken) return null;
 
       const isExpired =
         dbAccount.accessTokenExpiresAt &&

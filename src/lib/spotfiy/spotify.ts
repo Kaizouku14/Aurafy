@@ -4,6 +4,11 @@ import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 
 export const getSpotifyClient = async (userId: string) => {
   const accessToken = await getSpotifyToken(userId);
+
+  if (!accessToken) {
+    throw new Error("Spotify account is not connected");
+  }
+
   return SpotifyApi.withAccessToken(env.SPOTIFY_CLIENT_ID, {
     access_token: accessToken,
     token_type: "Bearer",

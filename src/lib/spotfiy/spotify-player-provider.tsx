@@ -1,6 +1,7 @@
 "use client";
 
 import { usePlayerStore } from "@/store/play-store";
+import { useMusicProviderStore } from "@/store/music-provider-store";
 import React from "react";
 import { sileo } from "sileo";
 import { fetchFreshToken } from "./spotify-auth";
@@ -19,12 +20,16 @@ export const SpotifyPlayerProvider = ({
       setPlayer,
       setDeviceId,
     } = usePlayerStore.getState();
+    const { setSpotifyAuth, setSpotifyPremium } =
+      useMusicProviderStore.getState();
 
     let isAdvancing = false;
     let playbackErrorTimer: ReturnType<typeof setTimeout> | null = null;
 
     setAccessToken(initialAccessToken);
     setIsPremium(true);
+    setSpotifyAuth(true);
+    setSpotifyPremium(true);
 
     if (window.Spotify) {
       window.onSpotifyWebPlaybackSDKReady();
@@ -70,6 +75,7 @@ export const SpotifyPlayerProvider = ({
             });
 
             setIsPremium(false);
+            setSpotifyPremium(false);
           });
       });
 
@@ -79,6 +85,7 @@ export const SpotifyPlayerProvider = ({
           description: "Please upgrade to Premium to continue listening.",
         });
         setIsPremium(false);
+        setSpotifyPremium(false);
       });
 
       player.addListener("playback_error", () => {
@@ -163,6 +170,10 @@ export const SpotifyPlayerProvider = ({
         setPlayer(null);
         setDeviceId(null);
       }
+
+      setIsPremium(false);
+      setSpotifyPremium(false);
+      setSpotifyAuth(false);
 
       if (document.body.contains(script)) {
         document.body.removeChild(script);

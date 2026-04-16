@@ -3,11 +3,13 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Music } from "lucide-react";
 import { StaggerList } from "@/components/animation/stagger-list";
+import { Button } from "@/components/ui/button";
 
 import MusicPlayer from "./music-player";
 import MusicEmpty from "./music-empty";
 import MusicCard from "./music-card";
 import { usePlayerStore } from "@/store/play-store";
+import { useMusicProviderStore } from "@/store/music-provider-store";
 
 const MusicList = () => {
   const {
@@ -26,7 +28,14 @@ const MusicList = () => {
     volume,
     seek,
     setVolume,
+    switchProvider,
   } = usePlayerStore();
+  const { activeProvider, hasSpotifyAuth, isSpotifyPremium } =
+    useMusicProviderStore();
+
+  const providerLabel =
+    activeProvider === "spotify" ? "Spotify" : "YouTube Music";
+  const canSwitchProvider = hasSpotifyAuth && !isSpotifyPremium;
 
   const selectedTrack = tracks[currentIndex] ?? null;
 
@@ -41,8 +50,48 @@ const MusicList = () => {
           <p className="text-foreground text-sm font-black tracking-tight">
             Your Music
           </p>
-          <p className="text-muted-foreground text-[11px]">via Spotify</p>
+          <p className="text-muted-foreground text-[11px]">
+            via {providerLabel}
+          </p>
         </div>
+
+        {canSwitchProvider && (
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant={activeProvider === "spotify" ? "default" : "neutral"}
+              onClick={() => void switchProvider("spotify")}
+            >
+              Spotify
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={activeProvider === "ytmusic" ? "default" : "neutral"}
+              onClick={() => void switchProvider("ytmusic")}
+            >
+              YT Music
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="bg-secondary/30 border-border border-b-2 px-4 py-2 text-[11px] leading-snug">
+        {!hasSpotifyAuth ? (
+          <p className="text-muted-foreground">
+            Spotify not connected. Using YouTube Music by default.
+          </p>
+        ) : isSpotifyPremium ? (
+          <p className="text-muted-foreground">
+            Spotify Premium detected. Playback is locked to Spotify.
+          </p>
+        ) : (
+          <p className="text-muted-foreground">
+            Free Spotify account detected. You can switch between Spotify and
+            YouTube Music.
+          </p>
+        )}
       </div>
 
       {/* Track list */}
@@ -51,7 +100,12 @@ const MusicList = () => {
           {tracks.length === 0 ? (
             <MusicEmpty />
           ) : (
-            <StaggerList className="flex flex-col gap-px" itemDistance={15} staggerDelay={0.05} animateExit={false}>
+            <StaggerList
+              className="flex flex-col gap-px"
+              itemDistance={15}
+              staggerDelay={0.05}
+              animateExit={false}
+            >
               {tracks.map((track, index) => (
                 <MusicCard
                   key={track.id}

@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import type { Track } from "@/types/schema/chat";
+import type { ProviderId } from "@/types/music-provider";
 import { sileo } from "sileo";
 import { getErrorMessage } from "@/lib/utils";
 import { fetchFreshToken } from "@/lib/spotfiy/spotify-auth";
+import { useMusicProviderStore } from "@/store/music-provider-store";
 
 interface PlayerState {
   tracks: Track[];
@@ -35,6 +37,7 @@ interface PlayerState {
   seek: (progress: number) => void;
   next: () => void;
   prev: () => void;
+  switchProvider: (provider: ProviderId) => Promise<void>;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -62,7 +65,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setVolume: (volume: number) => {
     const { audio, player, isPremium } = get();
-    if (isPremium && player) {
+    const { activeProvider } = useMusicProviderStore.getState();
+
+    if (activeProvider === "spotify" && isPremium && player) {
       void player.setVolume(volume);
     } else if (audio) {
       audio.volume = volume;
@@ -125,6 +130,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const track = tracks[index];
     if (!track) return;
 
+    const { activeProvider } = useMusicProviderStore.getState();
+    const isSpotifyProvider = activeProvider === "spotify";
+    const providerLabel = isSpotifyProvider ? "Spotify" : "YouTube Music";
+
     set({
       currentIndex: index,
       currentTime: 0,
@@ -133,7 +142,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       audio: null,
     });
 
-    if (isPremium && deviceId) {
+    if (isSpotifyProvider && isPremium && deviceId && track.uri) {
       const makePlayRequest = async (token: string) => {
         return fetch(
           `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
@@ -191,7 +200,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       if (!track.previewUrl) {
         sileo.warning({
           title: "No preview URL available",
-          description: `Cannot play "${track.title}" — cannot play on free tier.`,
+          description: `Cannot play "${track.title}" on ${providerLabel}.`,
         });
         set({ audio: null });
         return;
@@ -240,7 +249,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   play: () => {
     const { audio, player, isPremium } = get();
-    if (isPremium && player) {
+    const { activeProvider } = useMusicProviderStore.getState();
+
+    if (activeProvider === "spotify" && isPremium && player) {
       player
         .resume()
         .then(() => set({ isPlaying: true }))
@@ -255,13 +266,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   pause: () => {
     const { audio, player, isPremium, _progressInterval } = get();
+    const { activeProvider } = useMusicProviderStore.getState();
 
     if (_progressInterval) {
       clearInterval(_progressInterval);
       set({ _progressInterval: null });
     }
 
-    if (isPremium && player) {
+    if (activeProvider === "spotify" && isPremium && player) {
       player
         .pause()
         .then(() => set({ isPlaying: false }))
@@ -274,9 +286,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   mute: () => {
     const { audio, player, isMuted, isPremium, volume } = get();
+    const { activeProvider } = useMusicProviderStore.getState();
     const newMuted = !isMuted;
 
-    if (isPremium && player) {
+    if (activeProvider === "spotify" && isPremium && player) {
       void player.setVolume(newMuted ? 0 : volume);
     } else if (audio) {
       audio.muted = newMuted;
@@ -286,9 +299,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   seek: (progress: number) => {
     const { audio, player, isPremium, duration } = get();
+    const { activeProvider } = useMusicProviderStore.getState();
     const positionMs = progress * duration;
 
-    if (isPremium && player) {
+    if (activeProvider === "spotify" && isPremium && player) {
       void player.seek(positionMs);
     } else if (audio) {
       audio.currentTime = positionMs / 1000;
@@ -309,6 +323,20 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { currentIndex } = get();
     if (currentIndex > 0) {
       void get().setCurrentIndex(currentIndex - 1);
+    }
+  },
+
+  switchProvider: async (provider) => {
+    const { setActiveProvider } = useMusicProviderStore.getState();
+    const { currentIndex, tracks } = get();
+
+    setActiveProvider(provider, {
+      autoSwitched: false,
+      reason: "manual_switch",
+    });
+
+    if (tracks[currentIndex]) {
+      await get().setCurrentIndex(currentIndex);
     }
   },
 }));

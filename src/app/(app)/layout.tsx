@@ -1,11 +1,10 @@
 import Header from "@/components/layout/header";
-import { SpotifyPlayerProvider } from "@/lib/spotfiy/spotify-player-provider";
-import { YouTubePlayerProvider } from "@/lib/spotfiy/yt-player-provider";
 import { getSpotifyToken } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { redirect } from "next/navigation";
 import { PAGE_ROUTES } from "@/constants/page-routes";
 import { MiniPlayer } from "@/components/mini-player";
+import { PlayerProviders } from "./components/player-providers";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getSession();
@@ -17,8 +16,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4">
       <Header />
-      {accessToken && <SpotifyPlayerProvider accessToken={accessToken} />}
-      <YouTubePlayerProvider />
+      <PlayerProviders accessToken={accessToken} />
       {children}
       <MiniPlayer />
     </main>

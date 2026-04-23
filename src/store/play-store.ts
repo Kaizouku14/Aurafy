@@ -438,15 +438,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   switchProvider: async (provider) => {
     const { setActiveProvider } = useMusicProviderStore.getState();
-    const { currentIndex, tracks } = get();
 
     setActiveProvider(provider, {
       autoSwitched: false,
       reason: "manual_switch",
     });
 
-    if (tracks[currentIndex]) {
-      await get().setCurrentIndex(currentIndex);
-    }
+    get().setTracks([]);
   },
 }));

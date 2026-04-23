@@ -93,9 +93,9 @@ export const SpotifyPlayerProvider = ({
     let localPlayer: Spotify.Player | null = null;
 
     setAccessToken(initialAccessToken);
-    setIsPremium(true);
+    setIsPremium(false);
     setSpotifyAuth(true);
-    setSpotifyPremium(true);
+    setSpotifyPremium(false);
 
     void ensureSpotifySdkReady()
       .then(() => {
@@ -143,7 +143,8 @@ export const SpotifyPlayerProvider = ({
         player.addListener("account_error", () => {
           sileo.error({
             title: "Premium required",
-            description: "Please upgrade to Premium to continue listening.",
+            description:
+              "Upgrade to Premium to keep listening on Spotify. Switching to YouTube Music for now",
           });
           setIsPremium(false);
           setSpotifyPremium(false);
@@ -163,6 +164,8 @@ export const SpotifyPlayerProvider = ({
 
         player.addListener("ready", ({ device_id }) => {
           setDeviceId(device_id);
+          setIsPremium(true);
+          setSpotifyPremium(true);
         });
 
         player.addListener("not_ready", () => {

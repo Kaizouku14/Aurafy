@@ -1,10 +1,15 @@
 "use client";
 
+import React from "react";
 import { api } from "@/trpc/react";
 import { PlanCreator } from "./plan-creator";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck2, Trash2, Eye, Calendar } from "lucide-react";
 import { StaggerList } from "@/components/animation/stagger-list";
+import { ListSection } from "../shared/list-section";
+import { ConfirmDeleteDialog } from "../shared/confirm-delete-dialog";
+import { useConfirmDelete } from "../shared/use-confirm-delete";
+import { sileo } from "sileo";
 
 export const PlanList = ({
   onSelectPlan,
@@ -13,50 +18,60 @@ export const PlanList = ({
 }) => {
   const { data: plans, isLoading } = api.planner.getPlans.useQuery();
   const utils = api.useUtils();
+  const { pendingId, isOpen, openConfirm, closeConfirm } = useConfirmDelete();
 
   const deletePlan = api.planner.deletePlan.useMutation({
     onSuccess: () => {
       void utils.planner.getPlans.invalidate();
     },
+    onError: () => {
+      sileo.error({
+        title: "Failed to delete plan",
+        description: "Please try again.",
+      });
+    },
   });
 
-  return (
-    <div className="animate-in fade-in mx-auto flex size-full max-w-5xl flex-col space-y-8 p-4 duration-300 md:p-8">
-      <div className="border-border flex flex-col items-start justify-between gap-4 border-b-4 pb-4 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="text-3xl font-black tracking-tight uppercase">
-            Study Plans
-          </h2>
-          <p className="text-muted-foreground font-base mt-2">
-            AI-generated schedules to maximize your study time.
-          </p>
-        </div>
-        <PlanCreator />
-      </div>
+  const pendingPlan = plans?.find((plan) => plan.id === pendingId) ?? null;
 
-      {isLoading ? (
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-muted-foreground animate-pulse text-lg font-bold tracking-widest uppercase">
-            Loading plans...
-          </p>
-        </div>
-      ) : !plans || plans.length === 0 ? (
-        <div className="border-border rounded-base bg-secondary-background/50 flex flex-1 flex-col items-center justify-center border-4 border-dashed p-12 text-center">
-          <CalendarCheck2 className="text-muted-foreground mb-4 size-16" />
-          <h3 className="mb-2 text-xl font-bold uppercase">No Plans Yet</h3>
-          <p className="text-muted-foreground font-base mb-6 max-w-md">
-            Tell the AI your subjects, exam dates, and available hours. It will
-            create a day-by-day study schedule for you.
-          </p>
-          <PlanCreator className="bg-main text-main-foreground hover:bg-main/90" />
-        </div>
-      ) : (
+  const confirmDeletePlan = async () => {
+    if (!pendingId || deletePlan.isPending) return;
+
+    try {
+      await deletePlan.mutateAsync({ planId: pendingId });
+      closeConfirm();
+    } catch {
+      // handled in mutation onError
+    }
+  };
+
+  return (
+    <>
+      <ListSection
+        title="Study Plans"
+        description="AI-generated schedules to maximize your study time."
+        action={<PlanCreator />}
+        isLoading={isLoading}
+        loadingLabel="Loading plans..."
+        isEmpty={!plans || plans.length === 0}
+        emptyState={
+          <div className="border-border rounded-base bg-secondary-background/50 flex flex-1 flex-col items-center justify-center border-4 border-dashed p-12 text-center">
+            <CalendarCheck2 className="text-muted-foreground mb-4 size-16" />
+            <h3 className="mb-2 text-xl font-bold uppercase">No Plans Yet</h3>
+            <p className="text-muted-foreground font-base mb-6 max-w-md">
+              Tell the AI your subjects, exam dates, and available hours. It will
+              create a day-by-day study schedule for you.
+            </p>
+            <PlanCreator className="bg-main text-main-foreground hover:bg-main/90" />
+          </div>
+        }
+      >
         <StaggerList
           className="grid grid-cols-1 gap-6 pb-20 md:grid-cols-2 lg:grid-cols-3"
           itemDistance={20}
           staggerDelay={0.08}
         >
-          {plans.map((plan) => (
+          {plans?.map((plan) => (
             <div
               key={plan.id}
               className="group border-border rounded-base bg-secondary-background shadow-shadow relative flex flex-col border-4 p-5 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
@@ -64,7 +79,7 @@ export const PlanList = ({
               <Button
                 variant="noShadow"
                 size="icon"
-                onClick={() => deletePlan.mutate({ planId: plan.id })}
+                onClick={() => openConfirm(plan.id)}
                 disabled={deletePlan.isPending}
                 className="rounded-base text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 border-2 border-transparent transition-all group-hover:opacity-100 md:opacity-0"
               >
@@ -102,7 +117,24 @@ export const PlanList = ({
             </div>
           ))}
         </StaggerList>
-      )}
-    </div>
+      </ListSection>
+
+      <ConfirmDeleteDialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open && !deletePlan.isPending) closeConfirm();
+        }}
+        title="Delete plan?"
+        message={
+          pendingPlan
+            ? `This will permanently delete "${pendingPlan.title}".`
+            : "This will permanently delete this plan."
+        }
+        isPending={deletePlan.isPending}
+        onConfirm={() => {
+          void confirmDeletePlan();
+        }}
+      />
+    </>
   );
 };

@@ -40,17 +40,28 @@ Also estimate energy (0-1), valence (0-1), and your confidence (0-1) in the clas
 
 Message: "${message}"`;
 
-export const CONVERSATIONAL_SYSTEM_PROMPT = (recentTopics: string) => `
+export const CONVERSATIONAL_SYSTEM_PROMPT = (
+  recentTopics: string,
+  options?: { allowPlaybackOffers?: boolean },
+) => {
+  const allowPlaybackOffers = options?.allowPlaybackOffers ?? true;
+
+  return `
 You are Aurafy, a friendly mood and music assistant.
 You help users discover music based on how they feel and support them with study tools.
 Keep all replies short, casual, and conversational — 1 to 2 sentences only.
 Do not use emojis excessively. Sound natural and human.
 
-When you suggest a song, always mention it clearly by name so the user can ask to play it.
+${
+  allowPlaybackOffers
+    ? "When you suggest a song, always mention it clearly by name so the user can ask to play it."
+    : "Do not offer to play songs and do not ask playback-style questions. Keep responses purely conversational and helpful."
+}
 
 You have context from previous conversations with this user:
 ${recentTopics}
 `;
+};
 
 export const GENERATE_CARDS_PROMPT = (notes: string) => `You are an expert educator. Extract the core concepts, terms, and facts from the following notes and generate a deck of flashcards. Keep the 'front' succinct and clear. Keep the 'back' concise but fully accurate.
 

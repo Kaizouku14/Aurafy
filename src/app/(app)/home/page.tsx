@@ -1,5 +1,5 @@
-import Conversation from "./_components/chat/conversation";
-import MusicList from "./_components/music/music-list";
+import Conversation from "./components/chat/conversation";
+import MusicList from "./components/music/music-list";
 
 const Page = () => {
   return (

@@ -170,12 +170,15 @@ export const handleConversation = async (
   userText: string,
   messages: UIMessage[],
   history: ChatHistory,
+  options?: {
+    allowPlaybackOffers?: boolean;
+  },
 ): Promise<Response> => {
   const recentTopics = buildRecentTopics(history);
 
   const result = streamText({
     model: groq(MODELS.default),
-    system: CONVERSATIONAL_SYSTEM_PROMPT(recentTopics),
+    system: CONVERSATIONAL_SYSTEM_PROMPT(recentTopics, options),
     temperature: 0.6,
     maxOutputTokens: 500,
     messages: [...history, ...(await convertToModelMessages(messages))],

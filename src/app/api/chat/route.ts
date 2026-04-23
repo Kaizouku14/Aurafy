@@ -70,8 +70,10 @@ export const POST = async (req: Request) => {
 
   const history = await loadChatHistory({ userId });
 
-  if (!resolvedProviderState.isSpotifyPremium) {
-    return handleConversation(userId, userText, messages, history);
+  if (provider === "spotify" && !resolvedProviderState.isSpotifyPremium) {
+    return handleConversation(userId, userText, messages, history, {
+      allowPlaybackOffers: false,
+    });
   }
 
   const [intent, library] = await Promise.all([

@@ -21,9 +21,12 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { ConfirmDeleteDialog } from "../shared/confirm-delete-dialog";
+import { useConfirmDelete } from "../shared/use-confirm-delete";
 
 export const PlanCreator = ({ className }: { className?: string }) => {
   const [open, setOpen] = useState(false);
+  const { pendingId, isOpen, openConfirm, closeConfirm } = useConfirmDelete();
   const utils = api.useUtils();
 
   const form = useForm<CreatePlanInput>({
@@ -59,6 +62,23 @@ export const PlanCreator = ({ className }: { className?: string }) => {
         examDate: format(s.examDate, "yyyy-MM-dd"),
       })),
     });
+  };
+
+  const pendingSubjectIndex =
+    pendingId === null ? -1 : fields.findIndex((field) => field.id === pendingId);
+  const pendingSubjectName =
+    pendingSubjectIndex >= 0
+      ? form.getValues(`subjects.${pendingSubjectIndex}.name`)?.trim()
+      : "";
+
+  const confirmRemoveSubject = () => {
+    if (pendingSubjectIndex < 0 || fields.length <= 1) {
+      closeConfirm();
+      return;
+    }
+
+    remove(pendingSubjectIndex);
+    closeConfirm();
   };
 
   return (
@@ -242,7 +262,7 @@ export const PlanCreator = ({ className }: { className?: string }) => {
                         variant="noShadow"
                         size="icon"
                         className="border-2 border-transparent text-muted-foreground hover:text-destructive shrink-0"
-                        onClick={() => remove(index)}
+                        onClick={() => openConfirm(field.id)}
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -269,6 +289,18 @@ export const PlanCreator = ({ className }: { className?: string }) => {
             </Button>
           </form>
         </Form>
+
+        <ConfirmDeleteDialog
+          open={isOpen}
+          onOpenChange={closeConfirm}
+          title="Remove subject?"
+          message={
+            pendingSubjectName
+              ? `This will remove "${pendingSubjectName}" from this plan.`
+              : "This will remove this subject from this plan."
+          }
+          onConfirm={confirmRemoveSubject}
+        />
       </DialogContent>
     </Dialog>
   );

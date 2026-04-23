@@ -1,4 +1,4 @@
-import StudyTab from "./_components/study-tab";
+import StudyTab from "./components/study-tab";
 
 const Page = () => {
   return <StudyTab />;

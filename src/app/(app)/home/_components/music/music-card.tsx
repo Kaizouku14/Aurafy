@@ -60,8 +60,9 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
       <div className="min-w-0 flex-1">
         <p
+          title={track.title}
           className={cn(
-            "truncate text-xs font-bold",
+            "truncate text-xs font-bold w-50",
             isSelected ? "text-foreground" : "text-foreground",
           )}
         >

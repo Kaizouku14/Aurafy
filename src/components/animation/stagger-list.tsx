@@ -39,8 +39,15 @@ export const StaggerList = ({
 
   const item: Variants = {
     hidden: { opacity: 0, ...directions[itemDirection] },
-    show: { opacity: 1, x: 0, y: 0, transition: { ease: "easeOut", duration: 0.3 } },
-    ...(animateExit && { exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } } }),
+    show: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: { ease: "easeOut", duration: 0.3 },
+    },
+    ...(animateExit && {
+      exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } },
+    }),
   };
 
   return (
@@ -54,7 +61,11 @@ export const StaggerList = ({
     >
       {Children.map(children as React.ReactNode, (child) => {
         if (isValidElement(child)) {
-          return <motion.div variants={item}>{child}</motion.div>;
+          return (
+            <motion.div key={child.key ?? undefined} variants={item}>
+              {child}
+            </motion.div>
+          );
         }
         return child;
       })}

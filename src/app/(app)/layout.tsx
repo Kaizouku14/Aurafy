@@ -1,5 +1,6 @@
 import Header from "@/components/layout/header";
 import { SpotifyPlayerProvider } from "@/lib/spotfiy/spotify-player-provider";
+import { YouTubePlayerProvider } from "@/lib/spotfiy/yt-player-provider";
 import { getSpotifyToken } from "@/server/better-auth";
 import { getSession } from "@/server/better-auth/server";
 import { redirect } from "next/navigation";
@@ -17,6 +18,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
     <main className="mx-auto flex min-h-screen w-full max-w-screen-xl flex-col px-4">
       <Header />
       {accessToken && <SpotifyPlayerProvider accessToken={accessToken} />}
+      <YouTubePlayerProvider />
       {children}
       <MiniPlayer />
     </main>

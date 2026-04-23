@@ -48,9 +48,9 @@ const StudyTab = () => {
     <Tabs
       defaultValue="pomodoro"
       onValueChange={(value) => setSelected(value)}
-      className="flex flex-col md:flex-row h-[calc(100vh-4.5rem)] w-full"
+      className="flex h-[calc(100vh-4.5rem)] w-full flex-col md:flex-row"
     >
-      <div className="border-border bg-secondary-background flex md:hidden shrink-0 border-b-2 px-1 py-2 overflow-x-auto scrollbar-hide">
+      <div className="border-border bg-secondary-background scrollbar-hide flex shrink-0 overflow-x-auto border-b-2 px-1 py-2 md:hidden">
         <TabsList className="flex h-auto w-max gap-1 border-none bg-transparent p-0">
           {STUDY_TABS.map((tab) => {
             const Icon = tab.icon;
@@ -60,10 +60,10 @@ const StudyTab = () => {
                 key={tab.value}
                 value={tab.value}
                 className={cn(
-                  "flex items-center gap-1.5 border-2 px-3 py-1.5 text-xs font-bold transition-all duration-150 whitespace-nowrap",
+                  "flex items-center gap-1.5 border-2 px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all duration-150",
                   isActive
                     ? "bg-main text-main-foreground border-border shadow-shadow"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background",
+                    : "text-muted-foreground hover:text-foreground hover:bg-background border-transparent",
                 )}
               >
                 <Icon className="size-3.5" />
@@ -74,7 +74,7 @@ const StudyTab = () => {
         </TabsList>
       </div>
 
-      <aside className="border-border bg-secondary-background hidden md:flex w-16 shrink-0 flex-col border-r-2 py-4">
+      <aside className="border-border bg-secondary-background hidden w-16 shrink-0 flex-col border-r-2 py-4 md:flex">
         <TabsList className="flex h-auto w-full flex-col gap-1.5 border-none bg-transparent p-0 px-2">
           {STUDY_TABS.map((tab) => {
             const Icon = tab.icon;
@@ -88,7 +88,7 @@ const StudyTab = () => {
                       "group relative flex w-full items-center justify-center border-2 p-2.5 transition-all duration-150",
                       isActive
                         ? "bg-main text-main-foreground border-border shadow-shadow"
-                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-background",
+                        : "text-muted-foreground hover:text-foreground hover:bg-background border-transparent",
                     )}
                     aria-label={tab.label}
                   >

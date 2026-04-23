@@ -7,20 +7,22 @@ import {
 } from "ai";
 import { groq } from "@/lib/ai/groq";
 import { MODELS } from "@/lib/ai/models";
-import {
-  CONVERSATIONAL_SYSTEM_PROMPT,
-  GET_MOOD_PROMPT,
-} from "@/lib/ai/prompt";
+import { CONVERSATIONAL_SYSTEM_PROMPT, GET_MOOD_PROMPT } from "@/lib/ai/prompt";
 import { INTENT_LABELS } from "@/constants/chat";
+import type { ProviderId } from "@/types/music-provider";
 import { generateMoodSchema } from "@/types/schema/chat";
 import type { GenerateIntent, ChatMetadata } from "@/types/schema/chat";
 import {
-  type UserLibrary,
-  handleSpotifyArtist,
-  handleSpotifyMood,
-  handleSpotifySong,
-} from "./spotify";
-import { buildRecentTopics, type loadChatHistory, saveChatExchange } from "./memory";
+  handleArtistByProvider,
+  handleMoodByProvider,
+  handleSongByProvider,
+  type ProviderUserLibrary,
+} from "./music-provider";
+import {
+  buildRecentTopics,
+  type loadChatHistory,
+  saveChatExchange,
+} from "./memory";
 import { createTextWithTracksResponse } from "./response";
 
 type ChatHistory = Awaited<ReturnType<typeof loadChatHistory>>;
@@ -42,7 +44,8 @@ const persistExchange = (
 export const handleMoodIntent = async (
   userId: string,
   userText: string,
-  library: UserLibrary,
+  library: ProviderUserLibrary,
+  provider: ProviderId,
 ): Promise<Response> => {
   const { output: mood } = await generateText({
     model: groq(MODELS.default),
@@ -60,21 +63,24 @@ export const handleMoodIntent = async (
     return createTextWithTracksResponse(text);
   }
 
+  const providerLabel = provider === "spotify" ? "Spotify" : "YouTube Music";
+
   try {
-    const tracks = await handleSpotifyMood(
+    const tracks = await handleMoodByProvider(
+      provider,
       userId,
       mood.mood,
       library,
     );
 
-    const text = `I can feel you're in a ${mood.mood} mood. Let me find you some songs.`;
+    const text = `I can feel you're in a ${mood.mood} mood. Let me find you some songs on ${providerLabel}.`;
     persistExchange(userId, userText, text, {
       intent: INTENT_LABELS.PLAY_MOOD!,
       mood: mood.mood,
     });
     return createTextWithTracksResponse(text, tracks);
   } catch {
-    const text = `I sense you're feeling ${mood.mood}, but I couldn't reach Spotify right now. Try again in a moment.`;
+    const text = `I sense you're feeling ${mood.mood}, but I couldn't reach ${providerLabel} right now. Try again in a moment.`;
     persistExchange(userId, userText, text, {
       intent: INTENT_LABELS.PLAY_MOOD!,
       mood: mood.mood,
@@ -87,6 +93,7 @@ export const handleSongIntent = async (
   userId: string,
   userText: string,
   intent: GenerateIntent,
+  provider: ProviderId,
 ): Promise<Response> => {
   if (!intent.songTitle) {
     const text = "Which song would you like to play?";
@@ -96,8 +103,11 @@ export const handleSongIntent = async (
     return createTextWithTracksResponse(text);
   }
 
+  const providerLabel = provider === "spotify" ? "Spotify" : "YouTube Music";
+
   try {
-    const tracks = await handleSpotifySong(
+    const tracks = await handleSongByProvider(
+      provider,
       userId,
       intent.songTitle,
       intent.artist,
@@ -110,7 +120,7 @@ export const handleSongIntent = async (
       );
     }
 
-    const text = `Playing "${intent.songTitle}"${artistSuffix}`;
+    const text = `Playing "${intent.songTitle}"${artistSuffix} on ${providerLabel}`;
     persistExchange(userId, userText, text, {
       intent: INTENT_LABELS.PLAY_SONG!,
       songTitle: intent.songTitle,
@@ -119,7 +129,7 @@ export const handleSongIntent = async (
     return createTextWithTracksResponse(text, tracks);
   } catch {
     return createTextWithTracksResponse(
-      `I couldn't search Spotify right now. Try again in a moment.`,
+      `I couldn't search ${providerLabel} right now. Try again in a moment.`,
     );
   }
 };
@@ -128,14 +138,21 @@ export const handleArtistIntent = async (
   userId: string,
   userText: string,
   intent: GenerateIntent,
+  provider: ProviderId,
 ): Promise<Response> => {
   if (!intent.artist) {
     return createTextWithTracksResponse("Which artist?");
   }
 
+  const providerLabel = provider === "spotify" ? "Spotify" : "YouTube Music";
+
   try {
-    const tracks = await handleSpotifyArtist(userId, intent.artist);
-    const text = `Here are popular songs by ${intent.artist}.`;
+    const tracks = await handleArtistByProvider(
+      provider,
+      userId,
+      intent.artist,
+    );
+    const text = `Here are popular songs by ${intent.artist} on ${providerLabel}.`;
     persistExchange(userId, userText, text, {
       intent: INTENT_LABELS.PLAY_ARTIST!,
       artist: intent.artist,
@@ -143,7 +160,7 @@ export const handleArtistIntent = async (
     return createTextWithTracksResponse(text, tracks);
   } catch {
     return createTextWithTracksResponse(
-      `I couldn't look up ${intent.artist} on Spotify right now. Try again in a moment.`,
+      `I couldn't look up ${intent.artist} on ${providerLabel} right now. Try again in a moment.`,
     );
   }
 };

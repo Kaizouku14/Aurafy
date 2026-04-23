@@ -9,9 +9,12 @@ const PlannerTab = () => {
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
 
   return (
-    <ScrollArea className="size-full bg-background">
+    <ScrollArea className="bg-background size-full">
       {activePlanId ? (
-        <PlanViewer planId={activePlanId} onBack={() => setActivePlanId(null)} />
+        <PlanViewer
+          planId={activePlanId}
+          onBack={() => setActivePlanId(null)}
+        />
       ) : (
         <PlanList onSelectPlan={(planId) => setActivePlanId(planId)} />
       )}

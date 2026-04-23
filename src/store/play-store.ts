@@ -6,6 +6,28 @@ import { getErrorMessage } from "@/lib/utils";
 import { fetchFreshToken } from "@/lib/spotfiy/spotify-auth";
 import { useMusicProviderStore } from "@/store/music-provider-store";
 
+const extractYtVideoId = (track: Track): string | null => {
+  const prefixed = track.id.match(/^ytmusic:(.+)$/)?.[1];
+  if (prefixed) return prefixed;
+
+  if (track.id) return track.id;
+
+  if (track.uri) {
+    try {
+      const url = new URL(track.uri);
+      return url.searchParams.get("v");
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+};
+
+const isYtPlayerUnstarted = (state: unknown): boolean => {
+  return state === -1 || state === 5;
+};
+
 interface PlayerState {
   tracks: Track[];
   currentIndex: number;
@@ -16,6 +38,7 @@ interface PlayerState {
   currentTime: number;
   duration: number;
   player: Spotify.Player | null;
+  ytPlayer: any | null;
   deviceId: string | null;
   accessToken: string | null;
   isPremium: boolean;
@@ -23,6 +46,7 @@ interface PlayerState {
 
   setTracks: (tracks: Track[]) => void;
   setPlayer: (player: Spotify.Player | null) => void;
+  setYtPlayer: (player: any) => void;
   setDeviceId: (deviceId: string | null) => void;
   setAccessToken: (token: string) => void;
   setIsPremium: (isPremium: boolean) => void;
@@ -49,6 +73,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   currentTime: 0,
   duration: 0,
   player: null,
+  ytPlayer: null,
   deviceId: null,
   accessToken: null,
   isPremium: false,
@@ -56,6 +81,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   _progressInterval: null,
 
   setPlayer: (player) => set({ player }),
+  setYtPlayer: (player) => {
+    set({ ytPlayer: player });
+
+    if (!player) return;
+
+    const { activeProvider } = useMusicProviderStore.getState();
+    const { tracks, currentIndex } = get();
+
+    if (activeProvider === "ytmusic" && tracks[currentIndex]) {
+      void get().setCurrentIndex(currentIndex);
+    }
+  },
   setDeviceId: (deviceId) => set({ deviceId }),
   setAccessToken: (token) => set({ accessToken: token }),
   setIsPremium: (isPremium) => set({ isPremium }),
@@ -64,11 +101,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setDuration: (duration) => set({ duration }),
 
   setVolume: (volume: number) => {
-    const { audio, player, isPremium } = get();
+    const { audio, player, ytPlayer, isPremium } = get();
     const { activeProvider } = useMusicProviderStore.getState();
 
     if (activeProvider === "spotify" && isPremium && player) {
       void player.setVolume(volume);
+    } else if (activeProvider === "ytmusic" && ytPlayer) {
+      void ytPlayer.setVolume(volume * 100);
     } else if (audio) {
       audio.volume = volume;
     }
@@ -76,7 +115,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   setTracks: (tracks) => {
-    const { audio, player, isPremium, _progressInterval } = get();
+    const { audio, player, ytPlayer, isPremium, _progressInterval } = get();
 
     if (audio) {
       audio.pause();
@@ -84,6 +123,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
     if (isPremium && player) {
       void player.pause();
+    }
+    if (ytPlayer) {
+      void ytPlayer.stopVideo();
     }
     if (_progressInterval) {
       clearInterval(_progressInterval);
@@ -132,6 +174,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
     const { activeProvider } = useMusicProviderStore.getState();
     const isSpotifyProvider = activeProvider === "spotify";
+    const isYtMusicProvider = activeProvider === "ytmusic";
     const providerLabel = isSpotifyProvider ? "Spotify" : "YouTube Music";
 
     set({
@@ -196,11 +239,44 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
           description: getErrorMessage(error),
         });
       }
+    } else if (isYtMusicProvider) {
+      const { ytPlayer, volume, isMuted } = get();
+
+      if (!ytPlayer) {
+        sileo.warning({
+          title: "YouTube player is loading",
+          description: "Please try that track again in a moment.",
+        });
+        return;
+      }
+
+      const videoId = extractYtVideoId(track);
+
+      if (!videoId) {
+        sileo.warning({
+          title: "Invalid track",
+          description: `Cannot play "${track.title}" on YouTube Music.`,
+        });
+        return;
+      }
+
+      try {
+        await ytPlayer.loadVideoById(videoId);
+        await ytPlayer.setVolume(isMuted ? 0 : volume * 100);
+        await ytPlayer.playVideo();
+        set({ isPlaying: true });
+      } catch (error) {
+        sileo.error({
+          title: "Failed to start YouTube Music playback",
+          description: getErrorMessage(error),
+        });
+        set({ isPlaying: false });
+      }
     } else {
       if (!track.previewUrl) {
         sileo.warning({
           title: "No preview URL available",
-          description: `Cannot play "${track.title}" on ${providerLabel}.`,
+          description: `Cannot play "${track.title}" on ${providerLabel} without Premium.`,
         });
         set({ audio: null });
         return;
@@ -248,7 +324,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   play: () => {
-    const { audio, player, isPremium } = get();
+    const { audio, player, ytPlayer, isPremium } = get();
     const { activeProvider } = useMusicProviderStore.getState();
 
     if (activeProvider === "spotify" && isPremium && player) {
@@ -256,6 +332,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         .resume()
         .then(() => set({ isPlaying: true }))
         .catch(() => sileo.error({ title: "Failed to resume playback" }));
+    } else if (activeProvider === "ytmusic" && ytPlayer) {
+      void (async () => {
+        try {
+          const state = await ytPlayer.getPlayerState();
+
+          if (isYtPlayerUnstarted(state)) {
+            const { tracks, currentIndex } = get();
+            const track = tracks[currentIndex];
+            const videoId = track ? extractYtVideoId(track) : null;
+
+            if (videoId) {
+              await ytPlayer.loadVideoById(videoId);
+            }
+          }
+
+          await ytPlayer.playVideo();
+          set({ isPlaying: true });
+        } catch {
+          sileo.error({ title: "Failed to resume playback" });
+        }
+      })();
     } else if (audio) {
       audio
         .play()
@@ -265,10 +362,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   pause: () => {
-    const { audio, player, isPremium, _progressInterval } = get();
+    const { audio, player, ytPlayer, isPremium, _progressInterval } = get();
     const { activeProvider } = useMusicProviderStore.getState();
 
-    if (_progressInterval) {
+    if (_progressInterval && activeProvider !== "ytmusic") {
       clearInterval(_progressInterval);
       set({ _progressInterval: null });
     }
@@ -278,6 +375,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         .pause()
         .then(() => set({ isPlaying: false }))
         .catch(() => sileo.error({ title: "Failed to pause playback" }));
+    } else if (activeProvider === "ytmusic" && ytPlayer) {
+      ytPlayer
+        .pauseVideo()
+        .then(() => set({ isPlaying: false }))
+        .catch(() => sileo.error({ title: "Failed to pause playback" }));
     } else if (audio) {
       audio.pause();
       set({ isPlaying: false });
@@ -285,12 +387,18 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   mute: () => {
-    const { audio, player, isMuted, isPremium, volume } = get();
+    const { audio, player, ytPlayer, isMuted, isPremium, volume } = get();
     const { activeProvider } = useMusicProviderStore.getState();
     const newMuted = !isMuted;
 
     if (activeProvider === "spotify" && isPremium && player) {
       void player.setVolume(newMuted ? 0 : volume);
+    } else if (activeProvider === "ytmusic" && ytPlayer) {
+      if (newMuted) {
+        void ytPlayer.mute();
+      } else {
+        void ytPlayer.unMute();
+      }
     } else if (audio) {
       audio.muted = newMuted;
     }
@@ -298,12 +406,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   seek: (progress: number) => {
-    const { audio, player, isPremium, duration } = get();
+    const { audio, player, ytPlayer, isPremium, duration } = get();
     const { activeProvider } = useMusicProviderStore.getState();
     const positionMs = progress * duration;
 
     if (activeProvider === "spotify" && isPremium && player) {
       void player.seek(positionMs);
+    } else if (activeProvider === "ytmusic" && ytPlayer) {
+      void ytPlayer.seekTo(positionMs / 1000, true);
     } else if (audio) {
       audio.currentTime = positionMs / 1000;
     }

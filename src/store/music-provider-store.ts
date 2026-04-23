@@ -166,7 +166,7 @@ export const useMusicProviderStore = create<MusicProviderState>((set, get) => ({
     if (preference === "spotify") return ["spotify", "ytmusic"];
     if (preference === "ytmusic") return ["ytmusic", "spotify"];
 
-    // auto
-    return ["spotify", "ytmusic"];
+    // auto — ytmusic first since Spotify playback requires Premium
+    return ["ytmusic", "spotify"];
   },
 }));

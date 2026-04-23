@@ -4,14 +4,22 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Clock } from "lucide-react";
 
-export const PlanViewer = ({ planId, onBack }: { planId: string; onBack: () => void }) => {
+export const PlanViewer = ({
+  planId,
+  onBack,
+}: {
+  planId: string;
+  onBack: () => void;
+}) => {
   const { data: plan, isLoading } = api.planner.getPlan.useQuery({ planId });
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center h-full">
-        <Loader2 className="animate-spin size-10 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-black uppercase tracking-widest text-muted-foreground">Loading Plan...</h2>
+      <div className="flex h-full flex-1 flex-col items-center justify-center">
+        <Loader2 className="text-muted-foreground mb-4 size-10 animate-spin" />
+        <h2 className="text-muted-foreground text-xl font-black tracking-widest uppercase">
+          Loading Plan...
+        </h2>
       </div>
     );
   }
@@ -19,41 +27,63 @@ export const PlanViewer = ({ planId, onBack }: { planId: string; onBack: () => v
   if (!plan) return null;
 
   return (
-    <div className="flex flex-col size-full max-w-5xl mx-auto p-3 sm:p-4 md:p-8 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-8 border-b-4 border-border pb-4">
+    <div className="animate-in fade-in mx-auto flex size-full max-w-5xl flex-col p-3 duration-300 sm:p-4 md:p-8">
+      <div className="border-border mb-4 flex flex-col gap-3 border-b-4 pb-4 sm:mb-8 sm:flex-row sm:items-center sm:gap-4">
         <Button
           onClick={onBack}
           variant="noShadow"
-          className="border-2 border-border gap-1.5 font-bold px-3 py-1.5 bg-secondary-background hover:bg-background transition-colors text-foreground shrink-0 w-fit"
+          className="border-border bg-secondary-background hover:bg-background text-foreground w-fit shrink-0 gap-1.5 border-2 px-3 py-1.5 font-bold transition-colors"
         >
           <ArrowLeft className="size-4" /> Back
         </Button>
         <div className="min-w-0">
-          <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight truncate">{plan.title}</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground font-bold">{plan.startDate} → {plan.endDate} · {plan.hoursPerDay}h/day</p>
+          <h2 className="truncate text-lg font-black tracking-tight uppercase sm:text-2xl">
+            {plan.title}
+          </h2>
+          <p className="text-muted-foreground text-xs font-bold sm:text-sm">
+            {plan.startDate} → {plan.endDate} · {plan.hoursPerDay}h/day
+          </p>
         </div>
       </div>
 
-      <div className="space-y-6 pb-20 overflow-y-auto">
+      <div className="space-y-6 overflow-y-auto pb-20">
         {plan.plan.map((day, dayIndex) => (
-          <div key={dayIndex} className="border-4 border-border rounded-base bg-secondary-background overflow-hidden shadow-shadow">
-            <div className="bg-foreground text-background px-5 py-3 flex items-center justify-between">
-              <h3 className="font-black uppercase tracking-wider text-sm">{day.date}</h3>
-              <span className="text-xs font-bold opacity-70">{day.blocks.length} blocks</span>
+          <div
+            key={dayIndex}
+            className="border-border rounded-base bg-secondary-background shadow-shadow overflow-hidden border-4"
+          >
+            <div className="bg-foreground text-background flex items-center justify-between px-5 py-3">
+              <h3 className="text-sm font-black tracking-wider uppercase">
+                {day.date}
+              </h3>
+              <span className="text-xs font-bold opacity-70">
+                {day.blocks.length} blocks
+              </span>
             </div>
-            <div className="divide-y-2 divide-border">
+            <div className="divide-border divide-y-2">
               {day.blocks.map((block, blockIndex) => (
-                <div key={blockIndex} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4 px-4 sm:px-5 py-3 hover:bg-background/50 transition-colors">
-                  <div className="flex items-center gap-2 sm:w-20 shrink-0">
-                    <Clock className="size-3.5 text-muted-foreground" />
-                    <span className="text-sm font-black text-muted-foreground">{block.time}</span>
+                <div
+                  key={blockIndex}
+                  className="hover:bg-background/50 flex flex-col gap-1.5 px-4 py-3 transition-colors sm:flex-row sm:items-center sm:gap-4 sm:px-5"
+                >
+                  <div className="flex shrink-0 items-center gap-2 sm:w-20">
+                    <Clock className="text-muted-foreground size-3.5" />
+                    <span className="text-muted-foreground text-sm font-black">
+                      {block.time}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-1">
-                    <span className="font-black text-foreground text-sm sm:text-base">{block.subject}</span>
-                    <span className="text-muted-foreground font-base mx-1">·</span>
-                    <span className="text-muted-foreground font-bold text-xs sm:text-sm">{block.activity}</span>
+                  <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1">
+                    <span className="text-foreground text-sm font-black sm:text-base">
+                      {block.subject}
+                    </span>
+                    <span className="text-muted-foreground font-base mx-1">
+                      ·
+                    </span>
+                    <span className="text-muted-foreground text-xs font-bold sm:text-sm">
+                      {block.activity}
+                    </span>
                   </div>
-                  <div className="shrink-0 bg-main/20 text-foreground text-xs font-bold px-2.5 py-1 rounded-base border border-border">
+                  <div className="bg-main/20 text-foreground rounded-base border-border shrink-0 border px-2.5 py-1 text-xs font-bold">
                     {block.duration}m
                   </div>
                 </div>

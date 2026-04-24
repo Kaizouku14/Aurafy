@@ -3,8 +3,20 @@ import { getSession } from "@/server/better-auth";
 import { nanoid } from "nanoid";
 import { generateCardsFromNotes } from "@/lib/ai/flashcard-ai";
 import { createDeckRecord, createCardsBatch } from "@/lib/api/flashcard/queries";
+
+export const runtime = "nodejs";
+
+type PdfParseResult = {
+  text: string;
+  numpages: number;
+};
+
+// NOTE: require the parser implementation directly to avoid pdf-parse@1.x
+// package-level debug code that reads ./test/data/* at import time.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require("pdf-parse") as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
+const pdfParse = require("pdf-parse/lib/pdf-parse") as (
+  buffer: Buffer,
+) => Promise<PdfParseResult>;
 
 function extractAndSampleChunks(fullText: string, maxChars = 8000): string {
   const paragraphs = fullText.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 50);

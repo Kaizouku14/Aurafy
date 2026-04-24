@@ -33,11 +33,13 @@ export const StudySession = ({
 
   if (isLoading) {
     return (
-      <div className="flex h-full flex-1 flex-col items-center justify-center">
-        <Loader2 className="text-muted-foreground mb-4 size-10 animate-spin" />
-        <h2 className="text-muted-foreground text-xl font-black tracking-widest uppercase">
-          Loading Deck...
-        </h2>
+      <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl items-center justify-center p-3 sm:p-4 md:p-8">
+        <div className="flex flex-col items-center justify-center">
+          <Loader2 className="text-muted-foreground mb-4 size-10 animate-spin" />
+          <h2 className="text-muted-foreground text-xl font-black tracking-widest uppercase">
+            Loading Deck...
+          </h2>
+        </div>
       </div>
     );
   }

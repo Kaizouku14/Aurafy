@@ -3,6 +3,7 @@ import { flashcardDecks, flashcards, flashcardReviews } from "./flashcard";
 import { chat } from "./chat";
 import { studyPlans } from "./planner";
 import { cornellNotes } from "./note";
+import { quizAttemptAnswers, quizAttempts, quizQuestions, quizSets } from "./quiz";
 
 export {
   user,
@@ -15,6 +16,10 @@ export {
   chat,
   studyPlans,
   cornellNotes,
+  quizSets,
+  quizQuestions,
+  quizAttempts,
+  quizAttemptAnswers,
 };
 
 export {
@@ -27,4 +32,8 @@ export {
   chatRelations,
   studyPlansRelations,
   cornellNotesRelations,
+  quizSetsRelations,
+  quizQuestionsRelations,
+  quizAttemptsRelations,
+  quizAttemptAnswersRelations,
 } from "./relations";

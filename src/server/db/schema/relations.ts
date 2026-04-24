@@ -4,6 +4,7 @@ import { user, account, session } from "./user";
 import { chat } from "./chat";
 import { studyPlans } from "./planner";
 import { cornellNotes } from "./note";
+import { quizAttemptAnswers, quizAttempts, quizQuestions, quizSets } from "./quiz";
 
 export const userRelations = relations(user, ({ many }) => ({
   account: many(account),
@@ -13,6 +14,8 @@ export const userRelations = relations(user, ({ many }) => ({
   chats: many(chat),
   studyPlans: many(studyPlans),
   cornellNotes: many(cornellNotes),
+  quizSets: many(quizSets),
+  quizAttempts: many(quizAttempts),
 }));
 
 export const accountRelations = relations(account, ({ one }) => ({
@@ -76,3 +79,46 @@ export const cornellNotesRelations = relations(cornellNotes, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+export const quizSetsRelations = relations(quizSets, ({ one, many }) => ({
+  user: one(user, {
+    fields: [quizSets.userId],
+    references: [user.id],
+  }),
+  questions: many(quizQuestions),
+  attempts: many(quizAttempts),
+}));
+
+export const quizQuestionsRelations = relations(quizQuestions, ({ one, many }) => ({
+  quizSet: one(quizSets, {
+    fields: [quizQuestions.quizSetId],
+    references: [quizSets.id],
+  }),
+  answers: many(quizAttemptAnswers),
+}));
+
+export const quizAttemptsRelations = relations(quizAttempts, ({ one, many }) => ({
+  quizSet: one(quizSets, {
+    fields: [quizAttempts.quizSetId],
+    references: [quizSets.id],
+  }),
+  user: one(user, {
+    fields: [quizAttempts.userId],
+    references: [user.id],
+  }),
+  answers: many(quizAttemptAnswers),
+}));
+
+export const quizAttemptAnswersRelations = relations(
+  quizAttemptAnswers,
+  ({ one }) => ({
+    attempt: one(quizAttempts, {
+      fields: [quizAttemptAnswers.attemptId],
+      references: [quizAttempts.id],
+    }),
+    question: one(quizQuestions, {
+      fields: [quizAttemptAnswers.questionId],
+      references: [quizQuestions.id],
+    }),
+  }),
+);

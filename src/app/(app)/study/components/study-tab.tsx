@@ -6,13 +6,14 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Timer, NotebookPen, CalendarCheck2, FileText } from "lucide-react";
+import { Timer, NotebookPen, CalendarCheck2, FileText, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PomodoroTab from "./pomodoro/pomodoro";
 import React from "react";
 import FlashcardsTab from "./flashcards/flashcards";
 import PlannerTab from "./planner/planner";
 import NotesTab from "./notes/notes";
+import QuizTab from "./quiz/quiz";
 
 const STUDY_TABS = [
   {
@@ -38,6 +39,12 @@ const STUDY_TABS = [
     icon: FileText,
     label: "Notes",
     description: "Cornell method note-taking",
+  },
+  {
+    value: "quiz",
+    icon: Brain,
+    label: "Quiz",
+    description: "Generate and take hard quizzes from PDFs",
   },
 ];
 
@@ -115,6 +122,7 @@ const StudyTab = () => {
             {tab.value === "flashcards" && <FlashcardsTab />}
             {tab.value === "planner" && <PlannerTab />}
             {tab.value === "notes" && <NotesTab />}
+            {tab.value === "quiz" && <QuizTab />}
           </TabsContent>
         ))}
       </main>

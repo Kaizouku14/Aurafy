@@ -2,7 +2,7 @@
 
 import React from "react";
 import { BookMarked } from "lucide-react";
-import { QuizCreator } from "./quiz-creator";
+import { QuizCreator } from "../quiz-creator";
 
 export const QuizEmptyState = () => {
   return (

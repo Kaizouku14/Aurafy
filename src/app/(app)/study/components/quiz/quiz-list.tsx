@@ -10,7 +10,6 @@ import { QuizCreator } from "./quiz-creator";
 import { sileo } from "sileo";
 import { QuizCard } from "./components/quiz-card";
 import { QuizEmptyState } from "./components/quiz-empty-state";
-import type { QuizType } from "@/types/quiz/schema";
 
 export const QuizList = ({
   onSelectQuiz,
@@ -68,7 +67,7 @@ export const QuizList = ({
               quiz={{
                 id: quiz.id,
                 subject: quiz.subject,
-                quizType: quiz.quizType as QuizType,
+                quizType: quiz.quizType,
               }}
               isDeleting={deleteQuizSet.isPending}
               onDelete={openConfirm}

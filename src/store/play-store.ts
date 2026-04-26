@@ -6,8 +6,23 @@ import { getErrorMessage } from "@/lib/utils";
 import { fetchFreshToken } from "@/lib/spotfiy/spotify-auth";
 import { useMusicProviderStore } from "@/store/music-provider-store";
 
+interface YTPlayer {
+  loadVideoById: (videoId: string) => Promise<void>;
+  setVolume: (volume: number) => Promise<void>;
+  playVideo: () => Promise<void>;
+  pauseVideo: () => Promise<void>;
+  stopVideo: () => Promise<void>;
+  mute: () => Promise<void>;
+  unMute: () => Promise<void>;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => Promise<void>;
+  getPlayerState: () => Promise<number>;
+  getCurrentTime: () => Promise<number>;
+  getDuration: () => Promise<number>;
+  destroy: () => Promise<void>;
+}
+
 const extractYtVideoId = (track: Track): string | null => {
-  const prefixed = track.id.match(/^ytmusic:(.+)$/)?.[1];
+  const prefixed = /^ytmusic:(.+)$/.exec(track.id)?.[1];
   if (prefixed) return prefixed;
 
   if (track.id) return track.id;
@@ -38,7 +53,7 @@ interface PlayerState {
   currentTime: number;
   duration: number;
   player: Spotify.Player | null;
-  ytPlayer: any | null;
+  ytPlayer: YTPlayer | null; // Fix: no-explicit-any
   deviceId: string | null;
   accessToken: string | null;
   isPremium: boolean;
@@ -46,7 +61,7 @@ interface PlayerState {
 
   setTracks: (tracks: Track[]) => void;
   setPlayer: (player: Spotify.Player | null) => void;
-  setYtPlayer: (player: any) => void;
+  setYtPlayer: (player: YTPlayer | null) => void; // Fix: no-explicit-any
   setDeviceId: (deviceId: string | null) => void;
   setAccessToken: (token: string) => void;
   setIsPremium: (isPremium: boolean) => void;

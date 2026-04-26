@@ -20,52 +20,49 @@ function ensureSpotifySdkReady(): Promise<void> {
     return Promise.resolve();
   }
 
-  if (!spotifySdkReadyPromise) {
-    spotifySdkReadyPromise = new Promise<void>((resolve, reject) => {
-      const previousReadyHandler = window.onSpotifyWebPlaybackSDKReady;
-      const existingScript = document.getElementById(
-        SPOTIFY_SDK_SCRIPT_ID,
-      ) as HTMLScriptElement | null;
+  spotifySdkReadyPromise ??= new Promise<void>((resolve, reject) => {
+    const previousReadyHandler =
+      window.onSpotifyWebPlaybackSDKReady?.bind(window);
+    const existingScript = document.getElementById(
+      SPOTIFY_SDK_SCRIPT_ID,
+    ) as HTMLScriptElement | null;
 
-      const onReady = () => {
-        if (typeof previousReadyHandler === "function") {
-          previousReadyHandler();
-        }
-        resolve();
-      };
+    const onReady = () => {
+      previousReadyHandler?.();
+      resolve();
+    };
 
-      window.onSpotifyWebPlaybackSDKReady = onReady;
+    window.onSpotifyWebPlaybackSDKReady = onReady;
 
-      if (existingScript) {
-        existingScript.addEventListener("load", onReady, { once: true });
-        existingScript.addEventListener(
-          "error",
-          () => {
-            spotifySdkReadyPromise = null;
-            reject(new Error("Failed to load Spotify Web Playback SDK."));
-          },
-          { once: true },
-        );
+    if (existingScript) {
+      existingScript.addEventListener("load", onReady, { once: true });
+      existingScript.addEventListener(
+        "error",
+        () => {
+          spotifySdkReadyPromise = null;
+          reject(new Error("Failed to load Spotify Web Playback SDK."));
+        },
+        { once: true },
+      );
 
-        if (window.Spotify) {
-          onReady();
-        }
-
-        return;
+      if (window.Spotify) {
+        onReady();
       }
 
-      const script = document.createElement("script");
-      script.id = SPOTIFY_SDK_SCRIPT_ID;
-      script.src = SPOTIFY_SDK_SRC;
-      script.async = true;
-      script.onerror = () => {
-        spotifySdkReadyPromise = null;
-        reject(new Error("Failed to load Spotify Web Playback SDK."));
-      };
+      return;
+    }
 
-      (document.head ?? document.body).appendChild(script);
-    });
-  }
+    const script = document.createElement("script");
+    script.id = SPOTIFY_SDK_SCRIPT_ID;
+    script.src = SPOTIFY_SDK_SRC;
+    script.async = true;
+    script.onerror = () => {
+      spotifySdkReadyPromise = null;
+      reject(new Error("Failed to load Spotify Web Playback SDK."));
+    };
+
+    (document.head ?? document.body).appendChild(script);
+  });
 
   return spotifySdkReadyPromise;
 }

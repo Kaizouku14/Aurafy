@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { sileo } from "sileo";
 import { QuizResultsDialog } from "./components/quiz-results-dialog";
 import { QuizAnswerInput } from "./components/quiz-answer-input";
@@ -96,7 +95,7 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
   const onEnterPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.repeat) {
       e.preventDefault();
-      goNext();
+      void goNext();
     }
   };
 
@@ -106,7 +105,7 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
         className="animate-in fade-in mx-auto flex size-full max-w-4xl flex-col p-3 duration-300 sm:p-4 md:p-8"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !disabled) {
-            goNext();
+            void goNext();
           }
         }}
       >

@@ -10,7 +10,7 @@ export const YouTubePlayerProvider = () => {
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !container.isConnected) return;
+    if (!container?.isConnected) return;
 
     const mountNode = document.createElement("div");
     container.appendChild(mountNode);
@@ -63,26 +63,25 @@ export const YouTubePlayerProvider = () => {
       usePlayerStore.getState().next();
     });
 
-    const interval = setInterval(async () => {
-      if (isUnmounted) return;
-
-      try {
-        const state = await player.getPlayerState();
+    const interval = setInterval(() => {
+      void (async () => {
         if (isUnmounted) return;
-
-        if (state === 1) {
-          // playing
-          const current = await player.getCurrentTime();
-          const duration = await player.getDuration();
+        try {
+          const state = await player.getPlayerState();
           if (isUnmounted) return;
-
-          if (current) usePlayerStore.getState().setCurrentTime(current * 1000);
-          if (duration && duration > 0)
-            usePlayerStore.getState().setDuration(duration * 1000);
+          if ((state as number) === 1) {
+            const current = await player.getCurrentTime();
+            const duration = await player.getDuration();
+            if (isUnmounted) return;
+            if (current)
+              usePlayerStore.getState().setCurrentTime(current * 1000);
+            if (duration && duration > 0)
+              usePlayerStore.getState().setDuration(duration * 1000);
+          }
+        } catch {
+          // ignore errors if player is not ready
         }
-      } catch (e) {
-        // ignore errors if player is not ready
-      }
+      })();
     }, 500);
 
     return () => {

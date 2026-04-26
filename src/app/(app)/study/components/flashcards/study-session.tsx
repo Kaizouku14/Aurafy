@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ArrowRight, BrainCircuit, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { Loading } from "../shared/loading";
 
 export const StudySession = ({
   deckId,
@@ -32,16 +33,7 @@ export const StudySession = ({
   });
 
   if (isLoading) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl items-center justify-center p-3 sm:p-4 md:p-8">
-        <div className="flex flex-col items-center justify-center">
-          <Loader2 className="text-muted-foreground mb-4 size-10 animate-spin" />
-          <h2 className="text-muted-foreground text-xl font-black tracking-widest uppercase">
-            Loading Deck...
-          </h2>
-        </div>
-      </div>
-    );
+    return <Loading text="Deck" />;
   }
 
   if (!dueCards || dueCards.length === 0) {

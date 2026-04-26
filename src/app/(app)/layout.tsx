@@ -4,7 +4,7 @@ import { getSession } from "@/server/better-auth/server";
 import { redirect } from "next/navigation";
 import { PAGE_ROUTES } from "@/constants/page-routes";
 import { MiniPlayer } from "@/components/mini-player";
-import { PlayerProviders } from "./components/player-providers";
+import { PlayerProviders } from "@/components/player-providers";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getSession();

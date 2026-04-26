@@ -2,10 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { getSession } from "@/server/better-auth";
 import { generateQuizFromNotes } from "@/lib/ai/quiz-ai";
-import {
-  createQuizQuestions,
-  createQuizSet,
-} from "@/lib/api/quiz/queries";
+import { createQuizQuestions, createQuizSet } from "@/lib/api/quiz/queries";
 import { quizTypeSchema } from "@/types/quiz/schema";
 
 export const runtime = "nodejs";
@@ -52,7 +49,9 @@ type QuizQuestionPayload = {
 
 const ensureDifficulty = (
   questions: QuizQuestionPayload[],
-): Array<Omit<QuizQuestionPayload, "difficulty"> & { difficulty: "medium" | "hard" }> => {
+): Array<
+  Omit<QuizQuestionPayload, "difficulty"> & { difficulty: "medium" | "hard" }
+> => {
   return questions.map((question) => ({
     ...question,
     difficulty: question.difficulty ?? "hard",
@@ -83,12 +82,29 @@ export async function POST(req: NextRequest) {
 
     const parsedQuizType = quizTypeSchema.safeParse(quizTypeRaw);
     if (!parsedQuizType.success) {
-      return NextResponse.json({ error: "Invalid quiz type." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid quiz type." },
+        { status: 400 },
+      );
+    }
+
+    if (requestedCountRaw) {
+      const requestedCount = Number(requestedCountRaw);
+      if (
+        !Number.isFinite(requestedCount) ||
+        requestedCount < 5 ||
+        requestedCount > 40
+      ) {
+        return NextResponse.json(
+          { error: "Invalid question count. Must be between 5 and 40." },
+          { status: 400 },
+        );
+      }
     }
 
     const requestedCount = requestedCountRaw ? Number(requestedCountRaw) : 10;
     const questionCount = Number.isFinite(requestedCount)
-      ? Math.min(20, Math.max(5, Math.floor(requestedCount)))
+      ? Math.min(40, Math.max(5, Math.floor(requestedCount)))
       : 10;
 
     let finalNotes = fallbackNotes ?? "";
@@ -141,9 +157,9 @@ export async function POST(req: NextRequest) {
 
     const generatedQuestions = ensureDifficulty(
       await generateQuizFromNotes(
-      finalNotes,
-      parsedQuizType.data,
-      questionCount,
+        finalNotes,
+        parsedQuizType.data,
+        questionCount,
       ),
     );
 

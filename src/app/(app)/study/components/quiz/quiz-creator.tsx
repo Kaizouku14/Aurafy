@@ -23,13 +23,22 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/trpc/react";
 import {
   createQuizSchema,
   QUIZ_TYPES,
   type CreateQuizInput,
 } from "@/types/quiz/schema";
-import { quizTypeLabel } from "./components/quiz-types";
+import { quizTypeLabel } from "@/types/quiz";
 
 export const QuizCreator = ({ className }: { className?: string }) => {
   const [open, setOpen] = useState(false);
@@ -43,6 +52,7 @@ export const QuizCreator = ({ className }: { className?: string }) => {
     resolver: zodResolver(createQuizSchema),
     defaultValues: {
       subject: "",
+      numberOfQuestions: "10",
       quizType: "multiple_choice",
     },
   });
@@ -80,7 +90,7 @@ export const QuizCreator = ({ className }: { className?: string }) => {
       formData.append("file", file);
       formData.append("subject", data.subject);
       formData.append("quizType", data.quizType);
-      formData.append("questionCount", "10");
+      formData.append("questionCount", data.numberOfQuestions);
       formData.append("generatedAt", format(new Date(), "yyyy-MM-dd"));
 
       const response = await fetch("/api/quiz/upload", {
@@ -108,45 +118,87 @@ export const QuizCreator = ({ className }: { className?: string }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className={`border-2 border-border gap-2 font-bold px-4 py-2 ${className ?? ""}`}>
+        <Button
+          className={`border-border gap-2 border-2 px-4 py-2 font-bold ${className ?? ""}`}
+        >
           <Plus className="size-4" /> New Quiz
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[560px] border-4 border-border p-6 bg-secondary-background">
+      <DialogContent className="border-border bg-secondary-background border-4 p-6 sm:max-w-140">
         <DialogHeader>
-          <DialogTitle className="text-xl font-black uppercase tracking-widest text-foreground">
+          <DialogTitle className="text-foreground text-xl font-black tracking-widest uppercase">
             Create Quiz
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-            <FormField
-              control={form.control}
-              name="subject"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Subject
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. Pathophysiology Unit 3"
-                      className="border-2 border-border bg-background text-foreground font-bold"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 pt-2"
+          >
+            <div className="flex flex-col gap-4 md:flex-row">
+              <FormField
+                control={form.control}
+                name="subject"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+                      Subject
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. Pathophysiology Unit 3"
+                        className="border-border bg-background text-foreground border-2 font-bold md:w-90"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="numberOfQuestions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+                      No. of Questions
+                    </FormLabel>
+
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="No. of Questions" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>No. of Questions</SelectLabel>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="30">30</SelectItem>
+                            <SelectItem value="40">40</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
               name="quizType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
                     Quiz Type
                   </FormLabel>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -172,10 +224,10 @@ export const QuizCreator = ({ className }: { className?: string }) => {
             />
 
             <div className="space-y-2">
-              <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
                 PDF Source
               </FormLabel>
-              <div className="relative rounded-base border-2 border-dashed border-border bg-background/60 p-4 text-center">
+              <div className="rounded-base border-border bg-background/60 relative border-2 border-dashed p-4 text-center">
                 <Input
                   type="file"
                   accept="application/pdf"
@@ -185,22 +237,26 @@ export const QuizCreator = ({ className }: { className?: string }) => {
                     e.target.value = "";
                   }}
                 />
-                <p className="text-sm font-bold text-foreground">
-                  {file ? `Selected: ${file.name}` : "Click to upload a PDF (max 5MB)"}
+                <p className="text-foreground text-sm font-bold">
+                  {file
+                    ? `Selected: ${file.name}`
+                    : "Click to upload a PDF (max 5MB)"}
                 </p>
               </div>
             </div>
 
             {uploadError && (
-              <div className="rounded-base border-2 border-destructive bg-destructive/10 p-3">
-                <p className="text-destructive text-sm font-bold text-center">{uploadError}</p>
+              <div className="rounded-base border-destructive bg-destructive/10 border-2 p-3">
+                <p className="text-destructive text-center text-sm font-bold">
+                  {uploadError}
+                </p>
               </div>
             )}
 
             <Button
               type="submit"
               disabled={isUploading}
-              className="w-full bg-foreground text-background hover:bg-main hover:text-main-foreground border-4 border-transparent font-black uppercase tracking-widest"
+              className="bg-foreground text-background hover:bg-main hover:text-main-foreground w-full border-4 border-transparent font-black tracking-widest uppercase"
             >
               {isUploading ? (
                 <span className="flex items-center gap-2">

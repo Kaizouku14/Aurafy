@@ -11,7 +11,11 @@ export const QUIZ_DIFFICULTIES = ["medium", "hard"] as const;
 export const quizTypeSchema = z.enum(QUIZ_TYPES);
 
 export const createQuizSchema = z.object({
-  subject: z.string().min(1, "Subject is required").max(100, "Subject is too long"),
+  subject: z
+    .string()
+    .min(1, "Subject is required")
+    .max(100, "Subject is too long"),
+  numberOfQuestions: z.string(),
   quizType: quizTypeSchema,
 });
 

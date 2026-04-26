@@ -5,8 +5,15 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { Loading } from "../shared/loading";
 
-export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => void }) => {
+export const NoteEditor = ({
+  noteId,
+  onBack,
+}: {
+  noteId: string;
+  onBack: () => void;
+}) => {
   const { data: note, isLoading } = api.notes.getNote.useQuery({ noteId });
   const utils = api.useUtils();
 
@@ -35,7 +42,9 @@ export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => v
     updateNote.mutate({ noteId, cues, notes, summary });
   }, [noteId, cues, notes, summary, hasChanges, updateNote]);
 
-  const handleChange = (setter: React.Dispatch<React.SetStateAction<string>>) => {
+  const handleChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+  ) => {
     return (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setter(e.target.value);
       setHasChanges(true);
@@ -43,77 +52,87 @@ export const NoteEditor = ({ noteId, onBack }: { noteId: string; onBack: () => v
   };
 
   if (isLoading) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center h-full">
-        <Loader2 className="animate-spin size-10 text-muted-foreground mb-4" />
-        <h2 className="text-xl font-black uppercase tracking-widest text-muted-foreground">Loading Note...</h2>
-      </div>
-    );
+    return <Loading text="Note" />;
   }
 
   if (!note) return null;
 
   return (
-    <div className="flex flex-col size-full max-w-6xl mx-auto p-3 sm:p-4 md:p-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 border-b-4 border-border pb-3">
-        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+    <div className="animate-in fade-in mx-auto flex size-full max-w-6xl flex-col p-3 duration-300 sm:p-4 md:p-6">
+      <div className="border-border mb-4 flex flex-col gap-3 border-b-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <Button
-            onClick={() => { handleSave(); onBack(); }}
+            onClick={() => {
+              handleSave();
+              onBack();
+            }}
             variant="noShadow"
-            className="border-2 border-border gap-1.5 font-bold px-3 py-1.5 bg-secondary-background hover:bg-background transition-colors text-foreground shrink-0"
+            className="border-border bg-secondary-background hover:bg-background text-foreground shrink-0 gap-1.5 border-2 px-3 py-1.5 font-bold transition-colors"
           >
             <ArrowLeft className="size-4" /> Back
           </Button>
-          <h2 className="text-lg sm:text-2xl font-black uppercase tracking-tight truncate">{note.subject}</h2>
+          <h2 className="truncate text-lg font-black tracking-tight uppercase sm:text-2xl">
+            {note.subject}
+          </h2>
         </div>
         <Button
           onClick={handleSave}
           disabled={!hasChanges || updateNote.isPending}
-          className="border-2 border-border gap-1.5 font-bold px-3 sm:px-4 bg-foreground text-background hover:bg-main hover:text-main-foreground transition-colors shrink-0 w-full sm:w-auto"
+          className="border-border bg-foreground text-background hover:bg-main hover:text-main-foreground w-full shrink-0 gap-1.5 border-2 px-3 font-bold transition-colors sm:w-auto sm:px-4"
         >
-          {updateNote.isPending ? <Loader2 className="animate-spin size-4" /> : <Save className="size-4" />}
+          {updateNote.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Save className="size-4" />
+          )}
           {hasChanges ? "Save" : "Saved"}
         </Button>
       </div>
 
-      <div className="flex-1 flex flex-col gap-0 border-4 border-border rounded-base overflow-hidden bg-secondary-background min-h-0">
-        <div className="flex flex-col md:flex-row flex-1 min-h-0">
-          <div className="md:w-1/3 border-b-4 md:border-b-0 md:border-r-4 border-border flex flex-col min-h-[120px] md:min-h-0">
+      <div className="border-border rounded-base bg-secondary-background flex min-h-0 flex-1 flex-col gap-0 overflow-hidden border-4">
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+          <div className="border-border flex min-h-30 flex-col border-b-4 md:min-h-0 md:w-1/3 md:border-r-4 md:border-b-0">
             <div className="bg-foreground text-background px-4 py-2">
-              <span className="text-xs font-black uppercase tracking-widest">Cues / Questions</span>
+              <span className="text-xs font-black tracking-widest uppercase">
+                Cues / Questions
+              </span>
             </div>
             <Textarea
               value={cues}
               onChange={handleChange(setCues)}
               onBlur={handleSave}
               placeholder="Key terms, questions, or prompts to test yourself..."
-              className="flex-1 resize-none border-none rounded-none bg-transparent focus-visible:ring-0 font-base text-sm p-4"
+              className="font-base flex-1 resize-none rounded-none border-none bg-transparent p-4 text-sm focus-visible:ring-0"
             />
           </div>
-          <div className="flex-1 flex flex-col min-h-[120px] md:min-h-0">
+          <div className="flex min-h-30 flex-1 flex-col md:min-h-0">
             <div className="bg-foreground text-background px-4 py-2">
-              <span className="text-xs font-black uppercase tracking-widest">Notes</span>
+              <span className="text-xs font-black tracking-widest uppercase">
+                Notes
+              </span>
             </div>
             <Textarea
               value={notes}
               onChange={handleChange(setNotes)}
               onBlur={handleSave}
               placeholder="Main lecture notes, explanations, diagrams..."
-              className="flex-1 resize-none border-none rounded-none bg-transparent focus-visible:ring-0 font-base text-sm p-4"
+              className="font-base flex-1 resize-none rounded-none border-none bg-transparent p-4 text-sm focus-visible:ring-0"
             />
           </div>
         </div>
 
-        <div className="border-t-4 border-border">
+        <div className="border-border border-t-4">
           <div className="bg-foreground text-background px-4 py-2">
-            <span className="text-xs font-black uppercase tracking-widest">Summary</span>
+            <span className="text-xs font-black tracking-widest uppercase">
+              Summary
+            </span>
           </div>
           <Textarea
             value={summary}
             onChange={handleChange(setSummary)}
             onBlur={handleSave}
             placeholder="Summarize the key takeaways in your own words..."
-            className="w-full resize-none border-none rounded-none bg-transparent focus-visible:ring-0 font-base text-sm p-4 min-h-[100px]"
+            className="font-base min-h-50 w-full rounded-none border-none bg-transparent p-4 text-sm focus-visible:ring-0"
           />
         </div>
       </div>

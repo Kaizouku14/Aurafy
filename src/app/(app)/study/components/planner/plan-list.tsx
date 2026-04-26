@@ -59,8 +59,8 @@ export const PlanList = ({
             <CalendarCheck2 className="text-muted-foreground mb-4 size-16" />
             <h3 className="mb-2 text-xl font-bold uppercase">No Plans Yet</h3>
             <p className="text-muted-foreground font-base mb-6 max-w-md">
-              Tell the AI your subjects, exam dates, and available hours. It will
-              create a day-by-day study schedule for you.
+              Tell the AI your subjects, exam dates, and available hours. It
+              will create a day-by-day study schedule for you.
             </p>
             <PlanCreator className="bg-main text-main-foreground hover:bg-main/90" />
           </div>
@@ -81,7 +81,7 @@ export const PlanList = ({
                 size="icon"
                 onClick={() => openConfirm(plan.id)}
                 disabled={deletePlan.isPending}
-                className="rounded-base text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 border-2 border-transparent transition-all group-hover:opacity-100 md:opacity-0"
+                className="rounded-base text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 cursor-pointer border-2 border-transparent bg-transparent transition-all group-hover:opacity-100 md:opacity-0"
               >
                 <Trash2 className="size-4" />
               </Button>

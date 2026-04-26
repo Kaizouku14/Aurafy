@@ -81,7 +81,7 @@ export const NoteList = ({
                 <Plus className="size-4" /> New Note
               </Button>
             </DialogTrigger>
-            <DialogContent className="border-border bg-secondary-background border-4 p-6 sm:max-w-[400px]">
+            <DialogContent className="border-border bg-secondary-background border-4 p-6 sm:max-w-100">
               <DialogHeader>
                 <DialogTitle className="text-foreground text-xl font-black tracking-widest uppercase">
                   New Note
@@ -149,7 +149,7 @@ export const NoteList = ({
                   openConfirm(note.id);
                 }}
                 disabled={deleteNote.isPending}
-                className="rounded-base text-main-foreground hover:text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 border-2 border-transparent transition-all group-hover:opacity-100 md:opacity-0"
+                className="rounded-base text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 cursor-pointer border-2 border-transparent bg-transparent transition-all group-hover:opacity-100 md:opacity-0"
               >
                 <Trash2 className="size-4" />
               </Button>

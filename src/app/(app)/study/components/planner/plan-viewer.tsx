@@ -2,7 +2,8 @@
 
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
+import { Loading } from "../shared/loading";
 
 export const PlanViewer = ({
   planId,
@@ -14,14 +15,7 @@ export const PlanViewer = ({
   const { data: plan, isLoading } = api.planner.getPlan.useQuery({ planId });
 
   if (isLoading) {
-    return (
-      <div className="flex h-full flex-1 flex-col items-center justify-center">
-        <Loader2 className="text-muted-foreground mb-4 size-10 animate-spin" />
-        <h2 className="text-muted-foreground text-xl font-black tracking-widest uppercase">
-          Loading Plan...
-        </h2>
-      </div>
-    );
+    return <Loading text="Plan" />;
   }
 
   if (!plan) return null;

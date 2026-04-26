@@ -47,7 +47,10 @@ export const getUserQuizSets = async (userId: string) => {
   });
 };
 
-export const getQuizSetByIdAndUser = async (quizSetId: string, userId: string) => {
+export const getQuizSetByIdAndUser = async (
+  quizSetId: string,
+  userId: string,
+) => {
   return db.query.quizSets.findFirst({
     where: and(eq(quizSets.id, quizSetId), eq(quizSets.userId, userId)),
   });
@@ -87,8 +90,6 @@ export const deleteQuizSetById = async (quizSetId: string) => {
   await db.delete(quizSets).where(eq(quizSets.id, quizSetId));
 };
 
-export const normalizeStrictAnswer = (answer: string) => answer.trim();
-
 export const gradeQuizSubmission = async (
   quizSetId: string,
   quizType: QuizType,
@@ -122,8 +123,8 @@ export const gradeQuizSubmission = async (
 
     const isCorrect =
       quizType === "identification"
-        ? normalizeStrictAnswer(rawUserAnswer) ===
-          normalizeStrictAnswer(question.correctAnswer)
+        ? rawUserAnswer.trim().toLowerCase() ===
+          question.correctAnswer.trim().toLowerCase()
         : rawUserAnswer === question.correctAnswer;
 
     return {
@@ -136,7 +137,10 @@ export const gradeQuizSubmission = async (
     };
   });
 
-  const score = review.reduce((acc, item) => (item.isCorrect ? acc + 1 : acc), 0);
+  const score = review.reduce(
+    (acc, item) => (item.isCorrect ? acc + 1 : acc),
+    0,
+  );
   return {
     score,
     total: review.length,

@@ -30,12 +30,12 @@ export const ConfirmDeleteDialog = ({
 }: ConfirmDeleteDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px] border-4 border-border p-6 bg-secondary-background">
+      <DialogContent className="border-border bg-secondary-background border-4 p-6 sm:max-w-105">
         <DialogHeader>
           <DialogTitle className="text-xl font-black tracking-widest uppercase">
             {title}
           </DialogTitle>
-          <DialogDescription className="text-sm font-base">
+          <DialogDescription className="font-base text-sm">
             {message}
           </DialogDescription>
         </DialogHeader>
@@ -50,10 +50,9 @@ export const ConfirmDeleteDialog = ({
           </Button>
           <Button
             type="button"
-            variant="noShadow"
+            variant="default"
             onClick={onConfirm}
             disabled={isPending}
-            className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
           >
             {isPending ? "Deleting..." : "Delete"}
           </Button>

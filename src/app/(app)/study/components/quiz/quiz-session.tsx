@@ -5,12 +5,11 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { sileo } from "sileo";
-import {
-  QuizResultsDialog,
-} from "./components/quiz-results-dialog";
+import { QuizResultsDialog } from "./components/quiz-results-dialog";
 import { QuizAnswerInput } from "./components/quiz-answer-input";
 import { QuizSessionFooter } from "./components/quiz-session-footer";
 import type { QuizResultSummary } from "@/types/quiz";
+import { Loading } from "../shared/loading";
 
 type QuizSessionProps = {
   quizSetId: string;
@@ -18,7 +17,9 @@ type QuizSessionProps = {
 };
 
 export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
-  const { data: quiz, isLoading } = api.quiz.getQuizById.useQuery({ quizSetId });
+  const { data: quiz, isLoading } = api.quiz.getQuizById.useQuery({
+    quizSetId,
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [resultsDialogOpen, setResultsDialogOpen] = useState(false);
@@ -28,7 +29,10 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
 
   const submitAttempt = api.quiz.submitAttempt.useMutation({
     onError: () => {
-      sileo.error({ title: "Failed to submit quiz", description: "Please try again." });
+      sileo.error({
+        title: "Failed to submit quiz",
+        description: "Please try again.",
+      });
     },
   });
 
@@ -40,24 +44,19 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
   }, [currentIndex, quiz]);
 
   if (isLoading) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl items-center justify-center p-4">
-        <div className="flex flex-col items-center">
-          <Loader2 className="text-muted-foreground mb-4 size-10 animate-spin" />
-          <p className="text-muted-foreground text-xl font-black tracking-widest uppercase">
-            Loading Quiz...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loading text="Quiz" />;
   }
 
   if (!quiz || quiz.questions.length === 0 || !currentQuestion) {
     return (
       <div className="mx-auto flex min-h-[60vh] w-full max-w-4xl items-center justify-center p-4">
         <div className="text-center">
-          <p className="text-muted-foreground text-lg font-bold uppercase">Quiz has no questions.</p>
-          <Button onClick={onFinish} className="mt-4">Back to Quiz List</Button>
+          <p className="text-muted-foreground text-lg font-bold uppercase">
+            Quiz has no questions.
+          </p>
+          <Button onClick={onFinish} className="mt-4">
+            Back to Quiz List
+          </Button>
         </div>
       </div>
     );
@@ -65,6 +64,7 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
 
   const currentAnswer = answers[currentQuestion.id] ?? "";
   const isLast = currentIndex === quiz.questions.length - 1;
+  const disabled = !currentAnswer.trim() || submitAttempt.isPending;
 
   const setAnswer = (value: string) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
@@ -93,9 +93,23 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
     setResultsDialogOpen(true);
   };
 
+  const onEnterPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.repeat) {
+      e.preventDefault();
+      goNext();
+    }
+  };
+
   return (
     <>
-      <div className="animate-in fade-in mx-auto flex size-full max-w-4xl flex-col p-3 duration-300 sm:p-4 md:p-8">
+      <div
+        className="animate-in fade-in mx-auto flex size-full max-w-4xl flex-col p-3 duration-300 sm:p-4 md:p-8"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !disabled) {
+            goNext();
+          }
+        }}
+      >
         <div className="mb-4 flex items-center justify-between sm:mb-8">
           <Button
             onClick={onFinish}
@@ -126,10 +140,11 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
           <QuizSessionFooter
             isPending={submitAttempt.isPending}
             isLast={isLast}
-            disabled={!currentAnswer.trim() || submitAttempt.isPending}
+            disabled={disabled}
             onNext={() => {
               void goNext();
             }}
+            onEnterPress={onEnterPress}
           />
         </div>
       </div>

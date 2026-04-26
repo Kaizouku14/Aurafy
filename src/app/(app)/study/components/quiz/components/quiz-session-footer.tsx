@@ -9,6 +9,7 @@ type QuizSessionFooterProps = {
   isLast: boolean;
   disabled: boolean;
   onNext: () => void;
+  onEnterPress: (e: React.KeyboardEvent) => void;
 };
 
 export const QuizSessionFooter = ({
@@ -16,13 +17,15 @@ export const QuizSessionFooter = ({
   isLast,
   disabled,
   onNext,
+  onEnterPress,
 }: QuizSessionFooterProps) => {
   return (
     <div className="mt-auto flex justify-end">
       <Button
         onClick={onNext}
         disabled={disabled}
-        className="bg-foreground text-background hover:bg-main hover:text-main-foreground border-4 border-transparent font-black uppercase tracking-widest"
+        onKeyDown={onEnterPress}
+        className="bg-foreground text-background hover:bg-main hover:text-main-foreground w-40 border-4 border-transparent font-black tracking-widest uppercase"
       >
         {isPending ? (
           <Loader2 className="size-4 animate-spin" />

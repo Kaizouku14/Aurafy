@@ -45,6 +45,7 @@ export const QuizCreator = ({ className }: { className?: string }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [maxQuestions, setMaxQuestions] = useState(40);
   const router = useRouter();
   const utils = api.useUtils();
 
@@ -56,6 +57,14 @@ export const QuizCreator = ({ className }: { className?: string }) => {
       quizType: "multiple_choice",
     },
   });
+
+  const calculateMaxQuestions = (contentLength: number): number => {
+    if (contentLength < 1000) return 5;
+    if (contentLength < 2000) return 10;
+    if (contentLength < 5000) return 20;
+    if (contentLength < 8000) return 30;
+    return 40;
+  };
 
   const handleFile = (picked: File | undefined) => {
     if (!picked) return;
@@ -71,6 +80,11 @@ export const QuizCreator = ({ className }: { className?: string }) => {
       setFile(null);
       return;
     }
+
+    // Estimate max questions based on file size (rough estimate: ~1 char per byte for text)
+    const estimatedContentLength = picked.size * 0.5; // Conservative estimate
+    const calculatedMax = calculateMaxQuestions(estimatedContentLength);
+    setMaxQuestions(calculatedMax);
 
     setFile(picked);
     setUploadError("");
@@ -157,40 +171,57 @@ export const QuizCreator = ({ className }: { className?: string }) => {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="numberOfQuestions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
-                      No. of Questions
-                    </FormLabel>
+               <FormField
+                 control={form.control}
+                 name="numberOfQuestions"
+                 render={({ field }) => (
+                   <FormItem>
+                     <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+                       No. of Questions
+                     </FormLabel>
 
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="No. of Questions" />
-                        </SelectTrigger>
+                     <FormControl>
+                       <Select
+                         value={field.value}
+                         onValueChange={field.onChange}
+                       >
+                         <SelectTrigger>
+                           <SelectValue placeholder="No. of Questions" />
+                         </SelectTrigger>
 
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>No. of Questions</SelectLabel>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="30">30</SelectItem>
-                            <SelectItem value="40">40</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
+                         <SelectContent>
+                           <SelectGroup>
+                             <SelectLabel>No. of Questions</SelectLabel>
+                             {maxQuestions >= 5 && (
+                               <SelectItem value="5">5</SelectItem>
+                             )}
+                             {maxQuestions >= 10 && (
+                               <SelectItem value="10">10</SelectItem>
+                             )}
+                             {maxQuestions >= 20 && (
+                               <SelectItem value="20">20</SelectItem>
+                             )}
+                             {maxQuestions >= 30 && (
+                               <SelectItem value="30">30</SelectItem>
+                             )}
+                             {maxQuestions >= 40 && (
+                               <SelectItem value="40">40</SelectItem>
+                             )}
+                           </SelectGroup>
+                         </SelectContent>
+                       </Select>
+                     </FormControl>
 
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                     {file && maxQuestions < 40 && (
+                       <p className="text-muted-foreground text-xs mt-1">
+                         Max: {maxQuestions} questions based on content
+                       </p>
+                     )}
+
+                     <FormMessage />
+                   </FormItem>
+                 )}
+               />
             </div>
 
             <FormField

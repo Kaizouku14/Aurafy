@@ -39,6 +39,15 @@ const extractAndSampleChunks = (fullText: string, maxChars = 10000): string => {
   return sampledText.trim();
 };
 
+const calculateMaxQuestions = (contentLength: number): number => {
+  // Estimate: ~200 chars needed per quality question
+  if (contentLength < 1000) return 5;
+  if (contentLength < 2000) return 10;
+  if (contentLength < 5000) return 20;
+  if (contentLength < 8000) return 30;
+  return 40;
+};
+
 type QuizQuestionPayload = {
   prompt: string;
   options: string[] | null;
@@ -88,24 +97,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (requestedCountRaw) {
-      const requestedCount = Number(requestedCountRaw);
-      if (
-        !Number.isFinite(requestedCount) ||
-        requestedCount < 5 ||
-        requestedCount > 40
-      ) {
-        return NextResponse.json(
-          { error: "Invalid question count. Must be between 5 and 40." },
-          { status: 400 },
-        );
-      }
-    }
-
     const requestedCount = requestedCountRaw ? Number(requestedCountRaw) : 10;
-    const questionCount = Number.isFinite(requestedCount)
-      ? Math.min(40, Math.max(5, Math.floor(requestedCount)))
-      : 10;
 
     let finalNotes = fallbackNotes ?? "";
 
@@ -154,6 +146,27 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
+
+    // Calculate max questions based on content length
+    const maxQuestionsAllowed = calculateMaxQuestions(finalNotes.length);
+
+    if (
+      !Number.isFinite(requestedCount) ||
+      requestedCount < 5 ||
+      requestedCount > maxQuestionsAllowed
+    ) {
+      return NextResponse.json(
+        {
+          error: `Invalid question count. Based on your content, you can generate a maximum of ${maxQuestionsAllowed} questions.`,
+          maxQuestions: maxQuestionsAllowed,
+        },
+        { status: 400 },
+      );
+    }
+
+    const questionCount = Number.isFinite(requestedCount)
+      ? Math.min(maxQuestionsAllowed, Math.max(5, Math.floor(requestedCount)))
+      : 10;
 
     const generatedQuestions = ensureDifficulty(
       await generateQuizFromNotes(

@@ -232,7 +232,7 @@ export const QuizCreator = ({ className }: { className?: string }) => {
                   <FormLabel className="text-muted-foreground text-xs font-bold tracking-wider uppercase">
                     Quiz Type
                   </FormLabel>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {QUIZ_TYPES.map((type) => {
                       const selected = field.value === type;
 

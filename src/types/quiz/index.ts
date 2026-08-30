@@ -7,6 +7,8 @@ export type QuizReviewItem = {
   correctAnswer: string;
   explanation: string | null;
   isCorrect: boolean;
+  score?: number;
+  feedback?: string | null;
 };
 
 export type QuizResultSummary = {
@@ -19,6 +21,7 @@ export const quizTypeLabel: Record<QuizType, string> = {
   multiple_choice: "Multiple Choice",
   true_false: "True or False",
   identification: "Identification",
+  open_ended: "Open Ended",
 };
 
 export type QuizCardItem = {

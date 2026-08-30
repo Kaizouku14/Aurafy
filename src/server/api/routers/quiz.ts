@@ -10,7 +10,9 @@ import {
   getQuizSetByIdAndUser,
   getUserQuizSets,
   gradeQuizSubmission,
+  type QuizSubmissionAnswer,
 } from "@/lib/api/quiz/queries";
+import { evaluateOpenEndedAnswer } from "@/lib/ai/quiz-ai";
 import { QUIZ_TYPES, quizTypeSchema, type QuizType } from "@/types/quiz/schema";
 
 const normalizeQuizType = (value: string): QuizType => {
@@ -19,6 +21,41 @@ const normalizeQuizType = (value: string): QuizType => {
   }
 
   return "multiple_choice";
+};
+
+const gradeOpenEndedSubmission = async (
+  quizSetId: string,
+  answers: QuizSubmissionAnswer[],
+) => {
+  const answerMap = new Map(answers.map((a) => [a.questionId, a.userAnswer]));
+  const questions = await getQuizQuestionsBySetId(quizSetId);
+  const reviews = [];
+
+  for (const question of questions) {
+    const userAnswer = answerMap.get(question.id) ?? "";
+    const evaluation = await evaluateOpenEndedAnswer(
+      question.prompt,
+      question.correctAnswer,
+      userAnswer,
+    );
+
+    reviews.push({
+      questionId: question.id,
+      prompt: question.prompt,
+      userAnswer,
+      correctAnswer: question.correctAnswer,
+      explanation: question.explanation,
+      score: evaluation.score,
+      feedback: evaluation.error ?? evaluation.feedback,
+      isCorrect: evaluation.score >= 3,
+    });
+  }
+
+  return {
+    score: reviews.filter((item) => item.isCorrect).length,
+    total: reviews.length,
+    review: reviews,
+  };
 };
 
 export const quizRouter = createTRPCRouter({
@@ -84,11 +121,14 @@ export const quizRouter = createTRPCRouter({
         throw new TRPCError({ code: "NOT_FOUND", message: "Quiz not found" });
       }
 
-      const graded = await gradeQuizSubmission(
-        input.quizSetId,
-        input.quizType,
-        input.answers,
-      );
+      const graded =
+        input.quizType === "open_ended"
+          ? await gradeOpenEndedSubmission(input.quizSetId, input.answers)
+          : await gradeQuizSubmission(
+              input.quizSetId,
+              input.quizType,
+              input.answers,
+            );
 
       const attemptId = nanoid();
       await createQuizAttempt({

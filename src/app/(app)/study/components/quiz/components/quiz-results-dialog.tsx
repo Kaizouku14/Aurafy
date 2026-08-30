@@ -68,17 +68,32 @@ export const QuizResultsDialog = ({
                     </span>
                   </p>
 
+                  {typeof item.score === "number" && (
+                    <p>
+                      <span className="font-black uppercase tracking-wide">AI Score: </span>
+                      <span className={item.score >= 4 ? "text-emerald-700" : item.score >= 2 ? "text-yellow-700" : "text-destructive"}>
+                        {item.score}/5
+                      </span>
+                    </p>
+                  )}
+
                   {!item.isCorrect && (
                     <p>
-                      <span className="font-black uppercase tracking-wide">Correct Answer: </span>
+                      <span className="font-black uppercase tracking-wide">Reference Answer: </span>
                       <span className="text-emerald-700">{item.correctAnswer}</span>
                     </p>
                   )}
 
-                  <p className="text-muted-foreground text-xs font-base pt-1">
-                    {item.isCorrect ? "Correct" : "Incorrect"}
-                    {item.explanation ? ` - ${item.explanation}` : ""}
-                  </p>
+                  {item.feedback ? (
+                    <p className="text-muted-foreground rounded-base bg-background/60 mt-2 border border-border p-3 text-xs leading-relaxed font-base whitespace-pre-wrap">
+                      {item.feedback}
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs font-base pt-1">
+                      {item.isCorrect ? "Correct" : "Incorrect"}
+                      {item.explanation ? ` - ${item.explanation}` : ""}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

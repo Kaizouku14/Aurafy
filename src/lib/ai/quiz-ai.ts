@@ -2,6 +2,11 @@ import { generateObject } from "ai";
 import { groq } from "@ai-sdk/groq";
 import { z } from "zod";
 import { MODELS } from "./models";
+import {
+  EVALUATE_OPEN_ENDED_PROMPT,
+  GENERATE_OPEN_ENDED_QUIZ_PROMPT,
+  OPEN_ENDED_FEEDBACK_SYSTEM_PROMPT,
+} from "./prompt";
 import type { QuizType } from "@/types/quiz/schema";
 
 const mcqSchema = z.object({
@@ -35,6 +40,16 @@ const identificationSchema = z.object({
       options: z.null(),
       correctAnswer: z.string().min(1),
       explanation: z.string().min(1),
+      difficulty: z.enum(["medium", "hard"]),
+    }),
+  ),
+});
+
+const openEndedSchema = z.object({
+  questions: z.array(
+    z.object({
+      prompt: z.string().min(10),
+      referenceAnswer: z.string().min(1),
       difficulty: z.enum(["medium", "hard"]),
     }),
   ),
@@ -116,11 +131,85 @@ export const generateQuizFromNotes = async (
     }));
   }
 
+  if (quizType === "identification") {
+    const { object } = await generateObject({
+      model: groq(MODELS.default),
+      schema: identificationSchema,
+      prompt: buildPrompt(notes, quizType, count),
+    });
+
+    return object.questions.slice(0, count);
+  }
+
+  return generateOpenEndedQuizFromNotes(notes, count);
+};
+
+export type OpenEndedQuestion = {
+  prompt: string;
+  options: null;
+  correctAnswer: string;
+  explanation: string;
+  difficulty: "medium" | "hard";
+};
+
+export const generateOpenEndedQuizFromNotes = async (
+  notes: string,
+  count = 10,
+): Promise<OpenEndedQuestion[]> => {
   const { object } = await generateObject({
     model: groq(MODELS.default),
-    schema: identificationSchema,
-    prompt: buildPrompt(notes, quizType, count),
+    schema: openEndedSchema,
+    prompt: GENERATE_OPEN_ENDED_QUIZ_PROMPT(notes, count),
   });
 
-  return object.questions.slice(0, count);
+  return object.questions.slice(0, count).map((question) => ({
+    prompt: question.prompt,
+    options: null,
+    correctAnswer: question.referenceAnswer,
+    explanation: "",
+    difficulty: question.difficulty,
+  }));
 };
+
+export async function evaluateOpenEndedAnswer(
+  prompt: string,
+  referenceAnswer: string,
+  userAnswer: string,
+) {
+  if (!userAnswer || userAnswer.trim() === "") {
+    return {
+      score: 0,
+      feedback:
+        "You didn't provide an answer. Review the concept and try again!",
+      error: null,
+    };
+  }
+
+  const { object } = await generateObject({
+    model: groq(MODELS.evaluation),
+    schema: z.object({
+      score: z
+        .number()
+        .min(0)
+        .max(5)
+        .describe(
+          "Score from 0 to 5. 5 = ideal match to the reference answer. 4 = minor omission but correct. 3 = acceptable, partial understanding. 1-2 = mostly incorrect. 0 = wrong, irrelevant, or empty.",
+        ),
+      feedback: z
+        .string()
+        .describe(
+          "Encouraging, actionable feedback based on the OPEN_ENDED_FEEDBACK_SYSTEM_PROMPT rules: warm and instructive, actionable, never restating the question or answer verbatim, no numeric grades. 2-3 short cohesive paragraphs or bullet points.",
+        ),
+      error: z
+        .string()
+        .nullable()
+        .describe(
+          "If the answer is gibberish, profanity, spam, or completely off-topic, briefly explain that here. Otherwise null.",
+        ),
+    }),
+    system: OPEN_ENDED_FEEDBACK_SYSTEM_PROMPT,
+    prompt: EVALUATE_OPEN_ENDED_PROMPT(prompt, referenceAnswer, userAnswer),
+  });
+
+  return object;
+}

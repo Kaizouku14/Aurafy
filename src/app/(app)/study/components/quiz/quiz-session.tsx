@@ -99,12 +99,15 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
     }
   };
 
+  const isTyping = (e: React.KeyboardEvent) =>
+    e.target instanceof HTMLTextAreaElement;
+
   return (
     <>
       <div
         className="animate-fade-enter mx-auto flex size-full max-w-4xl flex-col p-3 sm:p-4 md:p-8"
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !disabled) {
+          if (e.key === "Enter" && !disabled && !isTyping(e)) {
             void goNext();
           }
         }}
@@ -135,6 +138,7 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
             options={currentQuestion.options}
             currentAnswer={currentAnswer}
             onChange={setAnswer}
+            quizType={quiz.quizType}
           />
           <QuizSessionFooter
             isPending={submitAttempt.isPending}

@@ -1,44 +1,35 @@
 import { INTENT } from "@/constants/chat";
 
 export const GET_INTENT_PROMPT = (message: string, previousAssistantMessage = "") => `
-You are an intent classifier for a music chatbot called Aurafy.
+Classify the user's message into exactly one intent for Aurafy, a music chatbot. Extract fields per the rules below.
 
-Classify the user's message into exactly one intent and extract relevant fields.
-
-### Context
-Previous Assistant Message: "${previousAssistantMessage}"
+Previous assistant message: "${previousAssistantMessage}"
+User message: "${message}"
 
 ### Intents
-- **play_mood**: The user is describing how they feel, their energy level, or asking for music that matches a mood.
-  Examples: "I'm feeling happy", "play something chill", "I need energy", "feeling down today"
-- **play_song**: The user wants a specific song played. Extract the song title and optionally the artist.
-  Examples: "play Blinding Lights", "play Bohemian Rhapsody by Queen", "can you play that song", "play the one you mentioned"
-- **play_artist**: The user wants music by a specific artist. Extract the artist name.
-  Examples: "play Taylor Swift", "I want to hear some Drake", "put on The Weeknd"
-- **others**: General conversation, questions, greetings, or anything that doesn't fit the above.
-  Examples: "hello", "what can you do?", "thanks", "how does this work?"
+- play_mood: user describes a feeling/energy level or asks for music matching a mood ("I'm feeling happy", "play something chill").
+- play_song: user wants a specific song. Extract songTitle (and artist if stated) ("play Blinding Lights", "play Bohemian Rhapsody by Queen").
+- play_artist: user wants music by an artist. Extract artist ("play Taylor Swift").
+- others: anything else (greetings, questions, thanks, small talk).
 
 ### Rules
-1. If the user says "play that", "play it", or references a previously mentioned song, classify as play_song and set songTitle to the referenced song if identifiable from context, otherwise set songTitle to null.
-2. Only set songTitle when the user explicitly mentions or references a specific song.
-3. Only set artist when the user explicitly mentions an artist name.
-4. When in doubt between play_mood and others, prefer play_mood if the message contains any emotional or energy language.
+1. "play that / play it / that song" referencing a prior turn → play_song; set songTitle from previousAssistantMessage if identifiable, else null.
+2. Set songTitle/artist ONLY when explicitly named or resolvable per rule 1 — never guess.
+3. Ambiguous between play_mood and others → play_mood if any emotional/energy language is present.
 
-### Output format
-Return a JSON object with:
-- intent: one of ${JSON.stringify(INTENT)}
-- songTitle: string or null
-- artist: string or null
-
-User message: "${message}"
+### Output
+Return ONLY this JSON object, no other text:
+{"intent": one of ${JSON.stringify(INTENT)}, "songTitle": string|null, "artist": string|null}
 `;
 
-export const GET_MOOD_PROMPT = (message: string) =>
-  `Detect the primary mood from this message. Choose the mood that best matches the emotional tone.
-Available moods: happy, calm, sad, energetic, stressed, focused.
-Also estimate energy (0-1), valence (0-1), and your confidence (0-1) in the classification.
+export const GET_MOOD_PROMPT = (message: string) => `Classify the primary mood of this message, choosing the single best match.
 
-Message: "${message}"`;
+Available moods: happy, calm, sad, energetic, stressed, focused.
+
+Message: "${message}"
+
+Return ONLY this JSON object, no other text:
+{"mood": one of the moods above, "energy": number 0-1, "valence": number 0-1, "confidence": number 0-1}`;
 
 export const CONVERSATIONAL_SYSTEM_PROMPT = (
   recentTopics: string,
@@ -46,53 +37,111 @@ export const CONVERSATIONAL_SYSTEM_PROMPT = (
 ) => {
   const allowPlaybackOffers = options?.allowPlaybackOffers ?? true;
 
-  return `
-You are Aurafy, a friendly mood and music assistant.
-You help users discover music based on how they feel and support them with study tools.
-Keep all replies short, casual, and conversational — 1 to 2 sentences only.
-Do not use emojis excessively. Sound natural and human.
+  return `You are Aurafy, a friendly mood and music assistant. You help users discover music based on how they feel and support them with study tools.
+
+Reply in 1-2 short, casual, natural sentences. Use emojis sparingly, if at all.
 
 ${
   allowPlaybackOffers
-    ? "When you suggest a song, always mention it clearly by name so the user can ask to play it."
-    : "Do not offer to play songs and do not ask playback-style questions. Keep responses purely conversational and helpful."
+    ? "When suggesting a song, name it explicitly so the user can ask to play it."
+    : "Do not offer to play songs or ask playback-style questions — stay purely conversational."
 }
 
-You have context from previous conversations with this user:
-${recentTopics}
-`;
+Prior context with this user:
+${recentTopics}`;
 };
 
-export const GENERATE_CARDS_PROMPT = (notes: string) => `You are an expert educator. Extract the core concepts, terms, and facts from the following notes and generate a deck of flashcards. Keep the 'front' succinct and clear. Keep the 'back' concise but fully accurate.
+export const GENERATE_CARDS_PROMPT = (notes: string) => `Extract the core concepts, terms, and facts from the notes below and generate flashcards. Use only information present in the notes — do not add outside facts.
+
+- front: a succinct, clear prompt or term.
+- back: a concise, fully accurate answer.
+- Maximum 20 cards.
 
 Notes:
-${notes}`;
+${notes}
 
-export const EVALUATE_ANSWER_PROMPT = (front: string, back: string, userAnswer: string) => `You are an expert tutor evaluating a student's answer to a flashcard.
-Your goal is to test if the student grasps the underlying CONCEPTS, not just if they memorized the exact wording.
-If their answer means the same thing logically, score them highly. If they missed a critical nuance, score them lower and explain why.
+Return ONLY this JSON object, no other text:
+{"cards": [{"front": string, "back": string}]}`;
+
+export const GENERATE_OPEN_ENDED_QUIZ_PROMPT = (notes: string, count: number) => `Generate exactly ${count} open-ended comprehension questions from the notes below, testing understanding, reasoning, and application — not recall. Base every question and answer only on the notes; do not introduce outside facts.
+
+- Each question must be unambiguous and answerable from the notes.
+- No yes/no or multiple-choice questions.
+- Spread questions across cognitive levels: understanding, analysis, application, evaluation.
+- Each question has difficulty "medium" or "hard".
+- Each question has a reference answer: accurate, detailed, naturally phrased.
+
+Notes:
+${notes}
+
+Return ONLY this JSON object, no other text:
+{"questions": [{"prompt": string, "difficulty": "medium"|"hard", "referenceAnswer": string}]}`;
+
+export const OPEN_ENDED_FEEDBACK_SYSTEM_PROMPT = `You are an AI tutor giving feedback on a student's answer to a comprehension question, comparing it against a reference answer.
+
+Feedback must:
+- Note what the student understood correctly.
+- Identify misconceptions, missing key ideas, or factual errors.
+- Give clear, actionable suggestions for improvement.
+- Use a warm, instructive tone — never robotic, judgmental, or a bare "Good job."
+- Never quote the question or answer verbatim; discuss meaning and improvement.
+- Be self-contained (understandable without external context).
+- Run 2-3 short paragraphs or bullet points.
+- If the answer is off-topic, gently redirect the student without revealing the reference answer outright.
+
+Scoring:
+- 5 = ideal match to the reference answer; 4 = minor omission but correct; 3 = acceptable, partial understanding; 1-2 = mostly incorrect; 0 = wrong, irrelevant, or empty.
+
+If the answer is irrelevant, nonsensical, or inappropriate (gibberish, profanity, spam), do not give feedback — set "error" to a short explanation and set "feedback" to an empty string.
+
+Return ONLY this JSON object, no other text:
+{"score": number 0-5, "feedback": string, "error": string|null} — "error" is null unless the answer is gibberish, profanity, spam, or completely off-topic.`;
+
+export const EVALUATE_OPEN_ENDED_PROMPT = (
+  prompt: string,
+  referenceAnswer: string,
+  userAnswer: string,
+) => `Evaluate the student's answer against the reference answer for this comprehension question.
+
+Question:
+${prompt}
+
+Reference Answer:
+${referenceAnswer}
+
+Student's Answer:
+${userAnswer}`;
+
+export const EVALUATE_ANSWER_PROMPT = (front: string, back: string, userAnswer: string) => `Evaluate whether the student's answer demonstrates the same underlying concept as the true answer — exact wording doesn't matter. Score highly if the meaning matches; score lower and explain if a critical nuance is missing.
+
+Scoring: 5 = perfect conceptual match; 4 = minor omission but correct; 3 = partially correct; 1-2 = mostly incorrect; 0 = completely wrong.
 
 Card Question (Front): ${front}
 True Answer (Back): ${back}
+Student's Answer: ${userAnswer}
 
-Student's Answer: ${userAnswer}`;
+Return ONLY this JSON object, no other text:
+{"score": number 0-5, "feedback": string} — feedback is 1-2 sentences: explain why the score was given, what was correct, and any misconceptions against the true answer.`;
 
 export const GENERATE_STUDY_PLAN_PROMPT = (
   subjects: string,
   startDate: string,
   endDate: string,
   hoursPerDay: number
-) => `You are an expert academic planner. Generate a detailed, day-by-day study schedule.
+) => `Generate a realistic, day-by-day study schedule.
 
-Subjects and their exam dates:
+Subjects and exam dates:
 ${subjects}
 
-Schedule period: ${startDate} to ${endDate}
-Available study hours per day: ${hoursPerDay}
+Period: ${startDate} to ${endDate}
+Study hours available per day: ${hoursPerDay}
 
 Rules:
-- Distribute subjects evenly, but prioritize subjects whose exams are sooner.
-- Each day should have concrete study blocks with a subject, activity type (e.g., "Review flashcards", "Read chapter", "Practice problems", "Pomodoro deep work"), and a duration in minutes.
+- Distribute subjects evenly, prioritizing those with nearer exams.
+- Increase a subject's frequency as its exam approaches.
+- Each day has ordered blocks; every block has a start time ("HH:MM"), subject, activity type (e.g. "Review flashcards", "Read chapter", "Practice problems", "Pomodoro deep work"), and duration in minutes.
 - Include short breaks between blocks.
-- As an exam approaches, increase that subject's frequency.
-- Keep the schedule realistic and achievable.`;
+- Do not exceed the daily hour budget.
+
+Return ONLY this JSON object, no other text:
+{"days": [{"date": string, "blocks": [{"time": string, "subject": string, "activity": string, "duration": number}]}]}`;

@@ -4,6 +4,7 @@ export const QUIZ_TYPES = [
   "multiple_choice",
   "true_false",
   "identification",
+  "open_ended",
 ] as const;
 
 export const quizTypeSchema = z.enum(QUIZ_TYPES);

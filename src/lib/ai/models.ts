@@ -1,4 +1,4 @@
 export const MODELS = {
-  default: "meta-llama/llama-4-scout-17b-16e-instruct",
+  default: "qwen/qwen3.6-27b",
   evaluation: "openai/gpt-oss-120b",
 } as const;

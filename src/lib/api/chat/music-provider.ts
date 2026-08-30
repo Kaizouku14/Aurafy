@@ -17,6 +17,12 @@ import {
 
 export type ProviderUserLibrary = SpotifyUserLibrary | YtMusicUserLibrary;
 
+export interface MoodProfile {
+  energy: number;
+  valence: number;
+  tempo: number;
+}
+
 export interface ProviderResolutionInput {
   preferredProvider?: ProviderId;
   hasSpotifyAuth?: boolean;
@@ -55,12 +61,14 @@ export const handleMoodByProvider = async (
   userId: string,
   mood: Mood,
   library: ProviderUserLibrary,
+  queries: string[],
+  profile: MoodProfile,
 ) => {
   if (provider === "spotify") {
-    return handleSpotifyMood(userId, mood, library);
+    return handleSpotifyMood(userId, mood, library, queries, profile);
   }
 
-  return handleYtMusicMood(userId, mood, library);
+  return handleYtMusicMood(userId, mood, queries);
 };
 
 export const handleSongByProvider = async (

@@ -40,12 +40,12 @@ const Conversation = () => {
           <p className="text-foreground text-sm font-black tracking-tight">
             Aurafy Chat
           </p>
-          <p className="text-muted-foreground text-[11px]">via Groq · Llama-4</p>
+          <p className="text-muted-foreground text-[11px]">via Groq · GPT-OSS-20b</p>
         </div>
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 ">
         <div className="p-3">
           {messages.length === 0 ? (
             <ChatEmpty onSuggestion={handleSend} />

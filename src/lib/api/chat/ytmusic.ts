@@ -1,4 +1,8 @@
-import { MOOD_MAP, type Mood } from "@/constants/chat";
+import { desc, eq } from "drizzle-orm";
+import { db } from "@/server/db";
+import { chat } from "@/server/db/schema";
+import { INTENT_LABELS } from "@/constants/chat";
+import type { ChatMetadata } from "@/types/schema/chat";
 import YTMusic from "ytmusic-api";
 
 type TrackShape = {
@@ -16,12 +20,13 @@ export interface UserLibrary {
   topArtists: string[];
 }
 
-type YtMusicResult = {
+type YtTrackResult = {
+  type?: "SONG" | "VIDEO";
   videoId: string;
   name: string;
   artist: { name: string };
-  album: { name: string } | null;
-  duration: number | null;
+  album?: { name: string } | null;
+  duration?: number | null;
   thumbnails: Array<{ url: string }>;
 };
 
@@ -42,7 +47,7 @@ const getYtMusicClient = async (): Promise<YTMusic> => {
   return ytmusicClientPromise;
 };
 
-const mapTrack = (result: YtMusicResult): TrackShape => ({
+const mapTrack = (result: YtTrackResult): TrackShape => ({
   id: `ytmusic:${result.videoId}`,
   title: result.name,
   artist: result.artist.name,
@@ -64,42 +69,74 @@ const deduplicateTracks = (tracks: TrackShape[]): TrackShape[] => {
   });
 };
 
-const searchTracks = async (
-  _userId: string,
-  query: string,
-  limit = 10,
-): Promise<TrackShape[]> => {
+const searchTracks = async (query: string, limit = 10): Promise<TrackShape[]> => {
   const client = await getYtMusicClient();
-  const songs = (await client.searchSongs(query)) as YtMusicResult[];
-
-  console.log("Songs", songs);
+  const songs = await client.searchSongs(query);
   return songs.slice(0, limit).map(mapTrack);
 };
 
+const getPlaylistTracks = async (
+  query: string,
+  limit = 4,
+): Promise<TrackShape[]> => {
+  const client = await getYtMusicClient();
+  const playlists = await client.searchPlaylists(query);
+  const playlist = playlists[0];
+  if (!playlist?.playlistId) return [];
+
+  const videos = await client.getPlaylistVideos(playlist.playlistId);
+  return videos.slice(0, limit).map(mapTrack);
+};
+
 export const fetchUserLibrary = async (
-  _userId: string,
+  userId: string,
 ): Promise<UserLibrary> => {
-  return { topArtists: [] };
+  try {
+    const rows = await db
+      .select({ metadata: chat.metadata })
+      .from(chat)
+      .where(eq(chat.userId, userId))
+      .orderBy(desc(chat.createdAt))
+      .limit(100);
+
+    const artists: string[] = [];
+
+    for (const row of rows) {
+      if (!row.metadata) continue;
+      try {
+        const meta = JSON.parse(row.metadata) as ChatMetadata;
+        if (
+          (meta.intent === INTENT_LABELS.PLAY_ARTIST ||
+            meta.intent === INTENT_LABELS.PLAY_SONG) &&
+          meta.artist
+        ) {
+          artists.push(meta.artist);
+        }
+      } catch {
+        // skip malformed metadata
+      }
+    }
+
+    return { topArtists: [...new Set(artists)].slice(0, 6) };
+  } catch (error) {
+    console.warn("[ytmusic] Failed to load top artists:", error);
+    return { topArtists: [] };
+  }
 };
 
 export const handleYtMusicMood = async (
   _userId: string,
-  mood: Mood,
-  _library: UserLibrary,
+  _mood: string,
+  queries: string[],
 ): Promise<TrackShape[]> => {
-  const { genres } = MOOD_MAP[mood];
-  const [primary, secondary] = genres;
-
-  const queries = [
-    [primary, "study"].filter(Boolean).join(" "),
-    [secondary, "playlist"].filter(Boolean).join(" "),
-  ];
-
   const results = await Promise.all(
-    queries.map((query) => searchTracks(_userId, query, 10)),
+    queries.map(async (query) => {
+      const fromPlaylist = await getPlaylistTracks(query);
+      if (fromPlaylist.length > 0) return fromPlaylist;
+      return (await searchTracks(query, 10)).slice(0, 4);
+    }),
   );
 
-  console.dir(results, { depth: null });
   return deduplicateTracks(results.flat()).slice(0, 10);
 };
 
@@ -109,12 +146,12 @@ export const handleYtMusicSong = async (
   artist?: string | null,
 ): Promise<TrackShape[]> => {
   const query = artist ? `${songTitle} ${artist}` : songTitle;
-  return searchTracks(_userId, query, 10);
+  return searchTracks(query, 10);
 };
 
 export const handleYtMusicArtist = async (
   _userId: string,
   artist: string,
 ): Promise<TrackShape[]> => {
-  return searchTracks(_userId, `artist ${artist}`, 10);
+  return searchTracks(`artist ${artist}`, 10);
 };

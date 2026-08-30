@@ -4,7 +4,10 @@ import { getSpotifyToken } from "@/server/better-auth/server";
 import { INTENT_LABELS } from "@/constants/chat";
 import type { ProviderId } from "@/types/music-provider";
 import { classifyIntent } from "@/lib/api/chat/intent";
-import { loadChatHistory } from "@/lib/api/chat/memory";
+import {
+  loadChatHistory,
+  buildRecentTopics,
+} from "@/lib/api/chat/memory";
 import {
   fetchUserLibraryByProvider,
   resolveChatProvider,
@@ -83,7 +86,13 @@ export const POST = async (req: Request) => {
 
   switch (intent.intent) {
     case INTENT_LABELS.PLAY_MOOD:
-      return handleMoodIntent(userId, userText, library, provider);
+      return handleMoodIntent(
+        userId,
+        userText,
+        library,
+        provider,
+        buildRecentTopics(history),
+      );
     case INTENT_LABELS.PLAY_SONG:
       return handleSongIntent(userId, userText, intent, provider);
     case INTENT_LABELS.PLAY_ARTIST:

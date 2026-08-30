@@ -2,6 +2,8 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import type { UIMessage } from "ai";
 import { ROLES_LABELS } from "@/constants/role";
+import type { Track } from "@/types/schema/chat";
+import ChatTrackList from "./chat-track-list";
 
 interface ChatBubbleProps {
   message: UIMessage;
@@ -9,6 +11,10 @@ interface ChatBubbleProps {
 
 const ChatBubble: React.FC<ChatBubbleProps> = React.memo(({ message }) => {
   const isUser = message.role === ROLES_LABELS.USER;
+
+  const tracksPart = message.parts.find(
+    (part) => part.type === "data-tracks",
+  ) as { type: "data-tracks"; data: Track[] } | undefined;
 
   return (
     <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
@@ -27,6 +33,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = React.memo(({ message }) => {
             </span>
           ) : null,
         )}
+        {tracksPart && <ChatTrackList tracks={tracksPart.data} />}
       </div>
     </div>
   );

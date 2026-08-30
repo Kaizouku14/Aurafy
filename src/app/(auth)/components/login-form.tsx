@@ -87,7 +87,7 @@ export default function LoginForm() {
 
         <div className="relative z-10 hidden pt-8 lg:block">
           <p className="text-main-foreground/40 text-[10px] font-bold tracking-[0.15em] uppercase">
-            System: qwen/qwen3.6-27b // openai/gpt-oss-120b
+            System: qwen/qwen3.6-27b // openai/gpt-oss-120b/20b
           </p>
         </div>
       </section>

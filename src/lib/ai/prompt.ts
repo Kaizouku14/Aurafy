@@ -31,6 +31,24 @@ Message: "${message}"
 Return ONLY this JSON object, no other text:
 {"mood": one of the moods above, "energy": number 0-1, "valence": number 0-1, "confidence": number 0-1}`;
 
+export const GET_MOOD_QUERIES_PROMPT = (
+  message: string,
+  mood: string,
+  context: string,
+) => `Craft music search queries that capture how the user is feeling right now, so a search engine can surface matching tracks.
+
+User's message: "${message}"
+Detected mood: ${mood}
+${context}
+
+Write exactly 4 search queries using rich, niche, specific musical language — genre + descriptor + vibe — e.g. "lofi hip hop with rain sounds", "dreamy chill electronica", "soft indie folk warm blanket".
+- Never use a single generic word like "pop" or "jazz" — always pair it with a feeling/atmosphere descriptor.
+- Each query must feel different from the others (mix sub-genres and vibes).
+- Keep every query lowercase, 2-5 words, and free of quotes, punctuation, or search-operator characters.
+
+Return ONLY this JSON object, no other text:
+{"queries": ["query 1", "query 2", "query 3", "query 4"]}`;
+
 export const CONVERSATIONAL_SYSTEM_PROMPT = (
   recentTopics: string,
   options?: { allowPlaybackOffers?: boolean },

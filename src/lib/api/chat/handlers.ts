@@ -9,6 +9,7 @@ import { groq } from "@/lib/ai/groq";
 import { MODELS } from "@/lib/ai/models";
 import { CONVERSATIONAL_SYSTEM_PROMPT, GET_MOOD_PROMPT } from "@/lib/ai/prompt";
 import { INTENT_LABELS } from "@/constants/chat";
+import { MOOD_MAP } from "@/constants/chat";
 import type { ProviderId } from "@/types/music-provider";
 import { generateMoodSchema } from "@/types/schema/chat";
 import type { GenerateIntent, ChatMetadata } from "@/types/schema/chat";
@@ -17,6 +18,7 @@ import {
   handleMoodByProvider,
   handleSongByProvider,
   type ProviderUserLibrary,
+  type MoodProfile,
 } from "./music-provider";
 import {
   buildRecentTopics,
@@ -24,6 +26,7 @@ import {
   saveChatExchange,
 } from "./memory";
 import { createTextWithTracksResponse } from "./response";
+import { generateMoodQueries } from "./mood-queries";
 
 type ChatHistory = Awaited<ReturnType<typeof loadChatHistory>>;
 
@@ -46,6 +49,7 @@ export const handleMoodIntent = async (
   userText: string,
   library: ProviderUserLibrary,
   provider: ProviderId,
+  recentTopics: string,
 ): Promise<Response> => {
   const { output: mood } = await generateText({
     model: groq(MODELS.default),
@@ -63,6 +67,21 @@ export const handleMoodIntent = async (
     return createTextWithTracksResponse(text);
   }
 
+  const [queries] = await Promise.all([
+    generateMoodQueries({
+      userText,
+      mood: mood.mood,
+      artistHints: library.topArtists,
+      recentTopics,
+    }),
+  ]);
+
+  const profile: MoodProfile = {
+    energy: mood.energy,
+    valence: mood.valence,
+    tempo: MOOD_MAP[mood.mood].tempo,
+  };
+
   const providerLabel = provider === "spotify" ? "Spotify" : "YouTube Music";
 
   try {
@@ -71,6 +90,8 @@ export const handleMoodIntent = async (
       userId,
       mood.mood,
       library,
+      queries,
+      profile,
     );
 
     const text = `I can feel you're in a ${mood.mood} mood. Let me find you some songs on ${providerLabel}.`;
@@ -177,7 +198,7 @@ export const handleConversation = async (
   const recentTopics = buildRecentTopics(history);
 
   const result = streamText({
-    model: groq(MODELS.default),
+    model: groq(MODELS.chat),
     system: CONVERSATIONAL_SYSTEM_PROMPT(recentTopics, options),
     temperature: 0.6,
     maxOutputTokens: 500,

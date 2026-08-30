@@ -1,9 +1,12 @@
 import { MOOD_MAP, type Mood } from "@/constants/chat";
 import { getSpotifyClient } from "@/lib/spotfiy/spotify";
 import { getErrorMessage } from "@/lib/utils";
-import type { Artist, Track } from "@spotify/web-api-ts-sdk";
+import type { Artist, Track, AudioFeatures } from "@spotify/web-api-ts-sdk";
 import { TRPCError } from "@trpc/server";
 import { cachedFetch } from "@/lib/spotfiy/spotify-cache";
+import type { MoodProfile } from "./music-provider";
+
+type MappedTrack = ReturnType<typeof mapTrack>;
 
 const mapTrack = (track: Track) => ({
   id: track.id,
@@ -29,14 +32,42 @@ const withSpotifyError = async <T>(fn: () => Promise<T>): Promise<T> => {
 };
 
 const deduplicateTracks = (
-  tracks: ReturnType<typeof mapTrack>[],
-): ReturnType<typeof mapTrack>[] => {
+  tracks: MappedTrack[],
+): MappedTrack[] => {
   const seen = new Set<string>();
   return tracks.filter((t) => {
     if (seen.has(t.id)) return false;
     seen.add(t.id);
     return true;
   });
+};
+
+const rankByMoodProfile = (
+  tracks: MappedTrack[],
+  features: AudioFeatures[],
+  profile: MoodProfile,
+): MappedTrack[] => {
+  const featureById = new Map(features.map((f) => [f.id, f]));
+  const targetTempo = profile.tempo / 200;
+
+  const scored = tracks.map((track) => {
+    const feature = featureById.get(track.id);
+    if (!feature) {
+      return { track, distance: Number.POSITIVE_INFINITY };
+    }
+
+    const tempoDelta = feature.tempo / 200 - targetTempo;
+    const distance = Math.sqrt(
+      Math.pow(feature.energy - profile.energy, 2) +
+        Math.pow(feature.valence - profile.valence, 2) +
+        Math.pow(tempoDelta, 2),
+    );
+
+    return { track, distance };
+  });
+
+  scored.sort((a, b) => a.distance - b.distance);
+  return scored.map((s) => s.track);
 };
 
 export const getUserTopArtists = async (userId: string): Promise<string[]> =>
@@ -68,40 +99,57 @@ export const handleSpotifyMood = async (
   userId: string,
   mood: Mood,
   library: UserLibrary,
+  queries: string[],
+  profile: MoodProfile,
 ) =>
-  cachedFetch(`moodTracks:${userId}:${mood}`, 2 * 60 * 1000, () =>
-    withSpotifyError(async () => {
-      const client = await getSpotifyClient(userId);
-      const { genres } = MOOD_MAP[mood];
-      const moodGenre = genres[0] ?? "";
-      const collected: ReturnType<typeof mapTrack>[] = [];
+  cachedFetch(
+    `moodTracks:${userId}:${mood}:${queries.join("|")}`,
+    2 * 60 * 1000,
+    () =>
+      withSpotifyError(async () => {
+        const client = await getSpotifyClient(userId);
 
-      if (library.topArtists.length > 0) {
-        const artistQueries = library.topArtists.slice(0, 3).map((artist) =>
-          client
-            .search(`genre:${moodGenre} artist:${artist}`, ["track"], undefined, 5)
-            .then((r) => r.tracks.items.map(mapTrack))
-            .catch(() => []),
+        const searchQueries = [
+          ...queries,
+          ...library.topArtists
+            .slice(0, 3)
+            .map((artist) => `${artist} ${queries[0] ?? MOOD_MAP[mood].genres[0] ?? ""}`),
+        ];
+
+        const results = await Promise.all(
+          searchQueries.map((query) =>
+            client
+              .search(query, ["track"], undefined, 10)
+              .then((r) => r.tracks.items.map(mapTrack))
+              .catch(() => []),
+          ),
         );
-        const results = await Promise.all(artistQueries);
-        collected.push(...results.flat());
-      }
 
-      if (collected.length >= 10) {
-        return deduplicateTracks(collected).slice(0, 10);
-      }
+        let collected = deduplicateTracks(results.flat());
 
-      const fallbackQuery = genres.join(" ");
-      const fallback = await client.search(
-        fallbackQuery,
-        ["track"],
-        undefined,
-        10,
-      );
-      collected.push(...fallback.tracks.items.map(mapTrack));
+        if (collected.length === 0) {
+          const { genres } = MOOD_MAP[mood];
+          const fallback = await client.search(
+            genres.join(" "),
+            ["track"],
+            undefined,
+            10,
+          );
+          collected = deduplicateTracks(fallback.tracks.items.map(mapTrack));
+        }
 
-      return deduplicateTracks(collected).slice(0, 10);
-    })
+        try {
+          const ids = [...new Set(collected.map((t) => t.id))].slice(0, 50);
+          if (ids.length > 0) {
+            const features = await client.tracks.audioFeatures(ids);
+            collected = rankByMoodProfile(collected, features, profile);
+          }
+        } catch (error) {
+          console.warn("[handleSpotifyMood] Audio feature ranking failed:", error);
+        }
+
+        return collected.slice(0, 10);
+      }),
   );
 
 export const handleSpotifySong = async (

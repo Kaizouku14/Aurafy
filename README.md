@@ -43,7 +43,7 @@
 
 ### AI & Integrations
 - **Vercel AI SDK** - Streaming UI capabilities and tool calling
-- **Groq** - Blazing fast LLM inference (`qwen/qwen3.6-27b` for general chat/mood, `openai/gpt-oss-120b` for deep reasoning flashcard evaluation)
+- **Groq** - Blazing fast LLM inference (`qwen/qwen3.6-27b`/`openai/gpt-oss-20b` for general chat/mood, `openai/gpt-oss-120b` for deep reasoning flashcard evaluation)
 - **Spotify Web API & Web Playback SDK** - Music context, search, and audio streaming
 
 ---

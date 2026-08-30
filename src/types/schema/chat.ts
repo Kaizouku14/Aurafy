@@ -39,6 +39,12 @@ export const generateMoodSchema = z.object({
 
 export type GenerateMood = z.infer<typeof generateMoodSchema>;
 
+export const generateMoodQueriesSchema = z.object({
+  queries: z.array(z.string()).min(3).max(5),
+});
+
+export type GenerateMoodQueries = z.infer<typeof generateMoodQueriesSchema>;
+
 export const trackSchema = z.array(
   z.object({
     id: z.string(),

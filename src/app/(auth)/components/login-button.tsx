@@ -38,7 +38,7 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
         <Icon className="size-6" />
       )}
       <span>{isLoading ? "Authenticating..." : ctaLabel}</span>
-      <MoveRight className="absolute right-4 size-5 translate-x-[-4px] opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
+      <MoveRight className="absolute right-4 size-5 translate-x-[-4px] opacity-0 transition-[transform,opacity] group-hover:translate-x-0 group-hover:opacity-100" />
     </button>
   );
 };

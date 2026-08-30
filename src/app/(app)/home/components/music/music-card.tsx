@@ -36,7 +36,17 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-pressed={isSelected}
       onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
       className={cn(
         "group flex w-full cursor-pointer items-center gap-3 px-2 py-2 text-left transition-colors",
         isSelected
@@ -75,19 +85,16 @@ const MusicCard: React.FC<MusicCardProps> = ({
 
       <div className="shrink-0">
         {isSelected ? (
-          <button
+          <span
+            aria-hidden="true"
             className="text-main flex items-center justify-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleClick();
-            }}
           >
             {isPlaying ? (
               <Pause className="size-3.5" />
             ) : (
               <Play className="size-3.5" />
             )}
-          </button>
+          </span>
         ) : (
           <span className="text-muted-foreground text-[11px]">
             {formatTime(Math.floor(track.duration))}

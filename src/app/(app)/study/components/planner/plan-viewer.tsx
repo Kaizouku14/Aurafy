@@ -21,7 +21,7 @@ export const PlanViewer = ({
   if (!plan) return null;
 
   return (
-    <div className="animate-in fade-in mx-auto flex size-full max-w-5xl flex-col p-3 duration-300 sm:p-4 md:p-8">
+    <div className="animate-fade-enter mx-auto flex size-full max-w-5xl flex-col p-3 sm:p-4 md:p-8">
       <div className="border-border mb-4 flex flex-col gap-3 border-b-4 pb-4 sm:mb-8 sm:flex-row sm:items-center sm:gap-4">
         <Button
           onClick={onBack}

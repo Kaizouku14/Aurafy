@@ -78,3 +78,24 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+@utility animate-fade-enter {
+  animation: fade-enter 0.3s ease-out;
+}
+
+@keyframes fade-enter {
+  from {
+    opacity: 0;
+  }
+}
+
+@utility animate-fade-up-enter {
+  animation: fade-up-enter 0.3s ease-out;
+}
+
+@keyframes fade-up-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}

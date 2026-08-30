@@ -6,3 +6,12 @@ allowBuilds:
   prisma: true
   sharp: true
   unrs-resolver: true
+
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - 'sileo@0.1.5'
+  - 'undici-types@6.21.0'
+  - 'eslint-import-resolver-typescript@3.10.1'
+  - 'chokidar@4.0.3'
+  - 'semver@6.3.1'

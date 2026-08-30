@@ -102,7 +102,7 @@ export const QuizSession = ({ quizSetId, onFinish }: QuizSessionProps) => {
   return (
     <>
       <div
-        className="animate-in fade-in mx-auto flex size-full max-w-4xl flex-col p-3 duration-300 sm:p-4 md:p-8"
+        className="animate-fade-enter mx-auto flex size-full max-w-4xl flex-col p-3 sm:p-4 md:p-8"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !disabled) {
             void goNext();

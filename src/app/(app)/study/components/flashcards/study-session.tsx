@@ -38,7 +38,7 @@ export const StudySession = ({
 
   if (!dueCards || dueCards.length === 0) {
     return (
-      <div className="animate-in fade-in zoom-in-95 flex h-full flex-1 flex-col items-center justify-center duration-300">
+      <div className="animate-fade-enter flex h-full flex-1 flex-col items-center justify-center">
         <div className="border-border rounded-base bg-main shadow-shadow mx-4 max-w-lg border-4 p-6 text-center sm:p-12">
           <BrainCircuit className="text-main-foreground mx-auto mb-4 size-14 sm:mb-6 sm:size-20" />
           <h2 className="text-main-foreground mb-4 text-xl font-black tracking-widest uppercase sm:text-3xl">
@@ -80,7 +80,7 @@ export const StudySession = ({
   };
 
   return (
-    <div className="animate-in fade-in mx-auto flex size-full max-w-4xl flex-col p-3 duration-300 sm:p-4 md:p-8">
+    <div className="animate-fade-enter mx-auto flex size-full max-w-4xl flex-col p-3 sm:p-4 md:p-8">
       <div className="mb-4 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 sm:gap-4">
           <Button
@@ -111,7 +111,7 @@ export const StudySession = ({
 
         {!feedback ? (
           <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4">
-            <div className="border-border rounded-base bg-secondary-background flex flex-1 flex-col overflow-hidden border-4 transition-all">
+            <div className="border-border rounded-base bg-secondary-background flex flex-1 flex-col overflow-hidden border-4">
               <div className="bg-border px-4 py-2">
                 <span className="text-muted-foreground text-xs font-bold tracking-widest uppercase">
                   Your Answer
@@ -129,7 +129,7 @@ export const StudySession = ({
             <Button
               type="submit"
               disabled={!userAnswer.trim() || submitReview.isPending}
-              className="bg-foreground text-background rounded-base hover:bg-main hover:text-main-foreground w-full border-4 border-transparent p-4 text-base font-black tracking-widest uppercase transition-all sm:p-6 sm:text-xl"
+              className="bg-foreground text-background rounded-base hover:bg-main hover:text-main-foreground w-full border-4 border-transparent p-4 text-base font-black tracking-widest uppercase transition-colors sm:p-6 sm:text-xl"
             >
               {submitReview.isPending ? (
                 <Loader2 className="size-6 animate-spin" />
@@ -139,7 +139,7 @@ export const StudySession = ({
             </Button>
           </form>
         ) : (
-          <div className="animate-in slide-in-from-bottom-4 flex flex-1 flex-col gap-6 duration-300">
+          <div className="animate-fade-up-enter flex flex-1 flex-col gap-6">
             <div className="border-border rounded-base bg-secondary-background border-4 p-6">
               <h3 className="text-muted-foreground mb-3 text-xs font-bold tracking-widest uppercase">
                 True Answer
@@ -168,7 +168,7 @@ export const StudySession = ({
 
             <Button
               onClick={handleNext}
-              className="bg-foreground text-background rounded-base hover:bg-muted mt-auto w-full gap-3 border-4 border-transparent p-4 text-base font-black tracking-widest uppercase transition-all sm:p-8 sm:text-xl"
+              className="bg-foreground text-background rounded-base hover:bg-muted mt-auto w-full gap-3 border-4 border-transparent p-4 text-base font-black tracking-widest uppercase transition-colors sm:p-8 sm:text-xl"
             >
               Next Card <ArrowRight className="size-6" />
             </Button>

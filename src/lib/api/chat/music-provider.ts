@@ -57,10 +57,10 @@ export const handleMoodByProvider = async (
   library: ProviderUserLibrary,
 ) => {
   if (provider === "spotify") {
-    return handleSpotifyMood(userId, mood, library as SpotifyUserLibrary);
+    return handleSpotifyMood(userId, mood, library);
   }
 
-  return handleYtMusicMood(userId, mood, library as YtMusicUserLibrary);
+  return handleYtMusicMood(userId, mood, library);
 };
 
 export const handleSongByProvider = async (

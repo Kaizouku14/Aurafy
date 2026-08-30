@@ -1,6 +1,13 @@
 "use client";
 
-import { motion, type HTMLMotionProps, type Variants } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  MotionConfig,
+  type HTMLMotionProps,
+  type Variants,
+} from "framer-motion";
 import { Children, isValidElement } from "react";
 
 interface StaggerListProps extends HTMLMotionProps<"div"> {
@@ -51,24 +58,28 @@ export const StaggerList = ({
   };
 
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      {...(animateExit && { exit: "exit" })}
-      className={className}
-      {...props}
-    >
-      {Children.map(children as React.ReactNode, (child) => {
-        if (isValidElement(child)) {
-          return (
-            <motion.div key={child.key ?? undefined} variants={item}>
-              {child}
-            </motion.div>
-          );
-        }
-        return child;
-      })}
-    </motion.div>
+    <MotionConfig reducedMotion="user">
+      <LazyMotion features={domAnimation}>
+        <m.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          {...(animateExit && { exit: "exit" })}
+          className={className}
+          {...props}
+        >
+          {Children.map(children as React.ReactNode, (child) => {
+            if (isValidElement(child)) {
+              return (
+                <m.div key={child.key ?? undefined} variants={item}>
+                  {child}
+                </m.div>
+              );
+            }
+            return child;
+          })}
+        </m.div>
+      </LazyMotion>
+    </MotionConfig>
   );
 };

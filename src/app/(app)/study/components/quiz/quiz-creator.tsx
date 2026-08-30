@@ -40,6 +40,14 @@ import {
 } from "@/types/quiz/schema";
 import { quizTypeLabel } from "@/types/quiz";
 
+const calculateMaxQuestions = (contentLength: number): number => {
+  if (contentLength < 1000) return 5;
+  if (contentLength < 2000) return 10;
+  if (contentLength < 5000) return 20;
+  if (contentLength < 8000) return 30;
+  return 40;
+};
+
 export const QuizCreator = ({ className }: { className?: string }) => {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -57,14 +65,6 @@ export const QuizCreator = ({ className }: { className?: string }) => {
       quizType: "multiple_choice",
     },
   });
-
-  const calculateMaxQuestions = (contentLength: number): number => {
-    if (contentLength < 1000) return 5;
-    if (contentLength < 2000) return 10;
-    if (contentLength < 5000) return 20;
-    if (contentLength < 8000) return 30;
-    return 40;
-  };
 
   const handleFile = (picked: File | undefined) => {
     if (!picked) return;

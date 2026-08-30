@@ -16,13 +16,11 @@ export const chatMetadataSchema = z.object({
 
 export type ChatMetadata = z.infer<typeof chatMetadataSchema>;
 
-export const saveChatExchangeSchema = userIdSchema.extend({
-  userMessage: z.string(),
-  assistantMessage: z.string(),
-  metadata: chatMetadataSchema.optional(),
-});
-
-export type SaveChatExchange = z.infer<typeof saveChatExchangeSchema>;
+export type SaveChatExchange = UserId & {
+  userMessage: string;
+  assistantMessage: string;
+  metadata?: ChatMetadata;
+};
 
 export const generateIntentSchema = z.object({
   intent: z.enum(INTENT),

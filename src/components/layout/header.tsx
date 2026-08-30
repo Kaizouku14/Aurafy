@@ -22,12 +22,14 @@ const Header = () => {
 
     const checkSpotifyLink = async () => {
       try {
-        const result = await authClient.getAccessToken({
-          providerId: "spotify",
-        });
+        const accountsResult = await authClient.listAccounts();
 
         if (mounted) {
-          setHasSpotifyLinked(Boolean(result.data?.accessToken));
+          setHasSpotifyLinked(
+            accountsResult.data?.some(
+              (account) => account.providerId === "spotify",
+            ) ?? false,
+          );
         }
       } catch {
         if (mounted) {

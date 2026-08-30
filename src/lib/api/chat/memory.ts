@@ -107,14 +107,3 @@ export const buildRecentTopics = (
     ? parts.join("\n")
     : "No notable context from previous conversations.";
 };
-
-export const clearChatHistory = async (input: UserId): Promise<void> => {
-  try {
-    await db.delete(chat).where(eq(chat.userId, input.userId));
-  } catch (error) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: getErrorMessage(error),
-    });
-  }
-};

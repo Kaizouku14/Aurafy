@@ -24,13 +24,13 @@ export const QuizCard = ({
   onSelect,
 }: QuizCardProps) => {
   return (
-    <div className="group border-border rounded-base bg-secondary-background shadow-shadow relative flex flex-col border-4 p-5 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
+    <div className="group border-border rounded-base bg-secondary-background shadow-shadow relative flex flex-col border-4 p-5 transition-[transform,box-shadow] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none">
       <Button
         variant="noShadow"
         size="icon"
         onClick={() => onDelete(quiz.id)}
         disabled={isDeleting}
-        className="rounded-base text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 cursor-pointer border-2 border-transparent bg-transparent transition-all group-hover:opacity-100 md:opacity-0"
+        className="rounded-base text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 cursor-pointer border-2 border-transparent bg-transparent transition-opacity group-hover:opacity-100 md:opacity-0"
       >
         <Trash2 className="size-4" />
       </Button>

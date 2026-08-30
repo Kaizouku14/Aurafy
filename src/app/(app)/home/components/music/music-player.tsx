@@ -45,6 +45,61 @@ interface MusicPlayerProps {
   onSeek?: (progress: number) => void;
 }
 
+type PlayControlProps = {
+  variant: "playing" | "paused";
+  disabled?: boolean;
+  onClick?: () => void;
+};
+
+const PlayControl = ({ variant, disabled, onClick }: PlayControlProps) => (
+  <Button
+    type="button"
+    variant="default"
+    size="icon"
+    onClick={onClick}
+    disabled={disabled}
+    className="size-9"
+    aria-label={variant === "playing" ? "Pause" : "Play"}
+  >
+    {variant === "playing" ? (
+      <Pause className="size-4" />
+    ) : (
+      <Play className="size-4" />
+    )}
+  </Button>
+);
+
+type VolumeControlProps = {
+  variant: "muted" | "unmuted";
+  disabled?: boolean;
+  onMute?: () => void;
+};
+
+const VolumeControl = ({
+  variant,
+  disabled,
+  onMute,
+}: VolumeControlProps) => (
+  <Button
+    type="button"
+    variant="neutral"
+    size="icon"
+    disabled={disabled}
+    className="size-8 disabled:opacity-40"
+    onDoubleClick={(e) => {
+      e.stopPropagation();
+      onMute?.();
+    }}
+    aria-label={variant === "muted" ? "Unmute" : "Mute"}
+  >
+    {variant === "muted" ? (
+      <VolumeX className="size-4" />
+    ) : (
+      <Volume2 className="size-4" />
+    )}
+  </Button>
+);
+
 const MusicPlayer: React.FC<MusicPlayerProps> = ({
   title = PLACEHOLDER.title,
   artist = PLACEHOLDER.artist,
@@ -89,23 +144,11 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="neutral"
-              size="icon"
+            <VolumeControl
+              variant={isMuted ? "muted" : "unmuted"}
               disabled={!hasSong}
-              className="size-8 disabled:opacity-40"
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                onMute?.();
-              }}
-            >
-              {isMuted ? (
-                <VolumeX className="size-4" />
-              ) : (
-                <Volume2 className="size-4" />
-              )}
-            </Button>
+              onMute={onMute}
+            />
           </PopoverTrigger>
           <PopoverContent
             className="bg-secondary-background w-34 p-3"
@@ -147,24 +190,16 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
           onClick={onPrev}
           disabled={!hasSong}
           className="size-8"
+          aria-label="Previous track"
         >
           <SkipBack className="size-3.5" />
         </Button>
 
-        <Button
-          type="button"
-          variant="default"
-          size="icon"
-          onClick={isPlaying ? onPause : onPlay}
+        <PlayControl
+          variant={isPlaying ? "playing" : "paused"}
           disabled={!hasSong}
-          className="size-9"
-        >
-          {isPlaying ? (
-            <Pause className="size-4" />
-          ) : (
-            <Play className="size-4" />
-          )}
-        </Button>
+          onClick={isPlaying ? onPause : onPlay}
+        />
 
         <Button
           type="button"
@@ -173,6 +208,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({
           onClick={onNext}
           disabled={!hasSong}
           className="size-8"
+          aria-label="Next track"
         >
           <SkipForward className="size-3.5" />
         </Button>

@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { Toaster } from "sileo";
-import { TRPCReactProvider } from "@/trpc/react";
+import { TRPCReactProvider } from "@/trpc/provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import NextTopLoader from "nextjs-toploader";

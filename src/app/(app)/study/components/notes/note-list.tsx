@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,16 @@ import { ListSection } from "../shared/list-section";
 import { ConfirmDeleteDialog } from "../shared/confirm-delete-dialog";
 import { useConfirmDelete } from "../shared/use-confirm-delete";
 import { sileo } from "sileo";
+
+const NoteDate = ({ date }: { date: Date | string }) => {
+  const [formatted, setFormatted] = useState("");
+
+  useEffect(() => {
+    setFormatted(new Date(date).toLocaleDateString());
+  }, [date]);
+
+  return formatted;
+};
 
 export const NoteList = ({
   onSelectNote,
@@ -138,8 +148,17 @@ export const NoteList = ({
           {notes?.map((note) => (
             <div
               key={note.id}
+              role="button"
+              tabIndex={0}
               onClick={() => onSelectNote(note.id)}
-              className="group border-border rounded-base bg-secondary-background shadow-shadow relative flex cursor-pointer flex-col border-4 p-5 transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+              onKeyDown={(e) => {
+                if (e.target !== e.currentTarget) return;
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectNote(note.id);
+                }
+              }}
+              className="group border-border rounded-base bg-secondary-background shadow-shadow relative flex cursor-pointer flex-col border-4 p-5 transition-[transform,box-shadow] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
             >
               <Button
                 variant="noShadow"
@@ -149,7 +168,7 @@ export const NoteList = ({
                   openConfirm(note.id);
                 }}
                 disabled={deleteNote.isPending}
-                className="rounded-base text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 cursor-pointer border-2 border-transparent bg-transparent transition-all group-hover:opacity-100 md:opacity-0"
+                className="rounded-base text-destructive hover:border-destructive hover:bg-destructive/10 absolute top-3 right-3 cursor-pointer border-2 border-transparent bg-transparent transition-opacity group-hover:opacity-100 md:opacity-0"
               >
                 <Trash2 className="size-4" />
               </Button>
@@ -163,7 +182,7 @@ export const NoteList = ({
                 </p>
               )}
               <div className="text-muted-foreground mt-auto text-xs font-bold tracking-wider uppercase">
-                {new Date(note.updatedAt).toLocaleDateString()}
+                <NoteDate date={note.updatedAt} />
               </div>
             </div>
           ))}

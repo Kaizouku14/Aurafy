@@ -137,7 +137,13 @@ export const handleSpotifyArtist = async (userId: string, artist: string) =>
     const artistId = artistResults.artists.items[0]?.id;
     if (!artistId) return [];
 
-    return trackResults.tracks.items
-      .filter((track) => track.artists.some((a) => a.id === artistId))
-      .map(mapTrack);
+    return trackResults.tracks.items.reduce<ReturnType<typeof mapTrack>[]>(
+      (matched, track) => {
+        if (track.artists.some((a) => a.id === artistId)) {
+          matched.push(mapTrack(track));
+        }
+        return matched;
+      },
+      [],
+    );
   });

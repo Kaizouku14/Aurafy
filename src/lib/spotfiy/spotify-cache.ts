@@ -14,9 +14,3 @@ export async function cachedFetch<T>(
   cache.set(key, { data, expiresAt: Date.now() + ttlMs });
   return data;
 }
-
-export function invalidateCache(keyPrefix: string) {
-  for (const key of cache.keys()) {
-    if (key.startsWith(keyPrefix)) cache.delete(key);
-  }
-}

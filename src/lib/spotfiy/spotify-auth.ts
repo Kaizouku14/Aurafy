@@ -7,8 +7,18 @@ export const fetchFreshToken = async (): Promise<string> => {
 
   tokenPromise = (async () => {
     try {
+      const accountsResult = await authClient.listAccounts();
+
+      const spotifyAccount = accountsResult.data?.find(
+        (account) => account.providerId === "spotify",
+      );
+
+      if (!spotifyAccount) {
+        throw new Error("No Spotify account linked");
+      }
+
       const result = await authClient.getAccessToken({
-        providerId: "spotify",
+        accountId: spotifyAccount.id,
       });
 
       if (result.error) {

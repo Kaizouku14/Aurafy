@@ -58,7 +58,7 @@ export const NoteEditor = ({
   if (!note) return null;
 
   return (
-    <div className="animate-in fade-in mx-auto flex size-full max-w-6xl flex-col p-3 duration-300 sm:p-4 md:p-6">
+    <div className="animate-fade-enter mx-auto flex size-full max-w-6xl flex-col p-3 sm:p-4 md:p-6">
       <div className="border-border mb-4 flex flex-col gap-3 border-b-4 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <Button

@@ -2,7 +2,7 @@ import { HeaderSkeleton } from "@/components/skeleton/header-skeleton";
 
 const Loading = () => {
   return (
-    <main className="animate-in fade-in mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 duration-300">
+    <main className="animate-fade-enter mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4">
       <HeaderSkeleton />
       <div className="flex flex-1 items-center justify-center">
         <div className="text-muted-foreground flex flex-col items-center gap-4">

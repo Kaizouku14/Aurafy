@@ -1,6 +1,12 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  MotionConfig,
+  type HTMLMotionProps,
+} from "framer-motion";
 
 interface FadeInProps extends HTMLMotionProps<"div"> {
   delay?: number;
@@ -27,29 +33,33 @@ export const FadeIn = ({
   };
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        ...directions[direction],
-      }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        y: 0,
-      }}
-      exit={{
-        opacity: 0,
-        ...directions[direction],
-      }}
-      transition={{
-        duration,
-        delay,
-        ease: "easeOut",
-      }}
-      className={className}
-      {...props}
-    >
-      {children}
-    </motion.div>
+    <MotionConfig reducedMotion="user">
+      <LazyMotion features={domAnimation}>
+        <m.div
+          initial={{
+            opacity: 0,
+            ...directions[direction],
+          }}
+          animate={{
+            opacity: 1,
+            x: 0,
+            y: 0,
+          }}
+          exit={{
+            opacity: 0,
+            ...directions[direction],
+          }}
+          transition={{
+            duration,
+            delay,
+            ease: "easeOut",
+          }}
+          className={className}
+          {...props}
+        >
+          {children}
+        </m.div>
+      </LazyMotion>
+    </MotionConfig>
   );
 };

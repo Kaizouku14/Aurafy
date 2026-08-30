@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import YouTubePlayer from "youtube-player";
+import PlayerStates from "youtube-player/dist/constants/PlayerStates";
 import { usePlayerStore } from "@/store/play-store";
 import { sileo } from "sileo";
 
@@ -69,7 +70,7 @@ export const YouTubePlayerProvider = () => {
         try {
           const state = await player.getPlayerState();
           if (isUnmounted) return;
-          if ((state as number) === 1) {
+          if (state === PlayerStates.PLAYING) {
             const current = await player.getCurrentTime();
             const duration = await player.getDuration();
             if (isUnmounted) return;

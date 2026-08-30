@@ -56,7 +56,7 @@ export const POST = async (req: Request) => {
   const resolvedProviderState = {
     preferredProvider:
       reqBody.providerState?.preferredProvider ??
-      (spotifyToken ? ("spotify" as ProviderId) : ("ytmusic" as ProviderId)),
+      (spotifyToken ? "spotify" : "ytmusic"),
     hasSpotifyAuth:
       reqBody.providerState?.hasSpotifyAuth ?? Boolean(spotifyToken),
     isSpotifyPremium: reqBody.providerState?.isSpotifyPremium ?? false,

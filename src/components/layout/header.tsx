@@ -118,7 +118,7 @@ const Header = () => {
           </span>
         </Button>
 
-        <Avatar className="h-8 w-8">
+        <Avatar className="size-8 hidden sm:inline">
           <AvatarImage
             src={user?.image ?? "https://github.com/shadcn.png"}
             alt={user?.name ?? "User"}

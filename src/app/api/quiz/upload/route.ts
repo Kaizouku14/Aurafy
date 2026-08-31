@@ -4,6 +4,7 @@ import { getSession } from "@/server/better-auth";
 import { generateQuizFromNotes } from "@/lib/ai/quiz-ai";
 import { createQuizQuestions, createQuizSet } from "@/lib/api/quiz/queries";
 import { quizTypeSchema } from "@/types/quiz/schema";
+import { assessStudyContent } from "@/lib/study/content-validation";
 
 export const runtime = "nodejs";
 
@@ -137,15 +138,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!finalNotes || finalNotes.trim().length < 40) {
-      return NextResponse.json(
-        {
-          error:
-            "Not enough content to generate a quiz. Provide valid notes or a text-based PDF.",
-        },
-        { status: 400 },
-      );
+    const assessment = await assessStudyContent(finalNotes);
+
+    if (!assessment.ok) {
+      return NextResponse.json({ error: assessment.message }, { status: 400 });
     }
+
+    finalNotes = assessment.normalized;
 
     // Calculate max questions based on content length
     const maxQuestionsAllowed = calculateMaxQuestions(finalNotes.length);

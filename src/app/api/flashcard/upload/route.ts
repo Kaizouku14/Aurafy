@@ -1,8 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/server/better-auth";
-import { nanoid } from "nanoid";
 import { generateCardsFromNotes } from "@/lib/ai/flashcard-ai";
-import { createDeckRecord, createCardsBatch } from "@/lib/api/flashcard/queries";
+import { assessStudyContent } from "@/lib/study/content-validation";
 
 export const runtime = "nodejs";
 
@@ -83,32 +82,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!finalNotes || finalNotes.trim().length < 10) {
-       return NextResponse.json({ error: "Not enough content to generate flashcards. Please provide valid notes or a text-based PDF." }, { status: 400 });
+    const assessment = await assessStudyContent(finalNotes);
+
+    if (!assessment.ok) {
+      return NextResponse.json({ error: assessment.message }, { status: 400 });
     }
 
-    const generatedCards = await generateCardsFromNotes(finalNotes);
+    const generatedCards = await generateCardsFromNotes(assessment.normalized);
 
     if (!generatedCards || generatedCards.length === 0) {
       return NextResponse.json({ error: "AI failed to generate any cards from the provided content." }, { status: 500 });
     }
 
-    const deckId = nanoid();
-    await createDeckRecord(deckId, session.user.id, subject, examDate);
-
-    const cardsToInsert = generatedCards.map((card: { front: string; back: string }) => ({
-      id: nanoid(),
-      deckId,
-      front: card.front,
-      back: card.back,
-    }));
-
-    await createCardsBatch(cardsToInsert);
-
     return NextResponse.json({
-        success: true,
-        deckId,
-        cardCount: cardsToInsert.length
+      success: true,
+      cards: generatedCards,
     });
 
   } catch (error: unknown) {

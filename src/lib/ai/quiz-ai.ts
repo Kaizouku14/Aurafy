@@ -8,6 +8,7 @@ import {
   OPEN_ENDED_FEEDBACK_SYSTEM_PROMPT,
 } from "./prompt";
 import type { QuizType } from "@/types/quiz/schema";
+import { dedupeByNormalized } from "@/lib/study/content-validation";
 
 const mcqSchema = z.object({
   questions: z.array(
@@ -115,7 +116,10 @@ export const generateQuizFromNotes = async (
       prompt: buildPrompt(notes, quizType, count),
     });
 
-    return validateMcq(object.questions).slice(0, count);
+    return dedupeByNormalized(validateMcq(object.questions), (q) => q.prompt).slice(
+      0,
+      count,
+    );
   }
 
   if (quizType === "true_false") {
@@ -125,10 +129,12 @@ export const generateQuizFromNotes = async (
       prompt: buildPrompt(notes, quizType, count),
     });
 
-    return object.questions.slice(0, count).map((question) => ({
-      ...question,
-      options: ["True", "False"] as ["True", "False"],
-    }));
+    return dedupeByNormalized(object.questions, (q) => q.prompt)
+      .slice(0, count)
+      .map((question) => ({
+        ...question,
+        options: ["True", "False"] as ["True", "False"],
+      }));
   }
 
   if (quizType === "identification") {
@@ -138,7 +144,7 @@ export const generateQuizFromNotes = async (
       prompt: buildPrompt(notes, quizType, count),
     });
 
-    return object.questions.slice(0, count);
+    return dedupeByNormalized(object.questions, (q) => q.prompt).slice(0, count);
   }
 
   return generateOpenEndedQuizFromNotes(notes, count);
@@ -162,13 +168,15 @@ export const generateOpenEndedQuizFromNotes = async (
     prompt: GENERATE_OPEN_ENDED_QUIZ_PROMPT(notes, count),
   });
 
-  return object.questions.slice(0, count).map((question) => ({
-    prompt: question.prompt,
-    options: null,
-    correctAnswer: question.referenceAnswer,
-    explanation: "",
-    difficulty: question.difficulty,
-  }));
+  return dedupeByNormalized(object.questions, (q) => q.prompt)
+    .slice(0, count)
+    .map((question) => ({
+      prompt: question.prompt,
+      options: null,
+      correctAnswer: question.referenceAnswer,
+      explanation: "",
+      difficulty: question.difficulty,
+    }));
 };
 
 export async function evaluateOpenEndedAnswer(

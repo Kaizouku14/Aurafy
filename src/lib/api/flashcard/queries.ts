@@ -2,17 +2,29 @@ import { db } from "@/server/db";
 import { flashcardDecks, flashcards, flashcardReviews } from "@/server/db/schema/flashcard";
 import { eq, and, sql, lte, isNull, or } from "drizzle-orm";
 
-export async function createDeckRecord(deckId: string, userId: string, subject: string, examDate: string) {
-  return db.insert(flashcardDecks).values({
-    id: deckId,
-    userId,
-    subject,
-    examDate,
+export async function createDeckWithCards(
+  deckId: string,
+  userId: string,
+  subject: string,
+  examDate: string,
+  cards: { id: string; front: string; back: string }[]
+) {
+  return db.transaction(async (tx) => {
+    await tx.insert(flashcardDecks).values({
+      id: deckId,
+      userId,
+      subject,
+      examDate,
+    });
+    await tx.insert(flashcards).values(
+      cards.map((card) => ({
+        id: card.id,
+        deckId,
+        front: card.front,
+        back: card.back,
+      }))
+    );
   });
-}
-
-export async function createCardsBatch(cards: { id: string; deckId: string; front: string; back: string }[]) {
-  return db.insert(flashcards).values(cards);
 }
 
 export async function getUserDecks(userId: string) {
@@ -54,6 +66,42 @@ export async function getDueCardsByDeck(deckId: string, todayStr: string) {
       )
     ),
   });
+}
+
+export async function getDeckCardsByDeck(deckId: string) {
+  return db.query.flashcards.findMany({
+    where: eq(flashcards.deckId, deckId),
+    orderBy: (cards, { asc }) => [asc(cards.createdAt)],
+  });
+}
+
+export async function createSingleCard(
+  cardId: string,
+  deckId: string,
+  front: string,
+  back: string
+) {
+  return db.insert(flashcards).values({
+    id: cardId,
+    deckId,
+    front,
+    back,
+  });
+}
+
+export async function updateCardContent(
+  cardId: string,
+  front: string,
+  back: string
+) {
+  return db
+    .update(flashcards)
+    .set({ front, back })
+    .where(eq(flashcards.id, cardId));
+}
+
+export async function deleteCardById(cardId: string) {
+  return db.delete(flashcards).where(eq(flashcards.id, cardId));
 }
 
 export async function getCardById(cardId: string) {

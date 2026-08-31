@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { api } from "@/trpc/react";
 import { DeckCreator } from "./deck-creator";
 import { Button } from "@/components/ui/button";
-import { Library, PlayCircle, Calendar, Trash2, Upload } from "lucide-react";
+import { Library, PlayCircle, Calendar, Trash2, Upload, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StaggerList } from "@/components/animation/stagger-list";
 import { ListSection } from "../shared/list-section";
@@ -14,8 +14,10 @@ import { sileo } from "sileo";
 
 export const DeckList = ({
   onSelectDeck,
+  onManageDeck,
 }: {
   onSelectDeck: (id: string, subject: string) => void;
+  onManageDeck: (id: string) => void;
 }) => {
   const { data: decks, isLoading } = api.flashcard.getDecks.useQuery();
   const utils = api.useUtils();
@@ -141,6 +143,16 @@ export const DeckList = ({
                     {deck.dueCardsCount}
                   </span>
                 </div>
+                <div className="flex items-center gap-2">
+                <Button
+                  variant="noShadow"
+                  size="icon"
+                  aria-label="Manage cards"
+                  onClick={() => onManageDeck(deck.id)}
+                  className="border-border text-foreground hover:bg-main hover:text-main-foreground h-11 w-11 cursor-pointer rounded-md border-2 bg-background font-bold transition-colors"
+                >
+                  <Pencil className="size-4" />
+                </Button>
                 <Button
                   onClick={() => onSelectDeck(deck.id, deck.subject)}
                   disabled={deck.dueCardsCount === 0}
@@ -149,6 +161,7 @@ export const DeckList = ({
                   <PlayCircle className="size-5" />
                   {deck.dueCardsCount === 0 ? "DONE" : "STUDY"}
                 </Button>
+                </div>
               </div>
             </div>
           ))}

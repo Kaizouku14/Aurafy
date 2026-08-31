@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api } from "@/trpc/react";
-import { Plus, Loader2, CalendarIcon } from "lucide-react";
+import { Plus, Loader2, CalendarIcon, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateDeckSchema, type CreateDeckInput } from "@/types/schema/flashcard";
@@ -21,18 +21,30 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
+
+type DraftCard = { front: string; back: string };
 
 export const DeckCreator = ({ className }: { className?: string }) => {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [draftCards, setDraftCards] = useState<DraftCard[] | null>(null);
 
   const utils = api.useUtils();
-  const router = useRouter();
+
+  const generateCards = api.flashcard.generateCards.useMutation();
+  const createDeck = api.flashcard.createDeck.useMutation({
+    onSuccess: () => {
+      void utils.flashcard.getDecks.invalidate();
+      setOpen(false);
+      form.reset();
+      setFile(null);
+      setDraftCards(null);
+    },
+  });
 
   const form = useForm<CreateDeckInput>({
     resolver: zodResolver(CreateDeckSchema),
@@ -42,16 +54,7 @@ export const DeckCreator = ({ className }: { className?: string }) => {
     },
   });
 
-  const createDeck = api.flashcard.createDeck.useMutation({
-    onSuccess: () => {
-      void utils.flashcard.getDecks.invalidate();
-      setOpen(false);
-      form.reset();
-      setFile(null);
-    }
-  });
-
-  const onSubmit = async (data: CreateDeckInput) => {
+  const onGenerate = async (data: CreateDeckInput) => {
     setUploadError("");
 
     if (!data.notes && !file) {
@@ -59,17 +62,17 @@ export const DeckCreator = ({ className }: { className?: string }) => {
       return;
     }
 
-    const dateStr = format(data.examDate, "yyyy-MM-dd");
+    setIsGenerating(true);
+    try {
+      let cards: DraftCard[] = [];
 
-    if (file) {
-      setIsUploading(true);
-      try {
+      if (file) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("subject", data.subject);
-        formData.append("examDate", dateStr);
+        formData.append("examDate", format(data.examDate, "yyyy-MM-dd"));
         if (data.notes) {
-           formData.append("notes", data.notes);
+          formData.append("notes", data.notes);
         }
 
         const res = await fetch("/api/flashcard/upload", {
@@ -82,24 +85,47 @@ export const DeckCreator = ({ className }: { className?: string }) => {
           throw new Error(errorData.error ?? "Failed to parse PDF and generate deck");
         }
 
-        void utils.flashcard.getDecks.invalidate();
-        setOpen(false);
-        form.reset();
-        setFile(null);
-        router.refresh();
-        router.refresh();
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setUploadError(err.message ?? "An unexpected error occurred during file upload.");
-        } else {
-          setUploadError("An unexpected error occurred during file upload.");
-        }
-      } finally {
-        setIsUploading(false);
+        const payload = (await res.json()) as { cards?: DraftCard[] };
+        cards = payload.cards ?? [];
+      } else {
+        const result = await generateCards.mutateAsync({ notes: data.notes ?? "" });
+        cards = result;
       }
-    } else {
-      createDeck.mutate({ subject: data.subject, examDate: dateStr, notes: data.notes ?? "" });
+
+      setDraftCards(cards);
+    } catch (err: unknown) {
+      setUploadError(
+        err instanceof Error ? err.message : "An unexpected error occurred while generating cards."
+      );
+    } finally {
+      setIsGenerating(false);
     }
+  };
+
+  const onCreateDeck = async () => {
+    if (!draftCards) return;
+
+    const { subject, examDate } = form.getValues();
+    if (!subject || !examDate) {
+      setUploadError("Subject and exam date are required.");
+      return;
+    }
+
+    createDeck.mutate({
+      subject,
+      examDate: format(examDate, "yyyy-MM-dd"),
+      cards: draftCards.map((card) => ({ front: card.front, back: card.back })),
+    });
+  };
+
+  const updateDraftCard = (index: number, field: "front" | "back", value: string) => {
+    setDraftCards((prev) =>
+      prev?.map((card, i) => (i === index ? { ...card, [field]: value } : card)) ?? []
+    );
+  };
+
+  const removeDraftCard = (index: number) => {
+    setDraftCards((prev) => prev?.filter((_, i) => i !== index) ?? []);
   };
 
   const handleFile = (f: File | undefined) => {
@@ -141,6 +167,8 @@ export const DeckCreator = ({ className }: { className?: string }) => {
     }
   };
 
+  const hasEmptyCard = draftCards?.some((card) => !card.front.trim() || !card.back.trim()) ?? false;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -148,14 +176,13 @@ export const DeckCreator = ({ className }: { className?: string }) => {
           <Plus className="size-4" /> New Deck
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] border-4 border-border p-6 bg-secondary-background">
+      <DialogContent className="sm:max-w-[600px] border-4 border-border p-6 bg-secondary-background max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-black uppercase tracking-widest text-foreground">Create Flashcard Deck</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-
+          <form onSubmit={form.handleSubmit(onGenerate)} className="space-y-4 pt-4">
             <FormField
               control={form.control}
               name="subject"
@@ -274,6 +301,52 @@ export const DeckCreator = ({ className }: { className?: string }) => {
               </div>
             </div>
 
+            {draftCards && (
+              <div className="space-y-3 border-t-2 border-border pt-4">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Generated Cards ({draftCards.length})
+                  </FormLabel>
+                  <span className="text-xs font-bold text-muted-foreground">
+                    Edit or remove cards before saving
+                  </span>
+                </div>
+
+                {draftCards.map((card, index) => (
+                  <div key={index} className="rounded-base bg-background border-2 border-border p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-black tracking-widest uppercase text-muted-foreground">
+                        Card {index + 1}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="noShadow"
+                        size="icon"
+                        onClick={() => removeDraftCard(index)}
+                        className="rounded-base text-destructive hover:bg-destructive/10 h-7 w-7 cursor-pointer border-2 border-transparent bg-transparent"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={card.front}
+                      onChange={(e) => updateDraftCard(index, "front", e.target.value)}
+                      placeholder="Question / prompt"
+                      maxLength={2000}
+                      className="min-h-[70px] p-2 border-2 border-border rounded-base focus:outline-none focus:ring-2 focus:ring-main bg-background text-foreground resize-none font-base text-sm"
+                    />
+                    <Textarea
+                      value={card.back}
+                      onChange={(e) => updateDraftCard(index, "back", e.target.value)}
+                      placeholder="Answer"
+                      maxLength={5000}
+                      className="min-h-[70px] p-2 border-2 border-border rounded-base focus:outline-none focus:ring-2 focus:ring-main bg-background text-foreground resize-none font-base text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
             {(createDeck.isError || uploadError) && (
               <div className="p-3 border-2 border-destructive bg-destructive/10 rounded-base">
                 <p className="text-destructive text-sm font-bold text-center">
@@ -282,15 +355,36 @@ export const DeckCreator = ({ className }: { className?: string }) => {
               </div>
             )}
 
-            <Button
-              type="submit"
-              disabled={createDeck.isPending || isUploading}
-              className="w-full mt-4 bg-foreground text-background font-black uppercase tracking-widest text-lg p-4 rounded-base border-4 border-transparent hover:bg-main hover:text-main-foreground transition-colors duration-200 h-10"
-            >
-              {(createDeck.isPending || isUploading) ? (
-                <span className="flex items-center gap-2"><Loader2 className="animate-spin size-5" /> Generating Cards...</span>
-              ) : "Generate Cards"}
-            </Button>
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="submit"
+                disabled={isGenerating}
+                className="w-full bg-foreground text-background font-black uppercase tracking-widest text-lg p-4 rounded-base border-4 border-transparent hover:bg-main hover:text-main-foreground transition-colors duration-200 h-10"
+              >
+                {isGenerating ? (
+                  <span className="flex items-center gap-2"><Loader2 className="animate-spin size-5" /> Generating Cards...</span>
+                ) : draftCards ? (
+                  "Regenerate Cards"
+                ) : (
+                  "Generate Cards"
+                )}
+              </Button>
+
+              {draftCards && (
+                <Button
+                  type="button"
+                  onClick={onCreateDeck}
+                  disabled={hasEmptyCard || createDeck.isPending}
+                  className="w-full bg-main text-main-foreground font-black uppercase tracking-widest text-lg p-4 rounded-base border-4 border-border hover:bg-main/90 transition-colors duration-200 h-10"
+                >
+                  {createDeck.isPending ? (
+                    <span className="flex items-center gap-2"><Loader2 className="animate-spin size-5" /> Saving...</span>
+                  ) : (
+                    `Create Deck (${draftCards.length})`
+                  )}
+                </Button>
+              )}
+            </div>
           </form>
         </Form>
       </DialogContent>

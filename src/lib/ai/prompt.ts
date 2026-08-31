@@ -69,11 +69,14 @@ Prior context with this user:
 ${recentTopics}`;
 };
 
-export const GENERATE_CARDS_PROMPT = (notes: string) => `Extract the core concepts, terms, and facts from the notes below and generate flashcards. Use only information present in the notes — do not add outside facts.
+export const GENERATE_CARDS_PROMPT = (notes: string, maxCards = 20) => `Extract the core concepts, terms, and facts from the notes below and generate flashcards. Use ONLY information present in the notes — never invent or add outside facts.
 
 - front: a succinct, clear prompt or term.
 - back: a concise, fully accurate answer.
-- Maximum 20 cards.
+- Generate up to ${maxCards} cards. If the notes only support fewer distinct concepts, generate only that many — never pad with invented or trivial cards.
+- Do not generate a card whose front is a section heading, URL, page number, reference list entry, copyright line, or navigation/menu text — those are not learnable concepts.
+- Do not duplicate concepts.
+- Skip any text in the notes that is a link, page number, footer, or headers.
 
 Notes:
 ${notes}

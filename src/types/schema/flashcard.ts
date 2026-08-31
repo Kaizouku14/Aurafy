@@ -12,3 +12,18 @@ export const CreateDeckSchema = z.object({
 });
 
 export type CreateDeckInput = z.infer<typeof CreateDeckSchema>;
+
+export const CardDraftSchema = z.object({
+  front: z
+    .string()
+    .trim()
+    .min(1, "The card question is required.")
+    .max(2000, "The card question is too long (max 2,000 characters)."),
+  back: z
+    .string()
+    .trim()
+    .min(1, "The card answer is required.")
+    .max(5000, "The card answer is too long (max 5,000 characters)."),
+});
+
+export type CardDraftInput = z.infer<typeof CardDraftSchema>;

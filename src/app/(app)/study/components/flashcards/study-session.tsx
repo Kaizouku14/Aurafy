@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowRight, BrainCircuit, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { Loading } from "../shared/loading";
+
+const MAX_SAME_SESSION_REVIEWS = 2;
 
 export const StudySession = ({
   deckId,
@@ -19,6 +21,7 @@ export const StudySession = ({
     deckId,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [queue, setQueue] = useState<string[] | null>(null);
   const [userAnswer, setUserAnswer] = useState("");
   const [feedback, setFeedback] = useState<{
     score: number;
@@ -26,9 +29,24 @@ export const StudySession = ({
     back: string;
   } | null>(null);
 
+  useEffect(() => {
+    if (dueCards) {
+      setQueue(dueCards.map((card) => card.id));
+    }
+  }, [dueCards]);
+
   const submitReview = api.flashcard.submitReview.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setFeedback({ score: data.score, text: data.feedback, back: data.back });
+
+      if (data.score < 3) {
+        setQueue((current) => {
+          const base = current ?? dueCards?.map((card) => card.id) ?? [];
+          const occurrences = base.filter((id) => id === variables.flashcardId).length;
+          if (occurrences >= MAX_SAME_SESSION_REVIEWS) return base;
+          return [...base, variables.flashcardId];
+        });
+      }
     },
   });
 
@@ -59,7 +77,8 @@ export const StudySession = ({
     );
   }
 
-  const currentCard = dueCards[currentIndex];
+  const activeQueue = queue ?? dueCards.map((card) => card.id);
+  const currentCard = dueCards.find((card) => card.id === activeQueue[currentIndex]);
 
   if (!currentCard) return null;
 
@@ -72,7 +91,7 @@ export const StudySession = ({
   const handleNext = () => {
     setFeedback(null);
     setUserAnswer("");
-    if (currentIndex + 1 >= dueCards.length) {
+    if (currentIndex + 1 >= activeQueue.length) {
       onFinish();
     } else {
       setCurrentIndex((curr) => curr + 1);
@@ -95,7 +114,7 @@ export const StudySession = ({
           </h2>
         </div>
         <div className="bg-secondary-background border-border rounded-base border-2 px-3 py-1.5 text-center text-sm font-bold">
-          Card {currentIndex + 1} of {dueCards.length}
+          Card {currentIndex + 1} of {activeQueue.length}
         </div>
       </div>
 

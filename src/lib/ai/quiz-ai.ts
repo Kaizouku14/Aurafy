@@ -111,7 +111,7 @@ export const generateQuizFromNotes = async (
 ) => {
   if (quizType === "multiple_choice") {
     const { object } = await generateObject({
-      model: groq(MODELS.default),
+      model: groq(MODELS.quiz),
       schema: mcqSchema,
       prompt: buildPrompt(notes, quizType, count),
     });
@@ -124,7 +124,7 @@ export const generateQuizFromNotes = async (
 
   if (quizType === "true_false") {
     const { object } = await generateObject({
-      model: groq(MODELS.default),
+      model: groq(MODELS.quiz),
       schema: tfSchema,
       prompt: buildPrompt(notes, quizType, count),
     });
@@ -139,7 +139,7 @@ export const generateQuizFromNotes = async (
 
   if (quizType === "identification") {
     const { object } = await generateObject({
-      model: groq(MODELS.default),
+      model: groq(MODELS.quiz),
       schema: identificationSchema,
       prompt: buildPrompt(notes, quizType, count),
     });
@@ -163,7 +163,7 @@ export const generateOpenEndedQuizFromNotes = async (
   count = 10,
 ): Promise<OpenEndedQuestion[]> => {
   const { object } = await generateObject({
-    model: groq(MODELS.default),
+    model: groq(MODELS.quiz),
     schema: openEndedSchema,
     prompt: GENERATE_OPEN_ENDED_QUIZ_PROMPT(notes, count),
   });

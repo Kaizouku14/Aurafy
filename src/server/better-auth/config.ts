@@ -18,6 +18,12 @@ export const auth = betterAuth({
     process.env.BETTER_AUTH_URL!,
     process.env.NEXT_PUBLIC_API_URL!,
   ],
+  account: {
+    identityStrategy: "provider-id",
+    fields: {
+      issuer: "providerId",
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },

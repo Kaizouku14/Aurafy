@@ -27,7 +27,9 @@ const Header = () => {
         if (mounted) {
           setHasSpotifyLinked(
             accountsResult.data?.some(
-              (account) => account.providerId === "spotify",
+              (account) =>
+                account.providerId === "spotify" ||
+                account.providerId === "local:oauth:spotify",
             ) ?? false,
           );
         }

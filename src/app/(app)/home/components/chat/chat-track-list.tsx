@@ -31,7 +31,7 @@ const ChatTrackList: React.FC<ChatTrackListProps> = ({ tracks }) => {
   };
 
   return (
-    <div className="mt-2 flex flex-col">
+    <div className="mt-2 sm:hidden  flex flex-col ">
       <p className="text-muted-foreground mb-1 text-[10px] font-semibold uppercase tracking-widest">
         Queued · tap to play
       </p>
@@ -74,7 +74,7 @@ const ChatTrackList: React.FC<ChatTrackListProps> = ({ tracks }) => {
             </div>
 
             <div className="min-w-0 flex-1">
-              <p title={track.title} className="truncate text-[11px] font-bold">
+              <p title={track.title} className="truncate text-[11px] font-bold w-28">
                 {track.title}
               </p>
               <p className="text-muted-foreground truncate text-[10px]">

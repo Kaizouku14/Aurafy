@@ -3,7 +3,9 @@ import { headers } from "next/headers";
 import { cache } from "react";
 import { db } from "@/server/db";
 import { account } from "@/server/db/schema/user";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
+
+const spotifyAccountIssuers = ["spotify", "local:oauth:spotify"] as const;
 
 export const getSession = cache(async () =>
   auth.api.getSession({ headers: await headers() }),
@@ -19,7 +21,7 @@ export const getSpotifyToken = cache(async (userId: string) => {
       const dbAccount = await db.query.account.findFirst({
         where: and(
           eq(account.userId, userId),
-          eq(account.providerId, "spotify"),
+          inArray(account.providerId, [...spotifyAccountIssuers]),
         ),
       });
 

@@ -1,5 +1,7 @@
 import { authClient } from "@/server/better-auth/client";
 
+const spotifyIssuers = ["spotify", "local:oauth:spotify"];
+
 let tokenPromise: Promise<string> | null = null;
 
 export const fetchFreshToken = async (): Promise<string> => {
@@ -10,7 +12,7 @@ export const fetchFreshToken = async (): Promise<string> => {
       const accountsResult = await authClient.listAccounts();
 
       const spotifyAccount = accountsResult.data?.find(
-        (account) => account.providerId === "spotify",
+        (account) => spotifyIssuers.includes(account.providerId),
       );
 
       if (!spotifyAccount) {

@@ -45,8 +45,8 @@ const Conversation = () => {
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 ">
-        <div className="p-3">
+      <ScrollArea className="flex-1 h-90 w-">
+        <div className="p-3 h-90 ">
           {messages.length === 0 ? (
             <ChatEmpty onSuggestion={handleSend} />
           ) : (
